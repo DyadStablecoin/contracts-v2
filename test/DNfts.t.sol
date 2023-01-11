@@ -4,7 +4,7 @@ pragma solidity = 0.8.17;
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
 
-contract DyadNftsTest is BaseTest, Parameters {
+contract DNftsTest is BaseTest, Parameters {
   function testInsiderAllocation() public {
     assertEq(dNfts.totalSupply(), INSIDERS.length);
 
