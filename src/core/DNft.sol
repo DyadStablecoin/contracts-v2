@@ -42,7 +42,7 @@ contract DNft is ERC721Enumerable {
   }
 
   // Mint new DNft to `to` 
-  function mintNft(address to) external addressNotZero(to) payable {
+  function mintNft(address to) external addressNotZero(to) {
     _mintNft(to, totalSupply()); 
   }
 
