@@ -2,9 +2,14 @@
 pragma solidity = 0.8.17;
 
 import {BaseTest} from "./BaseTest.sol";
+import {Parameters} from "../src/Parameters.sol";
 
-contract DyadNftsTest is BaseTest {
-  function testBla() public {
-    dyadNfts.ownerOf(0);
+contract DyadNftsTest is BaseTest, Parameters {
+  function testInsiderAllocation() public {
+    assertEq(dyadNfts.totalSupply(), INSIDERS.length);
+    assertEq(dyadNfts.balanceOf(INSIDERS[0]), 1);
+    assertEq(dyadNfts.balanceOf(INSIDERS[1]), 1);
+    assertEq(dyadNfts.balanceOf(INSIDERS[2]), 1);
+    assertEq(dyadNfts.ownerOf(3), INSIDERS[3]);
   }
 }

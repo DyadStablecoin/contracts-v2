@@ -22,9 +22,9 @@ contract DyadNfts is ERC721Enumerable {
   ) ERC721("Dyad NFT", "dNFT") {
     dyad      = Dyad(_dyad);
 
-    for (uint id = 0; id < _insiders.length; ) { 
-      // _mintNft(_insiders[id], id, true);         
-      unchecked { ++id; }
+    for (uint i = 0; i < _insiders.length; ) { 
+      _mint(_insiders[i], i);
+      unchecked { ++i; }
     }
   }
 }
