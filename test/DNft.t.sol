@@ -3,9 +3,10 @@ pragma solidity = 0.8.17;
 
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
+import {IDNft} from "../src/interfaces/IDNft.sol";
 
 contract DNftsTest is BaseTest, Parameters {
-  function testInsiderAllocation() public {
+  function testInsidersAllocation() public {
     assertEq(dNfts.totalSupply(), INSIDERS.length);
 
     assertEq(dNfts.balanceOf(INSIDERS[0]), 1);
@@ -17,11 +18,9 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(dNfts.ownerOf(2), INSIDERS[2]);
   }
 
-  function testInsiderXpAllocation() public {
-    (uint xp,,,) = dNfts.idToNft(0);
-    assertEq(xp, dNfts.MAX_SUPPLY()*2);
-
-    (xp,,,) = dNfts.idToNft(1);
-    assertEq(xp, dNfts.MAX_SUPPLY()*2-1);
+  function testInsidersXpAllocation() public {
+    assertEq(dNfts.idToNft(0).xp, dNfts.maxSupply()*2);
+    assertEq(dNfts.idToNft(1).xp, dNfts.maxSupply()*2-1);
+    assertEq(dNfts.idToNft(2).xp, dNfts.maxSupply()*2-2);
   }
 }

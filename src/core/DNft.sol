@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {Dyad} from "./Dyad.sol";
 
 contract DNft is ERC721Enumerable {
-  uint public constant MAX_SUPPLY = 10000;
+  uint private constant MAX_SUPPLY = 10000;
 
   mapping(uint256 => Nft) public idToNft;
 
@@ -27,7 +27,7 @@ contract DNft is ERC721Enumerable {
     address _dyad,
     address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-    dyad      = Dyad(_dyad);
+    dyad = Dyad(_dyad);
 
     for (uint i = 0; i < _insiders.length; ) { 
       _mintNft(_insiders[i], i);
@@ -35,7 +35,7 @@ contract DNft is ERC721Enumerable {
     }
   }
 
-    // Mint new dNFT to `to` with `id` id 
+  // Mint new dNFT to `to` with `id` id 
   function _mintNft(
     address to,
     uint id
@@ -47,4 +47,6 @@ contract DNft is ERC721Enumerable {
     // }
     emit NftMinted(to, id);
   }
+
+  function maxSupply() external pure returns (uint) { return MAX_SUPPLY; }
 }
