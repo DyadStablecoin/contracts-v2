@@ -18,6 +18,11 @@ interface IDNft {
     uint id
   ) external view returns (Nft memory);
 
+  function mintNft(
+    address to
+  ) external payable;
+
+
   function maxSupply() external pure returns (uint);
 
   // ERC721
