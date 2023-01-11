@@ -11,7 +11,12 @@ contract DeployBase is Script, Parameters {
     vm.startBroadcast();
 
     Dyad dyad = new Dyad();
-    DNft dNft = new DNft(address(dyad), INSIDERS);
+    DNft dNft = new DNft(
+      address(dyad),
+      ORACLE_MAINNET,
+      DEPOSIT_MIMIMUM,
+      INSIDERS
+    );
 
     dyad.transferOwnership(address(dNft));
 
