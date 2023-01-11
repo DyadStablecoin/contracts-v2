@@ -16,4 +16,12 @@ contract DyadNftsTest is BaseTest, Parameters {
     assertEq(dyadNfts.ownerOf(1), INSIDERS[1]);
     assertEq(dyadNfts.ownerOf(2), INSIDERS[2]);
   }
+
+  function testInsiderXpAllocation() public {
+    (uint xp,,,) = dyadNfts.idToNft(0);
+    assertEq(xp, dyadNfts.MAX_SUPPLY()*2);
+
+    (xp,,,) = dyadNfts.idToNft(1);
+    assertEq(xp, dyadNfts.MAX_SUPPLY()*2-1);
+  }
 }
