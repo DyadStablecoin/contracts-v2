@@ -52,9 +52,6 @@ contract DNft is ERC721Enumerable {
   ) private {
     if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
     _mint(to, id); 
-    unchecked {
-    idToNft[id].xp = (MAX_SUPPLY<<1) - id; // break xp symmetry 
-    }
     emit NftMinted(to, id);
   }
 
