@@ -1,17 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
-import "forge-std/Test.sol";
-import {DeployBase} from "../script/deploy/DeployBase.s.sol";
-import {DyadNfts} from "../src/core/DyadNfts.sol";
+import {BaseTest} from "./BaseTest.sol";
+import {Parameters} from "../src/Parameters.sol";
 
-contract DyadNftsTest is Test {
-  DyadNfts dyadNfts;
+contract DyadNftsTest is BaseTest, Parameters {
+  function testInsiderAllocation() public {
+    assertEq(dyadNfts.totalSupply(), INSIDERS.length);
 
-  function setUp() public {
-    DeployBase deployBase = new DeployBase();
-    (address _dyadNfts, ) = deployBase.deploy();
-    dyadNfts = DyadNfts(_dyadNfts);
+    assertEq(dyadNfts.balanceOf(INSIDERS[0]), 1);
+    assertEq(dyadNfts.balanceOf(INSIDERS[1]), 1);
+    assertEq(dyadNfts.balanceOf(INSIDERS[2]), 1);
+
+    assertEq(dyadNfts.ownerOf(0), INSIDERS[0]);
+    assertEq(dyadNfts.ownerOf(1), INSIDERS[1]);
+    assertEq(dyadNfts.ownerOf(2), INSIDERS[2]);
   }
-
 }

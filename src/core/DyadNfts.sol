@@ -17,8 +17,14 @@ contract DyadNfts is ERC721Enumerable {
   }
 
   constructor(
-    address _dyad
+    address _dyad,
+    address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
     dyad      = Dyad(_dyad);
+
+    for (uint i = 0; i < _insiders.length; ) { 
+      _mint(_insiders[i], i);
+      unchecked { ++i; }
+    }
   }
 }
