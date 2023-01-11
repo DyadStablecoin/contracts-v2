@@ -3,19 +3,19 @@ pragma solidity = 0.8.17;
 
 import "forge-std/Script.sol";
 import {Dyad} from "../../src/core/Dyad.sol";
-import {DyadNfts} from "../../src/core/DyadNfts.sol";
+import {DNft} from "../../src/core/DNft.sol";
 import {Parameters} from "../../src/Parameters.sol";
 
 contract DeployBase is Script, Parameters {
   function deploy() public returns (address, address) {
     vm.startBroadcast();
 
-    Dyad     dyad     = new Dyad();
-    DyadNfts dyadNfts = new DyadNfts(address(dyad), INSIDERS);
+    Dyad dyad = new Dyad();
+    DNft dNft = new DNft(address(dyad), INSIDERS);
 
-    dyad.transferOwnership(address(dyadNfts));
+    dyad.transferOwnership(address(dNft));
 
     vm.stopBroadcast();
-    return (address(dyadNfts), address(dyad));
+    return (address(dNft), address(dyad));
   }
 }
