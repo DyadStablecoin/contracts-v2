@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
 import {Dyad} from "./Dyad.sol";
 
-contract DyadNfts is ERC721Enumerable {
+contract DNfts is ERC721Enumerable {
   uint public constant MAX_SUPPLY = 10000;
 
   mapping(uint256 => Nft) public idToNft;
