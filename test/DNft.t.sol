@@ -18,11 +18,17 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(DNft.ownerOf(2), INSIDERS[2]);
   }
   function testMintNft() public {
-    DNft.mintNft(address(this));
+    DNft.mintNft{value: 5 ether}(address(this));
     assertEq(DNft.totalSupply(), INSIDERS.length + 1);
   }
   function testFailMintToZeroAddress() public {
     DNft.mintNft(address(0));
+  }
+  function testFailMintNoEthSupplied() public {
+    DNft.mintNft(address(this));
+  }
+  function testFailMintNotReachedMinAmount() public {
+    DNft.mintNft{value: 1 ether}(address(this));
   }
   function testFailMintExceedsMaxSupply() public {
     uint nftsLeft = DNft.maxSupply() - DNft.totalSupply();
