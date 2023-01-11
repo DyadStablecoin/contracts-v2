@@ -22,6 +22,11 @@ contract DNft is ERC721Enumerable {
   event NftMinted(address indexed to, uint indexed id);
 
   error ReachedMaxSupply();
+  error AddressZero     (address addr);
+
+  modifier addressNotZero(address addr) {
+    if (addr == address(0)) revert AddressZero(addr); _;
+  }
 
   constructor(
     address _dyad,
@@ -35,16 +40,18 @@ contract DNft is ERC721Enumerable {
     }
   }
 
-  // Mint new dNFT to `to` with `id` id 
+  // Mint new DNft to `to` 
+  function mintNft(address to) external addressNotZero(to) {
+    _mintNft(to, totalSupply()); 
+  }
+
+  // Mint new DNft to `to` with `id` id 
   function _mintNft(
     address to,
     uint id
   ) private {
     if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
     _mint(to, id); 
-    // unchecked {
-    idToNft[id].xp = (MAX_SUPPLY<<1) - id; // break xp symmetry 
-    // }
     emit NftMinted(to, id);
   }
 

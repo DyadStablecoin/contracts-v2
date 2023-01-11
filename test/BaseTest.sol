@@ -6,12 +6,12 @@ import {DeployBase} from "../script/deploy/DeployBase.s.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 
 contract BaseTest is Test {
-  IDNft dNfts;
+  IDNft DNft;
 
   function setUp() public {
     DeployBase deployBase = new DeployBase();
     (address _dNfts, ) = deployBase.deploy();
-    dNfts = IDNft(_dNfts);
+    DNft = IDNft(_dNfts);
   }
 
 }
