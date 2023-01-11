@@ -24,5 +24,4 @@ interface IDNft {
   function ownerOf(uint tokenId) external view returns (address);
   function balanceOf(address owner) external view returns (int);
   function totalSupply() external view returns (uint);
-  function transferFrom(address _from, address _to, uint256 _tokenId) external payable;
 }
