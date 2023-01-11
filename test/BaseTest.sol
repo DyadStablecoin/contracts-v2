@@ -3,15 +3,15 @@ pragma solidity = 0.8.17;
 
 import "forge-std/Test.sol";
 import {DeployBase} from "../script/deploy/DeployBase.s.sol";
-import {DyadNfts} from "../src/core/DyadNfts.sol";
+import {IDyadNfts} from "../src/interfaces/IDyadNfts.sol";
 
 contract BaseTest is Test {
-  DyadNfts dyadNfts;
+  IDyadNfts dyadNfts;
 
   function setUp() public {
     DeployBase deployBase = new DeployBase();
     (address _dyadNfts, ) = deployBase.deploy();
-    dyadNfts = DyadNfts(_dyadNfts);
+    dyadNfts = IDyadNfts(_dyadNfts);
   }
 
 }
