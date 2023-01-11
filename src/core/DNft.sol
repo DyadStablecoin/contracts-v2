@@ -28,7 +28,6 @@ contract DNft is ERC721Enumerable {
     if (addr == address(0)) revert AddressZero(addr); _;
   }
 
-
   constructor(
     address _dyad,
     address[] memory _insiders
