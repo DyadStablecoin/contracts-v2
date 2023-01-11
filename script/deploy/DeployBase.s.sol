@@ -10,12 +10,12 @@ contract DeployBase is Script, Parameters {
   function deploy() public returns (address, address) {
     vm.startBroadcast();
 
-    Dyad     dyad = new Dyad();
-    DNft dyadNfts = new DNft(address(dyad), INSIDERS);
+    Dyad dyad = new Dyad();
+    DNft dNft = new DNft(address(dyad), INSIDERS);
 
-    dyad.transferOwnership(address(dyadNfts));
+    dyad.transferOwnership(address(dNft));
 
     vm.stopBroadcast();
-    return (address(dyadNfts), address(dyad));
+    return (address(dNft), address(dyad));
   }
 }
