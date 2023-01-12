@@ -27,10 +27,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     uint creditScore;
   }
 
-  event NftMinted       (address indexed to, uint indexed id);
-  event DyadDepositMoved(uint indexed from, uint indexed to, uint amount);
-  event DyadWithdrawn   (uint indexed id, uint amount);
-  event DyadRedeemed    (address indexed to, uint indexed id, uint amount);
+  event NftMinted        (address indexed to, uint indexed id);
+  event DyadDepositMoved (uint indexed from, uint indexed to, uint amount);
+  event DyadWithdrawn    (uint indexed id, uint amount);
+  event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
+  event DyadDepositBurned(uint indexed id, uint amount);
 
 
   error ReachedMaxSupply        ();
@@ -146,6 +147,20 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       (bool success, ) = payable(msg.sender).call{value: eth}("");
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit DyadRedeemed(msg.sender, id, amount);
+  }
+
+  // Burn deposit for xp
+  function burn(
+    uint id,
+    uint amount
+  ) external isDNftOwner(id) {
+    Nft storage nft = idToNft[id];
+    if (amount > nft.deposit) { revert ExceedsDepositBalance(amount); }
+    unchecked {
+    nft.deposit -= amount;  // amount <= nft.deposit
+    }
+    nft.xp += amount;
+    emit DyadDepositBurned(id, amount);
   }
 
   // ETH price in USD
