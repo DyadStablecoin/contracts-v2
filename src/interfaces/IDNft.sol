@@ -26,6 +26,12 @@ interface IDNft {
     uint id
   ) external payable;
 
+  function moveDeposit(
+    uint from, 
+    uint to, 
+    uint amount
+  ) external payable;
+
   function maxSupply() external pure returns (uint);
 
   // ERC721

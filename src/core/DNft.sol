@@ -26,6 +26,7 @@ contract DNft is ERC721Enumerable {
   }
 
   event NftMinted(address indexed to, uint indexed id);
+  event DyadDepositMoved(uint indexed from, uint indexed to, uint amount);
 
   error ReachedMaxSupply   ();
   error NoEthSupplied      ();
@@ -33,12 +34,21 @@ contract DNft is ERC721Enumerable {
   error AmountZero         (uint amount);
   error NotReachedMinAmount(uint amount);
   error DNftDoesNotExist   (uint id);
+  error NotNFTOwner        (uint id);
+  error CannotMoveDepositToSelf(uint from, uint to);
+  error ExceedsDepositBalance(uint amount);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
   }
+  modifier amountNotZero(uint amount) {
+    if (amount == 0) revert AmountZero(amount); _;
+  }
   modifier dNftExists(uint id) {
     if (!_exists(id)) revert DNftDoesNotExist(id); _;
+  }
+  modifier isDNftOwner(uint id) {
+    if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
 
   constructor(
@@ -83,6 +93,22 @@ contract DNft is ERC721Enumerable {
     uint newDeposit = msg.value/100000000 * _getLatestEthPrice();
     if (newDeposit < minAmount) { revert NotReachedMinAmount(newDeposit); }
     idToNft[id].deposit += newDeposit;
+  }
+
+  // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
+  function moveDeposit(
+      uint _from,
+      uint _to,
+      uint _amount
+  ) external isDNftOwner(_from) amountNotZero(_amount) {
+      if (_from == _to) { revert CannotMoveDepositToSelf(_from, _to); }
+      Nft storage from = idToNft[_from];
+      if (_amount > from.deposit) { revert ExceedsDepositBalance(_amount); }
+      unchecked {
+      from.deposit         -= _amount;  // amount <= from.deposit
+      }
+      idToNft[_to].deposit += _amount;
+      emit DyadDepositMoved(_from, _to, _amount);
   }
 
   // ETH price in USD

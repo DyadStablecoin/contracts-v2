@@ -55,4 +55,40 @@ contract DNftsTest is BaseTest, Parameters {
   function testFailDepositDNftDoesNotExist() public {
     dNft.deposit{value: 5 ether}(dNft.totalSupply());
   }
+
+  // -------------------- deposit --------------------
+  function testMoveDeposit() public {
+    uint from = dNft.totalSupply();
+    uint to   = 0;
+    dNft.mintNft{value: 5 ether}(address(this));
+
+    uint depositFromBefore = dNft.idToNft(from).deposit;
+    uint depositToBefore   = dNft.idToNft(to).deposit;
+
+    dNft.moveDeposit(from, to, 10000);
+
+    uint depositFromAfter = dNft.idToNft(from).deposit;
+    uint depositToAfter = dNft.idToNft(to).deposit;
+
+    assertTrue(depositFromAfter < depositFromBefore);
+    assertTrue(depositToAfter   > depositToBefore);
+  }
+  function testFailMoveDepositNotDNftOwner() public {
+    dNft.moveDeposit(0, 2, 10000); // DNft 0 is owned by one of the insiders
+  }
+  function testFailMoveDepositAmountIsZero() public {
+    uint id = dNft.totalSupply();
+    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.moveDeposit(id, 2, 0);
+  }
+  function testFailMoveDepositCannotMoveDepositToSelf() public {
+    uint id = dNft.totalSupply();
+    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.moveDeposit(id, id, 10000);
+  }
+  function testFailMoveDepositExceedsDepositBalance() public {
+    uint id = dNft.totalSupply();
+    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.moveDeposit(id, 0, 50000 ether);
+  }
 }
