@@ -104,9 +104,10 @@ contract DNft is ERC721Enumerable {
       if (_from == _to) { revert CannotMoveDepositToSelf(_from, _to); }
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(_amount); }
-      Nft storage to   = idToNft[_to];
-      from.deposit    -= _amount;
-      to.deposit      += _amount;
+      unchecked {
+      from.deposit         -= _amount;  // amount <= from.deposit
+      }
+      idToNft[_to].deposit += _amount;
       emit DyadDepositMoved(_from, _to, _amount);
   }
 
