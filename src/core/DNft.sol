@@ -36,8 +36,7 @@ contract DNft is ERC721Enumerable {
   error DNftDoesNotExist   (uint id);
   error NotNFTOwner        (uint id);
   error CannotMoveDepositToSelf(uint from, uint to);
-  error ExceedsDepositLimit    (uint amount);
-
+  error ExceedsDepositBalance(uint amount);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
@@ -104,11 +103,11 @@ contract DNft is ERC721Enumerable {
   ) external isDNftOwner(_from) amountNotZero(_amount) {
       if (_from == _to) { revert CannotMoveDepositToSelf(_from, _to); }
       Nft storage from = idToNft[_from];
-      if (_amount > from.deposit) { revert ExceedsDepositLimit(amount); }
+      if (_amount > from.deposit) { revert ExceedsDepositBalance(_amount); }
       Nft storage to   = idToNft[_to];
       from.deposit    -= _amount;
       to.deposit      += _amount;
-      emit DyadDepositMoved(_from, _to, amount);
+      emit DyadDepositMoved(_from, _to, _amount);
   }
 
   // ETH price in USD
