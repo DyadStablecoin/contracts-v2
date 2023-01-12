@@ -12,13 +12,13 @@ interface IDNft {
 
   function idToNft( uint id) external view returns (Nft memory);
 
-  function mint       (address to) external payable;
-  function deposit    (uint id) external payable;
-  function deposit    (uint id, uint amount) external;
-  function moveDeposit(uint from, uint to, uint amount) external payable;
-  function withdraw   (uint id, uint amount) external payable;
-  function redeem     (uint id, uint amount) external payable;
-  function burn       (uint id, uint amount) external payable;
+  function mint    (address to) external payable;
+  function deposit (uint id) external payable;
+  function deposit (uint id, uint amount) external;
+  function move    (uint from, uint to, uint amount) external payable;
+  function withdraw(uint id, uint amount) external payable;
+  function redeem  (uint id, uint amount) external payable;
+  function burn    (uint id, uint amount) external payable;
 
   function MAX_SUPPLY() external pure returns (uint);
 

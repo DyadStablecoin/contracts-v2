@@ -120,7 +120,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
-  function moveDeposit(
+  function move(
       uint _from,
       uint _to,
       uint _amount
