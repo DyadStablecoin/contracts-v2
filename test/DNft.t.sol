@@ -105,6 +105,8 @@ contract DNftsTest is BaseTest, Parameters {
 
   // -------------------- burn --------------------
   function testBurn() public {
-
+    uint id = dNft.totalSupply();
+    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.burn(id, 10_000);
   }
 }

@@ -17,6 +17,7 @@ interface IDNft {
   function moveDeposit(uint from, uint to, uint amount) external payable;
   function withdraw   (uint id, uint amount) external payable;
   function redeem     (uint id, uint amount) external payable;
+  function burn       (uint id, uint amount) external payable;
 
   function MAX_SUPPLY() external pure returns (uint);
 
