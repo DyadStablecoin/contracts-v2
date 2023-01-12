@@ -8,48 +8,51 @@ import {IDNft} from "../src/interfaces/IDNft.sol";
 
 contract DNftsTest is BaseTest, Parameters {
   function testInsidersAllocation() public {
-    assertEq(DNft.totalSupply(), INSIDERS.length);
+    assertEq(dNft.totalSupply(), INSIDERS.length);
 
-    assertEq(DNft.balanceOf(INSIDERS[0]), 1);
-    assertEq(DNft.balanceOf(INSIDERS[1]), 1);
-    assertEq(DNft.balanceOf(INSIDERS[2]), 1);
+    assertEq(dNft.balanceOf(INSIDERS[0]), 1);
+    assertEq(dNft.balanceOf(INSIDERS[1]), 1);
+    assertEq(dNft.balanceOf(INSIDERS[2]), 1);
 
-    assertEq(DNft.ownerOf(0), INSIDERS[0]);
-    assertEq(DNft.ownerOf(1), INSIDERS[1]);
-    assertEq(DNft.ownerOf(2), INSIDERS[2]);
+    assertEq(dNft.ownerOf(0), INSIDERS[0]);
+    assertEq(dNft.ownerOf(1), INSIDERS[1]);
+    assertEq(dNft.ownerOf(2), INSIDERS[2]);
   }
 
   // -------------------- mintNft --------------------
   function testMintNft() public {
-    DNft.mintNft{value: 5 ether}(address(this));
-    assertEq(DNft.totalSupply(), INSIDERS.length + 1);
+    dNft.mintNft{value: 5 ether}(address(this));
+    assertEq(dNft.totalSupply(), INSIDERS.length + 1);
   }
   function testFailMintToZeroAddress() public {
-    DNft.mintNft(address(0));
+    dNft.mintNft(address(0));
   }
   function testFailMintNoEthSupplied() public {
-    DNft.mintNft(address(this));
+    dNft.mintNft(address(this));
   }
   function testFailMintNotReachedMinAmount() public {
-    DNft.mintNft{value: 1 ether}(address(this));
+    dNft.mintNft{value: 1 ether}(address(this));
   }
   function testFailMintExceedsMaxSupply() public {
-    uint nftsLeft = DNft.maxSupply() - DNft.totalSupply();
+    uint nftsLeft = dNft.maxSupply() - dNft.totalSupply();
     for (uint i = 0; i < nftsLeft; i++) {
-      DNft.mintNft(address(this));
+      dNft.mintNft(address(this));
     }
-    assertEq(DNft.totalSupply(), DNft.maxSupply());
-    DNft.mintNft(address(this));
+    assertEq(dNft.totalSupply(), dNft.maxSupply());
+    dNft.mintNft(address(this));
   }
 
   // -------------------- deposit --------------------
   function testDeposit() public {
-    uint depositBefore = DNft.idToNft(0).deposit;
-    DNft.deposit{value: 5 ether}(0);
-    uint depositAfter = DNft.idToNft(0).deposit;
+    uint depositBefore = dNft.idToNft(0).deposit;
+    dNft.deposit{value: 5 ether}(0);
+    uint depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
   }
   function testFailDepositNoEthSupplied() public {
-    DNft.deposit(0);
+    dNft.deposit(0);
+  }
+  function testFailDepositDNftDoesNotExist() public {
+    dNft.deposit{value: 5 ether}(dNft.totalSupply());
   }
 }

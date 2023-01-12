@@ -32,9 +32,13 @@ contract DNft is ERC721Enumerable {
   error AddressZero        (address addr);
   error AmountZero         (uint amount);
   error NotReachedMinAmount(uint amount);
+  error DNftDoesNotExist   (uint id);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
+  }
+  modifier dNftExists(uint id) {
+    if (!_exists(id)) revert DNftDoesNotExist(id); _;
   }
 
   constructor(
@@ -70,7 +74,7 @@ contract DNft is ERC721Enumerable {
     emit NftMinted(to, id);
   }
 
-  function deposit(uint id) external payable {
+  function deposit(uint id) external dNftExists(id) payable {
     _deposit(id, 0);
   }
 
