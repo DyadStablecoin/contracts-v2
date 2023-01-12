@@ -5,6 +5,7 @@ interface IDNft {
   struct Nft {
     uint xp;
     uint deposit;
+    uint withdrawal;
     uint credit;
     uint creditScore;
   }
@@ -29,6 +30,11 @@ interface IDNft {
   function moveDeposit(
     uint from, 
     uint to, 
+    uint amount
+  ) external payable;
+
+  function withdraw(
+    uint id,
     uint amount
   ) external payable;
 
