@@ -76,7 +76,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Mint new DNft to `to` 
-  function mintNft(address to) external addressNotZero(to) payable {
+  function mint(address to) external addressNotZero(to) payable {
     uint id = totalSupply();
     _mintNft(to, id); 
     _depositForEth(id, DEPOSIT_MIMIMUM);

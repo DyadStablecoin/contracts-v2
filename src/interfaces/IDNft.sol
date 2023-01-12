@@ -12,7 +12,7 @@ interface IDNft {
 
   function idToNft( uint id) external view returns (Nft memory);
 
-  function mintNft    (address to) external payable;
+  function mint       (address to) external payable;
   function deposit    (uint id) external payable;
   function deposit    (uint id, uint amount) external;
   function moveDeposit(uint from, uint to, uint amount) external payable;

@@ -19,27 +19,27 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(dNft.ownerOf(2), INSIDERS[2]);
   }
 
-  // -------------------- mintNft --------------------
+  // -------------------- mint --------------------
   function testMintNft() public {
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     assertEq(dNft.totalSupply(), INSIDERS.length + 1);
   }
   function testFailMintToZeroAddress() public {
-    dNft.mintNft(address(0));
+    dNft.mint(address(0));
   }
   function testFailMintNoEthSupplied() public {
-    dNft.mintNft(address(this));
+    dNft.mint(address(this));
   }
   function testFailMintNotReachedMinAmount() public {
-    dNft.mintNft{value: 1 ether}(address(this));
+    dNft.mint{value: 1 ether}(address(this));
   }
   function testFailMintExceedsMaxSupply() public {
     uint nftsLeft = dNft.MAX_SUPPLY() - dNft.totalSupply();
     for (uint i = 0; i < nftsLeft; i++) {
-      dNft.mintNft(address(this));
+      dNft.mint(address(this));
     }
     assertEq(dNft.totalSupply(), dNft.MAX_SUPPLY());
-    dNft.mintNft(address(this));
+    dNft.mint(address(this));
   }
 
   // -------------------- deposit --------------------
@@ -60,7 +60,7 @@ contract DNftsTest is BaseTest, Parameters {
   function testMoveDeposit() public {
     uint from = dNft.totalSupply();
     uint to   = 0;
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
 
     uint depositFromBefore = dNft.idToNft(from).deposit;
     uint depositToBefore   = dNft.idToNft(to).deposit;
@@ -78,19 +78,19 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testFailMoveDepositCannotMoveDepositToSelf() public {
     uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     dNft.moveDeposit(id, id, 10000);
   }
   function testFailMoveDepositExceedsDepositBalance() public {
     uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     dNft.moveDeposit(id, 0, 50000 ether);
   }
 
   // -------------------- withdraw --------------------
   function testWithdraw() public {
     uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, 10000);
   }
 
@@ -98,7 +98,7 @@ contract DNftsTest is BaseTest, Parameters {
   function testRedeem() public {
     uint AMOUNT_TO_REDEEM = 10000;
     uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, AMOUNT_TO_REDEEM);
     dNft.redeem  (id, AMOUNT_TO_REDEEM);
   }
@@ -106,7 +106,7 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- burn --------------------
   function testBurn() public {
     uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.mint{value: 5 ether}(address(this));
     dNft.burn(id, 10_000);
   }
 }
