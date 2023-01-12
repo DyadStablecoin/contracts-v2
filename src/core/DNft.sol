@@ -79,7 +79,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function mintNft(address to) external addressNotZero(to) payable {
     uint id = totalSupply();
     _mintNft(to, id); 
-    _mintDyad(id, DEPOSIT_MIMIMUM);
+    _depositForEth(id, DEPOSIT_MIMIMUM);
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -94,10 +94,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Deposit DYAD for ETH
   function deposit(uint id) external dNftExists(id) payable {
-    _mintDyad(id, 0);
+    _depositForEth(id, 0);
   }
 
-  function _mintDyad(uint id, uint minAmount) private {
+  function _depositForEth(uint id, uint minAmount) private {
     if (msg.value == 0) { revert NoEthSupplied(); }
     uint newDeposit = msg.value/100000000 * _getLatestEthPrice();
     if (newDeposit < minAmount) { revert NotReachedMinAmount(newDeposit); }
@@ -109,8 +109,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint amount
   ) external dNftExists(id) {
+      Nft storage nft = idToNft[id];
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       dyad.burn(msg.sender, amount);
-      idToNft[id].deposit += amount;
+      unchecked {
+      nft.withdrawal -= amount; // amount <= nft.withdrawal
+      }
+      nft.deposit    += amount;
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
