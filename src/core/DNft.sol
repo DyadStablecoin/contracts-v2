@@ -82,7 +82,7 @@ contract DNft is ERC721Enumerable {
   }
 
   // ETH price in USD
-  function _getLatestEthPrice() internal view returns (uint) {
+  function _getLatestEthPrice() private view returns (uint) {
     ( , int newEthPrice, , , ) = oracle.latestRoundData();
     return newEthPrice.toUint256();
   }
