@@ -22,6 +22,9 @@ interface IDNft {
     address to
   ) external payable;
 
+  function deposit(
+    uint id
+  ) external payable;
 
   function maxSupply() external pure returns (uint);
 

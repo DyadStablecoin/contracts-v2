@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
+import "forge-std/console.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
@@ -17,6 +18,8 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(DNft.ownerOf(1), INSIDERS[1]);
     assertEq(DNft.ownerOf(2), INSIDERS[2]);
   }
+
+  // -------------------- mintNft --------------------
   function testMintNft() public {
     DNft.mintNft{value: 5 ether}(address(this));
     assertEq(DNft.totalSupply(), INSIDERS.length + 1);
@@ -37,5 +40,16 @@ contract DNftsTest is BaseTest, Parameters {
     }
     assertEq(DNft.totalSupply(), DNft.maxSupply());
     DNft.mintNft(address(this));
+  }
+
+  // -------------------- deposit --------------------
+  function testDeposit() public {
+    uint depositBefore = DNft.idToNft(0).deposit;
+    DNft.deposit{value: 5 ether}(0);
+    uint depositAfter = DNft.idToNft(0).deposit;
+    assertTrue(depositAfter > depositBefore);
+  }
+  function testFailDepositNoEthSupplied() public {
+    DNft.deposit(0);
   }
 }
