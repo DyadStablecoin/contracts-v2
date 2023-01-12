@@ -28,10 +28,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   event NftMinted        (address indexed to, uint indexed id);
-  event DyadDepositMoved (uint indexed from, uint indexed to, uint amount);
-  event DyadWithdrawn    (uint indexed id, uint amount);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
+  event DyadWithdrawn    (uint indexed id, uint amount);
   event DyadDepositBurned(uint indexed id, uint amount);
+  event DyadDepositMoved (uint indexed from, uint indexed to, uint amount);
 
 
   error ReachedMaxSupply        ();

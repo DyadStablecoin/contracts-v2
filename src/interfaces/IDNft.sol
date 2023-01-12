@@ -10,38 +10,13 @@ interface IDNft {
     uint creditScore;
   }
 
-  /**
-   * @notice Get dNFT by id
-   * @param id dNFT id
-   * @return dNFT 
-   */
-  function idToNft(
-    uint id
-  ) external view returns (Nft memory);
+  function idToNft( uint id) external view returns (Nft memory);
 
-  function mintNft(
-    address to
-  ) external payable;
-
-  function deposit(
-    uint id
-  ) external payable;
-
-  function moveDeposit(
-    uint from, 
-    uint to, 
-    uint amount
-  ) external payable;
-
-  function withdraw(
-    uint id,
-    uint amount
-  ) external payable;
-
-  function redeem(
-    uint id,
-    uint amount
-  ) external payable;
+  function mintNft    (address to) external payable;
+  function deposit    (uint id) external payable;
+  function moveDeposit(uint from, uint to, uint amount) external payable;
+  function withdraw   (uint id, uint amount) external payable;
+  function redeem     (uint id, uint amount) external payable;
 
   function MAX_SUPPLY() external pure returns (uint);
 
