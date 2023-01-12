@@ -56,7 +56,7 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.deposit{value: 5 ether}(dNft.totalSupply());
   }
 
-  // -------------------- deposit --------------------
+  // -------------------- moveDeposit --------------------
   function testMoveDeposit() public {
     uint from = dNft.totalSupply();
     uint to   = 0;

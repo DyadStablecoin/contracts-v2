@@ -14,6 +14,7 @@ interface IDNft {
 
   function mintNft    (address to) external payable;
   function deposit    (uint id) external payable;
+  function deposit    (uint id, uint amount) external;
   function moveDeposit(uint from, uint to, uint amount) external payable;
   function withdraw   (uint id, uint amount) external payable;
   function redeem     (uint id, uint amount) external payable;
