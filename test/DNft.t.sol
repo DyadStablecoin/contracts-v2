@@ -86,4 +86,11 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mintNft{value: 5 ether}(address(this));
     dNft.moveDeposit(id, 0, 50000 ether);
   }
+
+  // -------------------- withdraw --------------------
+  function testWithdraw() public {
+    uint id = dNft.totalSupply();
+    dNft.mintNft{value: 5 ether}(address(this));
+    dNft.withdraw(id, 10000);
+  }
 }

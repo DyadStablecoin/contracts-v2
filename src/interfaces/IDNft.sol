@@ -33,6 +33,11 @@ interface IDNft {
     uint amount
   ) external payable;
 
+  function withdraw(
+    uint id,
+    uint amount
+  ) external payable;
+
   function maxSupply() external pure returns (uint);
 
   // ERC721

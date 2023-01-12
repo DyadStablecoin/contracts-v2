@@ -119,8 +119,10 @@ contract DNft is ERC721Enumerable {
   ) external isDNftOwner(id) {
       Nft storage nft = idToNft[id];
       if (amount > nft.deposit) { revert ExceedsDepositBalance(amount); }
-      nft.deposit    -= amount;
-      nft.withdrawal += amount;
+      unchecked {
+      nft.deposit    -= amount; // amount <= nft.deposit
+      }
+      nft.withdrawal += amount; 
       dyad.mint(msg.sender, amount);
       emit DyadWithdrawn(id, amount);
   }
