@@ -8,6 +8,8 @@ import {IDNft} from "../src/interfaces/IDNft.sol";
 contract BaseTest is Test {
   IDNft dNft;
 
+  receive() external payable {}
+
   function setUp() public {
     DeployBase deployBase = new DeployBase();
     (address _dNfts, ) = deployBase.deploy();
