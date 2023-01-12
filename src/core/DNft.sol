@@ -21,12 +21,14 @@ contract DNft is ERC721Enumerable {
   struct Nft {
     uint xp;
     uint deposit;
+    uint withdrawal;
     uint credit;
     uint creditScore;
   }
 
-  event NftMinted(address indexed to, uint indexed id);
+  event NftMinted       (address indexed to, uint indexed id);
   event DyadDepositMoved(uint indexed from, uint indexed to, uint amount);
+  event DyadWithdrawn   (uint indexed id, uint amount);
 
   error ReachedMaxSupply   ();
   error NoEthSupplied      ();
@@ -100,7 +102,7 @@ contract DNft is ERC721Enumerable {
       uint _from,
       uint _to,
       uint _amount
-  ) external isDNftOwner(_from) amountNotZero(_amount) {
+  ) external isDNftOwner(_from) {
       if (_from == _to) { revert CannotMoveDepositToSelf(_from, _to); }
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(_amount); }
@@ -109,6 +111,18 @@ contract DNft is ERC721Enumerable {
       }
       idToNft[_to].deposit += _amount;
       emit DyadDepositMoved(_from, _to, _amount);
+  }
+
+  function withdraw(
+      uint id,
+      uint amount
+  ) external isDNftOwner(id) {
+      Nft storage nft = idToNft[id];
+      if (amount > nft.deposit) { revert ExceedsDepositBalance(amount); }
+      nft.deposit    -= amount;
+      nft.withdrawal += amount;
+      dyad.mint(msg.sender, amount);
+      emit DyadWithdrawn(id, amount);
   }
 
   // ETH price in USD

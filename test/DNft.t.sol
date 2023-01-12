@@ -76,11 +76,6 @@ contract DNftsTest is BaseTest, Parameters {
   function testFailMoveDepositNotDNftOwner() public {
     dNft.moveDeposit(0, 2, 10000); // DNft 0 is owned by one of the insiders
   }
-  function testFailMoveDepositAmountIsZero() public {
-    uint id = dNft.totalSupply();
-    dNft.mintNft{value: 5 ether}(address(this));
-    dNft.moveDeposit(id, 2, 0);
-  }
   function testFailMoveDepositCannotMoveDepositToSelf() public {
     uint id = dNft.totalSupply();
     dNft.mintNft{value: 5 ether}(address(this));

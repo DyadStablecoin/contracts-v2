@@ -5,6 +5,7 @@ interface IDNft {
   struct Nft {
     uint xp;
     uint deposit;
+    uint withdrawal;
     uint credit;
     uint creditScore;
   }
