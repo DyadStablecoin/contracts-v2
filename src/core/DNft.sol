@@ -97,6 +97,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     _depositForEth(id, 0);
   }
 
+  // Deposit DYAD for ETH
   function _depositForEth(uint id, uint minimum) private {
     if (msg.value == 0) { revert NoEthSupplied(); }
     uint newDeposit = msg.value/100000000 * _getLatestEthPrice();
@@ -134,6 +135,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit DyadDepositMoved(_from, _to, _amount);
   }
 
+  // Withdraw DYAD from dNFT deposit
   function withdraw(
       uint id,
       uint amount
@@ -148,6 +150,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit DyadWithdrawn(id, amount);
   }
 
+  // Redeem DYAD for ETH
   function redeem(
       uint id,
       uint amount
