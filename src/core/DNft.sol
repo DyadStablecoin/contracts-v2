@@ -33,17 +33,17 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event DyadRedeemed    (address indexed to, uint indexed id, uint amount);
 
 
-  error ReachedMaxSupply   ();
-  error NoEthSupplied      ();
-  error AddressZero        (address addr);
-  error AmountZero         (uint amount);
-  error NotReachedMinAmount(uint amount);
-  error DNftDoesNotExist   (uint id);
-  error NotNFTOwner        (uint id);
-  error CannotMoveDepositToSelf(uint from, uint to);
-  error ExceedsDepositBalance(uint amount);
+  error ReachedMaxSupply        ();
+  error NoEthSupplied           ();
+  error DNftDoesNotExist        (uint id);
+  error NotNFTOwner             (uint id);
+  error AddressZero             (address addr);
+  error AmountZero              (uint amount);
+  error NotReachedMinAmount     (uint amount);
+  error ExceedsDepositBalance   (uint amount);
   error ExceedsWithdrawalBalance(uint amount);
-  error FailedEthTransfer      (address to, uint amount);
+  error CannotMoveDepositToSelf (uint from, uint to);
+  error FailedEthTransfer       (address to, uint amount);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
