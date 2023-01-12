@@ -3,11 +3,12 @@ pragma solidity = 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 
-contract DNft is ERC721Enumerable {
+contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast for int256;
 
   uint private constant MAX_SUPPLY = 10000;
@@ -29,6 +30,8 @@ contract DNft is ERC721Enumerable {
   event NftMinted       (address indexed to, uint indexed id);
   event DyadDepositMoved(uint indexed from, uint indexed to, uint amount);
   event DyadWithdrawn   (uint indexed id, uint amount);
+  event DyadRedeemed    (address indexed to, uint indexed id, uint amount);
+
 
   error ReachedMaxSupply   ();
   error NoEthSupplied      ();
@@ -39,6 +42,8 @@ contract DNft is ERC721Enumerable {
   error NotNFTOwner        (uint id);
   error CannotMoveDepositToSelf(uint from, uint to);
   error ExceedsDepositBalance(uint amount);
+  error ExceedsWithdrawalBalance(uint amount);
+  error FailedEthTransfer      (address to, uint amount);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
@@ -125,6 +130,20 @@ contract DNft is ERC721Enumerable {
       nft.withdrawal += amount; 
       dyad.mint(msg.sender, amount);
       emit DyadWithdrawn(id, amount);
+  }
+
+  function redeem(
+      uint id,
+      uint amount
+  ) external nonReentrant isDNftOwner(id) {
+      Nft storage nft = idToNft[id];
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
+      nft.withdrawal -= amount;
+      dyad.burn(msg.sender, amount);
+      uint eth = amount*100000000 / _getLatestEthPrice();
+      (bool success, ) = payable(msg.sender).call{value: eth}("");
+      if (!success) { revert FailedEthTransfer(msg.sender, eth); }
+      emit DyadRedeemed(msg.sender, id, amount);
   }
 
   // ETH price in USD
