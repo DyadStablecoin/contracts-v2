@@ -2,6 +2,8 @@
 pragma solidity = 0.8.17;
 
 interface IDNft {
+  error NotNFTOwner(uint id);
+
   struct Nft {
     uint xp;
     uint deposit;

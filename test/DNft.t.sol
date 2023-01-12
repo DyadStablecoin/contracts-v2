@@ -102,6 +102,14 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.withdraw(id, AMOUNT_TO_REDEEM);
     dNft.redeem  (id, AMOUNT_TO_REDEEM);
   }
+  function testFailRedeemNotDNftOwner() public {
+    uint AMOUNT_TO_REDEEM = 10000;
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, AMOUNT_TO_REDEEM);
+    dNft.redeem  (0, AMOUNT_TO_REDEEM);
+    vm.expectRevert(NotNFTOwner.selector);
+  }
 
   // -------------------- burn --------------------
   function testBurn() public {
