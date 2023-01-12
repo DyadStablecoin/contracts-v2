@@ -34,11 +34,11 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mintNft{value: 1 ether}(address(this));
   }
   function testFailMintExceedsMaxSupply() public {
-    uint nftsLeft = dNft.maxSupply() - dNft.totalSupply();
+    uint nftsLeft = dNft.MAX_SUPPLY() - dNft.totalSupply();
     for (uint i = 0; i < nftsLeft; i++) {
       dNft.mintNft(address(this));
     }
-    assertEq(dNft.totalSupply(), dNft.maxSupply());
+    assertEq(dNft.totalSupply(), dNft.MAX_SUPPLY());
     dNft.mintNft(address(this));
   }
 

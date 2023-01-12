@@ -11,8 +11,8 @@ import {Dyad} from "./Dyad.sol";
 contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast for int256;
 
-  uint private constant MAX_SUPPLY = 10000;
-  uint private immutable DEPOSIT_MIMIMUM;
+  uint public constant MAX_SUPPLY = 10_000;
+  uint public immutable DEPOSIT_MIMIMUM;
 
   mapping(uint256 => Nft) public idToNft;
 
@@ -153,7 +153,4 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     ( , int newEthPrice, , , ) = oracle.latestRoundData();
     return newEthPrice.toUint256();
   }
-
-  function maxSupply()      external pure returns (uint) { return MAX_SUPPLY; }
-  function depositMinimum() external view returns (uint) { return DEPOSIT_MIMIMUM; }
 }

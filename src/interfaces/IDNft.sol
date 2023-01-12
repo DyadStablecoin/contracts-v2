@@ -43,7 +43,7 @@ interface IDNft {
     uint amount
   ) external payable;
 
-  function maxSupply() external pure returns (uint);
+  function MAX_SUPPLY() external pure returns (uint);
 
   // ERC721
   function ownerOf(uint tokenId) external view returns (address);
