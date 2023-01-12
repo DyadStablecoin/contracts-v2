@@ -138,7 +138,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external nonReentrant isDNftOwner(id) {
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
-      nft.withdrawal -= amount;
+      unchecked {
+      nft.withdrawal -= amount; // amount <= nft.withdrawal
+      }
       dyad.burn(msg.sender, amount);
       uint eth = amount*100000000 / _getLatestEthPrice();
       (bool success, ) = payable(msg.sender).call{value: eth}("");
