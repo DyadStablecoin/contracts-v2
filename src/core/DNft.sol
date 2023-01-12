@@ -151,17 +151,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Burn deposit for xp
   function burn(
-    uint id,
-    uint amount
+      uint id,
+      uint amount
   ) external isDNftOwner(id) {
-    Nft storage nft = idToNft[id];
-    if (amount > nft.deposit) { revert ExceedsDepositBalance(amount); }
-    unchecked {
-    nft.deposit -= amount;  // amount <= nft.deposit
-    }
-    nft.xp += amount;
-    emit DyadDepositBurned(id, amount);
+      Nft storage nft = idToNft[id];
+      if (amount > nft.deposit) { revert ExceedsDepositBalance(amount); }
+      unchecked {
+      nft.deposit -= amount;  // amount <= nft.deposit
+      }
+      nft.xp += amount;
+      emit DyadDepositBurned(id, amount);
   }
+
+  function borrow(uint id, uint amount) external isDNftOwner(id) {}
+  function claim(uint id) external isDNftOwner(id) {}
+  function settle(uint id, uint amount) external isDNftOwner(id) {}
 
   // ETH price in USD
   function _getLatestEthPrice() private view returns (uint) {
