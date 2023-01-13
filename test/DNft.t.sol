@@ -31,7 +31,7 @@ contract DNftsTest is BaseTest, Parameters {
     vm.expectRevert(
       abi.encodeWithSelector(
         IDNft.NotReachedMinAmount.selector,
-        dNft.DEPOSIT_MIMIMUM()
+        1385100000000000000000
       )
     );
     dNft.mint{value: 1 ether}(address(this));

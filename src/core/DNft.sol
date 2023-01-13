@@ -100,7 +100,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Deposit DYAD for ETH
   function _depositForEth(uint id, uint minimum) private {
     uint newDeposit = msg.value/100000000 * _getLatestEthPrice();
-    if (newDeposit < minimum) { revert NotReachedMinAmount(minimum); }
+    if (newDeposit < minimum) { revert NotReachedMinAmount(newDeposit); }
     idToNft[id].deposit += newDeposit;
   }
 
