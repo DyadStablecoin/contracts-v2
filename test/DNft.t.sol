@@ -27,19 +27,23 @@ contract DNftsTest is BaseTest, Parameters {
   function testFailMintToZeroAddress() public {
     dNft.mint(address(0));
   }
-  function testFailMintNoEthSupplied() public {
-    dNft.mint(address(this));
-  }
-  function testFailMintNotReachedMinAmount() public {
+  function testCannotMintNotReachedMinAmount() public {
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IDNft.NotReachedMinAmount.selector,
+        1385100000000000000000
+      )
+    );
     dNft.mint{value: 1 ether}(address(this));
   }
-  function testFailMintExceedsMaxSupply() public {
+  function testCannotMintExceedsMaxSupply() public {
     uint nftsLeft = dNft.MAX_SUPPLY() - dNft.totalSupply();
     for (uint i = 0; i < nftsLeft; i++) {
-      dNft.mint(address(this));
+      dNft.mint{value: 5 ether}(address(this));
     }
     assertEq(dNft.totalSupply(), dNft.MAX_SUPPLY());
-    dNft.mint(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ReachedMaxSupply.selector));
+    dNft.mint{value: 5 ether}(address(this));
   }
 
   // -------------------- deposit --------------------
@@ -49,11 +53,10 @@ contract DNftsTest is BaseTest, Parameters {
     uint depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
   }
-  function testFailDepositNoEthSupplied() public {
-    dNft.deposit(0);
-  }
-  function testFailDepositDNftDoesNotExist() public {
-    dNft.deposit{value: 5 ether}(dNft.totalSupply());
+  function testCannotDepositDNftDoesNotExist() public {
+    uint id = dNft.totalSupply();
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DNftDoesNotExist.selector, id));
+    dNft.deposit{value: 5 ether}(id);
   }
 
   // -------------------- move --------------------
