@@ -27,10 +27,13 @@ contract DNftsTest is BaseTest, Parameters {
   function testFailMintToZeroAddress() public {
     dNft.mint(address(0));
   }
-  function testFailMintNoEthSupplied() public {
-    dNft.mint(address(this));
-  }
-  function testFailMintNotReachedMinAmount() public {
+  function testCannotMintNotReachedMinAmount() public {
+    vm.expectRevert(
+      abi.encodeWithSelector(
+        IDNft.NotReachedMinAmount.selector,
+        dNft.DEPOSIT_MIMIMUM()
+      )
+    );
     dNft.mint{value: 1 ether}(address(this));
   }
   function testFailMintExceedsMaxSupply() public {
@@ -48,9 +51,6 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.deposit{value: 5 ether}(0);
     uint depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
-  }
-  function testFailDepositNoEthSupplied() public {
-    dNft.deposit(0);
   }
   function testFailDepositDNftDoesNotExist() public {
     dNft.deposit{value: 5 ether}(dNft.totalSupply());

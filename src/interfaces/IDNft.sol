@@ -3,6 +3,7 @@ pragma solidity = 0.8.17;
 
 interface IDNft {
   error NotNFTOwner(uint id);
+  error NotReachedMinAmount(uint amount);
 
   struct Nft {
     uint xp;
@@ -23,6 +24,7 @@ interface IDNft {
   function burn    (uint id, uint amount) external payable;
 
   function MAX_SUPPLY() external pure returns (uint);
+  function DEPOSIT_MIMIMUM() external pure returns (uint);
 
   // ERC721
   function ownerOf(uint tokenId) external view returns (address);
