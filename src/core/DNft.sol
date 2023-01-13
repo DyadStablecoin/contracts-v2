@@ -3,7 +3,8 @@ pragma solidity = 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+// import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@solmate/src/utils/ReentrancyGuard.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
