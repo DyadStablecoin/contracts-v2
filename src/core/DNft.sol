@@ -41,9 +41,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
   error NotReachedMinAmount     (uint amount);
-  error ExceedsDepositBalance   (uint amount);
+  error ExceedsDepositBalance   (uint deposit);
   error ExceedsWithdrawalBalance(uint amount);
-  error CannotMoveDepositToSelf (uint from, uint to);
   error FailedEthTransfer       (address to, uint amount);
 
   modifier addressNotZero(address addr) {
@@ -124,9 +123,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       uint _amount
   ) external isDNftOwner(_from) {
-      if (_from == _to) { revert CannotMoveDepositToSelf(_from, _to); }
       Nft storage from = idToNft[_from];
-      if (_amount > from.deposit) { revert ExceedsDepositBalance(_amount); }
+      if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
       unchecked {
       from.deposit         -= _amount;  // amount <= from.deposit
       }

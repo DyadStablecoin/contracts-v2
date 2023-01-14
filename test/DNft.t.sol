@@ -76,18 +76,18 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(depositFromAfter < depositFromBefore);
     assertTrue(depositToAfter   > depositToBefore);
   }
-  function testFailMoveDepositNotDNftOwner() public {
-    dNft.move(0, 2, 10000); // DNft 0 is owned by one of the insiders
+  function testCannotMoveDepositNotDNftOwner() public {
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
+    dNft.move(0, 2, 10000); 
   }
-  function testFailMoveDepositCannotMoveDepositToSelf() public {
+  function testCannotMoveDepositExceedsDepositBalance() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.move(id, id, 10000);
-  }
-  function testFailMoveDepositExceedsDepositBalance() public {
-    uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
-    dNft.move(id, 0, 50000 ether);
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.ExceedsDepositBalance.selector,
+      dNft.idToNft(id).deposit
+    ));
+    dNft.move(id, 0, 50000000 ether);
   }
 
   // -------------------- withdraw --------------------

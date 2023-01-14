@@ -6,6 +6,7 @@ interface IDNft {
   error NotReachedMinAmount(uint amount);
   error ReachedMaxSupply();
   error DNftDoesNotExist(uint id);
+  error ExceedsDepositBalance(uint balance);
 
   struct Nft {
     uint xp;
