@@ -192,7 +192,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   function claim(uint id) external isDNftOwner(id) {
       uint xp              = idToNft[id].xp;
-      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256());
+      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256()); // between 0 and 1e18
       if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
       int newDeposit       = dyadDelta * relativeXp / 1e18;
       idToNft[id].deposit += newDeposit;
