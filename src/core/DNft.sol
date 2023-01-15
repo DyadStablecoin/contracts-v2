@@ -5,20 +5,24 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import "@solmate/src/utils/ReentrancyGuard.sol";
+import {wadDiv} from "@solmate/src/utils/SignedWadMath.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 
 contract DNft is ERC721Enumerable, ReentrancyGuard {
-  using SafeCast for int256;
-  using SafeCast for uint256;
+  using SafeCast      for uint256;
+  using SafeCast      for int256;
+  using SignedMath    for int256;
 
   uint public constant MAX_SUPPLY = 10_000;
   uint public immutable DEPOSIT_MIMIMUM;
 
   int  public dyadDelta;
-  uint public lastEthPrice;
+  int  public lastEthPrice;
+  uint public totalXp;
 
   mapping(uint256 => Nft) public idToNft;
 
@@ -72,7 +76,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       oracle          = IAggregatorV3(_oracle);
       DEPOSIT_MIMIMUM = _depositMinimum;
 
-      lastEthPrice    = _getLatestEthPrice();
+      lastEthPrice    = 158510000000;
+      // lastEthPrice    = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; ) { 
         _mintNft(_insiders[i], i);
@@ -107,7 +112,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint minAmount
   ) private returns (uint) {
-      uint newDyad = msg.value/100000000 * _getLatestEthPrice();
+      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();
       if (newDyad < minAmount) { revert NotReachedMinAmount(newDyad); }
       dyad.mint(address(this), newDyad);
       idToNft[id].deposit += newDyad.toInt256();
@@ -171,31 +176,30 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.withdrawal -= amount; // amount <= nft.withdrawal
       }
       dyad.burn(msg.sender, amount);
-      uint eth = amount*100000000 / _getLatestEthPrice();
+      uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       (bool success, ) = payable(msg.sender).call{value: eth}("");
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit DyadRedeemed(msg.sender, id, amount);
   }
 
   function sync(uint id) external dNftExists(id) {
-      uint newEthPrice   = _getLatestEthPrice();
-      bool isPriceUp     = newEthPrice > lastEthPrice;
-      uint ethPriceDelta = newEthPrice*10000 / lastEthPrice; 
-      isPriceUp ? ethPriceDelta -= 10000                  // in bps
-                : ethPriceDelta  = 10000 - ethPriceDelta; // in bps
-      int _dyadDelta     = (dyad.totalSupply()*ethPriceDelta).toInt256() / 10000;
-      if (!isPriceUp)    { _dyadDelta = -_dyadDelta; }
-      dyadDelta          = _dyadDelta;
-      idToNft[id].xp    += 100_000 * ethPriceDelta;
+      int ethPriceDelta = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
+      uint newXp        = (100_000  * ethPriceDelta.abs() / 1e18);
+      idToNft[id].xp   += newXp;
+      totalXp          += newXp;
+      dyadDelta         = dyad.totalSupply().toInt256() * ethPriceDelta / 1e18;
   }
 
   function claim(uint id) external isDNftOwner(id) {
-
+      uint xp              = idToNft[id].xp;
+      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256());
+      if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
+      int newDeposit       = dyadDelta * relativeXp / 1e18;
+      idToNft[id].deposit += newDeposit;
   }
 
   // ETH price in USD
-  function _getLatestEthPrice() private view returns (uint) {
-    ( , int newEthPrice, , , ) = oracle.latestRoundData();
-    return newEthPrice.toUint256();
+  function _getLatestEthPrice() private view returns (int newEthPrice) {
+    ( , newEthPrice, , , ) = oracle.latestRoundData();
   }
 }

@@ -116,6 +116,9 @@ contract DNftsTest is BaseTest, Parameters {
 
   // -------------------- sync --------------------
   function testSync() public {
-    dNft.sync(0);
+    uint totalSupply = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.sync(totalSupply);
+    dNft.claim(totalSupply);
   }
 }
