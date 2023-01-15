@@ -45,6 +45,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event DyadMinted       (uint indexed id, uint amount);
+  event Synced           (uint id);
+
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
@@ -194,6 +196,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToNft[id].xp   += newXp;
       totalXp          += newXp;
       dyadDelta         = dyad.totalSupply().toInt256() * ethPriceDelta / 1e18;
+      emit Synced(id);
   }
 
   function claim(uint id) external isDNftOwner(id) {
