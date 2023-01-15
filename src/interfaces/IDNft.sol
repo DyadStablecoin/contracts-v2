@@ -2,18 +2,21 @@
 pragma solidity = 0.8.17;
 
 interface IDNft {
-  error NotNFTOwner(uint id);
-  error NotReachedMinAmount(uint amount);
-  error ReachedMaxSupply();
-  error DNftDoesNotExist(uint id);
-  error ExceedsDepositBalance(uint balance);
+  error ReachedMaxSupply        ();
+  error NoEthSupplied           ();
+  error DNftDoesNotExist        (uint id);
+  error NotNFTOwner             (uint id);
+  error AddressZero             (address addr);
+  error AmountZero              (uint amount);
+  error NotReachedMinAmount     (uint amount);
+  error ExceedsDepositBalance   (int deposit);
+  error ExceedsWithdrawalBalance(uint amount);
+  error FailedEthTransfer       (address to, uint amount);
 
   struct Nft {
     uint xp;
-    uint deposit;
+    int  deposit;
     uint withdrawal;
-    uint credit;
-    uint creditScore;
   }
 
   function idToNft( uint id) external view returns (Nft memory);
@@ -21,10 +24,10 @@ interface IDNft {
   function mint    (address to) external payable;
   function deposit (uint id) external payable;
   function deposit (uint id, uint amount) external;
-  function move    (uint from, uint to, uint amount) external payable;
+  function move    (uint from, uint to, int amount) external payable;
   function withdraw(uint id, uint amount) external payable;
   function redeem  (uint id, uint amount) external payable;
-  function burn    (uint id, uint amount) external payable;
+  function sync    (uint id) external payable;
 
   function MAX_SUPPLY() external pure returns (uint);
   function DEPOSIT_MIMIMUM() external pure returns (uint);

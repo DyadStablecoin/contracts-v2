@@ -48,9 +48,9 @@ contract DNftsTest is BaseTest, Parameters {
 
   // -------------------- deposit --------------------
   function testDeposit() public {
-    uint depositBefore = dNft.idToNft(0).deposit;
+    int depositBefore = dNft.idToNft(0).deposit;
     dNft.deposit{value: 5 ether}(0);
-    uint depositAfter = dNft.idToNft(0).deposit;
+    int depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
   }
   function testCannotDepositDNftDoesNotExist() public {
@@ -65,13 +65,13 @@ contract DNftsTest is BaseTest, Parameters {
     uint to   = 0;
     dNft.mint{value: 5 ether}(address(this));
 
-    uint depositFromBefore = dNft.idToNft(from).deposit;
-    uint depositToBefore   = dNft.idToNft(to).deposit;
+    int depositFromBefore = dNft.idToNft(from).deposit;
+    int depositToBefore   = dNft.idToNft(to).deposit;
 
     dNft.move(from, to, 10000);
 
-    uint depositFromAfter = dNft.idToNft(from).deposit;
-    uint depositToAfter = dNft.idToNft(to).deposit;
+    int depositFromAfter = dNft.idToNft(from).deposit;
+    int depositToAfter   = dNft.idToNft(to).deposit;
 
     assertTrue(depositFromAfter < depositFromBefore);
     assertTrue(depositToAfter   > depositToBefore);
@@ -114,10 +114,8 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.redeem  (0, AMOUNT_TO_REDEEM);
   }
 
-  // -------------------- burn --------------------
-  function testBurn() public {
-    uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
-    dNft.burn(id, 10_000);
+  // -------------------- sync --------------------
+  function testSync() public {
+    dNft.sync(0);
   }
 }
