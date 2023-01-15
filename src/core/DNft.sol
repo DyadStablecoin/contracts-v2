@@ -179,11 +179,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   function sync(uint id) external dNftExists(id) {
       uint newEthPrice   = _getLatestEthPrice();
+      bool isPriceUp     = newEthPrice > lastEthPrice;
       uint ethPriceDelta = newEthPrice*10000 / lastEthPrice; 
-      console.log("ethPriceDelta: %s", ethPriceDelta);
+      isPriceUp ? ethPriceDelta -= 10000                  // in bps
+                : ethPriceDelta  = 10000 - ethPriceDelta; // in bps
       int _dyadDelta     = (dyad.totalSupply()*ethPriceDelta).toInt256() / 10000;
-      if (lastEthPrice > newEthPrice) { _dyadDelta = -_dyadDelta; }
+      if (!isPriceUp)    { _dyadDelta = -_dyadDelta; }
       dyadDelta          = _dyadDelta;
+      idToNft[id].xp    += 100_000 * ethPriceDelta;
+  }
+
+  function claim(uint id) external isDNftOwner(id) {
+
   }
 
   // ETH price in USD
