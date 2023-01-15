@@ -17,7 +17,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast      for int256;
   using SignedMath    for int256;
 
-  uint public constant MAX_SUPPLY = 10_000;
+  uint public constant MAX_SUPPLY      = 10_000;
+  uint public constant XP_SYNC_REWARD  = 1_000;
+  uint public constant XP_MINT_REWARD  = 100;
+  uint public constant XP_CLAIM_REWARD = 50;
+
   uint public immutable DEPOSIT_MIMIMUM;
 
   int  public dyadDelta;
@@ -99,6 +103,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) private {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); 
+      idToNft[id].xp = XP_MINT_REWARD;
+      totalXp       += XP_MINT_REWARD;
       emit NftMinted(to, id);
   }
 
@@ -184,7 +190,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   function sync(uint id) external dNftExists(id) {
       int ethPriceDelta = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
-      uint newXp        = (100_000  * ethPriceDelta.abs() / 1e18);
+      uint newXp        = (XP_SYNC_REWARD  * ethPriceDelta.abs() / 1e18);
       idToNft[id].xp   += newXp;
       totalXp          += newXp;
       dyadDelta         = dyad.totalSupply().toInt256() * ethPriceDelta / 1e18;
@@ -196,6 +202,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
       int newDeposit       = dyadDelta * relativeXp / 1e18;
       idToNft[id].deposit += newDeposit;
+      idToNft[id].xp      += XP_CLAIM_REWARD;
+      totalXp             += XP_CLAIM_REWARD;
   }
 
   // ETH price in USD
