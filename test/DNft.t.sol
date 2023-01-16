@@ -115,12 +115,15 @@ contract DNftsTest is BaseTest, Parameters {
   }
 
   // -------------------- sync --------------------
+  function _sync(uint id, int newPrice) internal {
+    dNft.mint{value: 5 ether}(address(this));
+    oracleMock.setPrice(newPrice); 
+    dNft.sync(id);
+  }
   function testSync() public {
     uint totalSupply = dNft.totalSupply();
     uint id          = totalSupply;
-    dNft.mint{value: 5 ether}(address(this));
-    oracleMock.setPrice(oracleMock.price()*2); // double the price of eth
-    dNft.sync(id);
+    _sync(id, oracleMock.price()*2);
 
     // if we double the price we need to double the total supply
     assertTrue(dNft.dyadDelta() == int(dyad.totalSupply()));
@@ -131,5 +134,28 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(
       dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + dNft.XP_SYNC_REWARD()
     );
+  }
+
+  // -------------------- claim --------------------
+  function testClaim() public {
+    uint id = dNft.totalSupply();
+    _sync(id, oracleMock.price()*2);
+
+    dNft.claim(id);
+  }
+  function testCannotClaimTwice() public {
+    uint id = dNft.totalSupply();
+    _sync(id, oracleMock.price()*2);
+    dNft.claim(id);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.lastSyncedBlock()));
+    dNft.claim(id);
+  }
+  function testClaimTwice() public {
+    uint id = dNft.totalSupply();
+    _sync(id, oracleMock.price()*2);
+    dNft.claim(id);
+    vm.roll(block.number + 1);
+    _sync(id, oracleMock.price()*2);
+    dNft.claim(id);
   }
 }

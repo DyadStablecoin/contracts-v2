@@ -29,8 +29,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   int  public dyadDelta;
   int  public lastEthPrice;
   uint public totalXp;
+  uint public lastSyncedBlock;
 
-  mapping(uint256 => Nft) public idToNft;
+  mapping(uint => Nft)  public idToNft;
+  // id => (blockNumber => claimed)
+  mapping(uint => mapping(uint => bool)) public claimed;
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -49,7 +52,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event DyadMinted       (uint indexed id, uint amount);
   event Synced           (uint id);
 
-
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
   error DNftDoesNotExist        (uint id);
@@ -60,6 +62,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);
+  error AlreadyClaimed          (uint id, uint lastSyncedBlock);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
@@ -191,15 +194,17 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   function sync(uint id) external dNftExists(id) {
-      int ethPriceDelta = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
-      uint newXp        = XP_SYNC_REWARD.mulWadDown(ethPriceDelta.abs());
-      idToNft[id].xp   += newXp;
-      totalXp          += newXp;
-      dyadDelta         = wadMul(dyad.totalSupply().toInt256(), ethPriceDelta);
+      lastSyncedBlock = block.number;
+      int priceChange = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
+      uint newXp      = XP_SYNC_REWARD.mulWadUp(priceChange.abs());
+      idToNft[id].xp += newXp;
+      totalXp        += newXp;
+      dyadDelta       = wadMul(dyad.totalSupply().toInt256(), priceChange);
       emit Synced(id);
   }
 
   function claim(uint id) external isDNftOwner(id) {
+      if (claimed[id][lastSyncedBlock]) { revert AlreadyClaimed(id, lastSyncedBlock); }
       uint xp              = idToNft[id].xp;
       int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256()); 
       if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
@@ -207,6 +212,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToNft[id].deposit += newDeposit;
       idToNft[id].xp      += XP_CLAIM_REWARD;
       totalXp             += XP_CLAIM_REWARD;
+      claimed[id][lastSyncedBlock] = true;
   }
 
   // ETH price in USD

@@ -12,6 +12,7 @@ interface IDNft {
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);
+  error AlreadyClaimed          (uint id, uint lastSyncedBlock);
 
   struct Nft {
     uint xp;
@@ -22,9 +23,10 @@ interface IDNft {
   function XP_MINT_REWARD() external view returns (uint);
   function XP_SYNC_REWARD() external view returns (uint);
 
-  function dyadDelta() external view returns (int);
-  function totalXp()   external view returns (uint);
-  function idToNft(uint id) external view returns (Nft memory);
+  function idToNft(uint id)  external view returns (Nft memory);
+  function dyadDelta()       external view returns (int);
+  function totalXp()         external view returns (uint);
+  function lastSyncedBlock() external view returns (uint);
 
   function mint    (address to) external payable;
   function deposit (uint id) external payable;
