@@ -234,6 +234,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit Synced(id);
   }
 
+  // Claim DYAD from this sync window
   function claim(uint id) external onlyOwner(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft storage nft  = idToNft[id];
