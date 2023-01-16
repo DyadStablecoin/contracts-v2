@@ -20,8 +20,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using FixedPointMathLib for uint256;
 
   uint public constant MAX_SUPPLY                = 10_000;
-  uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 150%
-  uint public constant SYNC_MIN_PRICE_CHANGE     = 1e15;     // 1bps or 0.01%
+  uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 15000 bps or 150%
+  uint public constant SYNC_MIN_PRICE_CHANGE     = 1e15;     // 10    bps or 0.1%
 
   uint public constant XP_SYNC_REWARD        = 1_000_000;
   uint public constant XP_LIQUIDATION_REWARD = 600;
@@ -225,11 +225,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (priceChangeAbs < SYNC_MIN_PRICE_CHANGE) { revert PriceChangeTooSmall(priceChange); }
       prevSyncedBlock = syncedBlock;
       syncedBlock     = block.number;
-      uint newXp      = XP_SYNC_REWARD.mulWadUp(priceChangeAbs);
-      idToNft[id].xp += newXp;
-      totalXp        += newXp;
       prevDyadDelta   = dyadDelta;
       dyadDelta       = wadMul(dyad.totalSupply().toInt256(), priceChange);
+      uint xp         = XP_SYNC_REWARD.mulWadUp(priceChangeAbs);
+      idToNft[id].xp += xp;
+      totalXp        += xp;
       emit Synced(id);
   }
 
