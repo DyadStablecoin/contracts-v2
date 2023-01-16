@@ -55,9 +55,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event NftMinted        (address indexed to, uint indexed id);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
   event DyadWithdrawn    (uint indexed id, uint amount);
+  event DyadDeposited    (uint indexed id, uint amount);
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
-  event DyadMinted       (uint indexed id, uint amount);
   event Synced           (uint id);
   event NftLiquidated    (address indexed from, address indexed to, uint indexed id);
 
@@ -137,7 +137,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();
       if (newDyad < minAmount) { revert NotReachedMinAmount(newDyad); }
       idToNft[id].deposit += newDyad.toInt256();
-      emit DyadMinted(id, newDyad);
+      emit DyadDeposited(id, newDyad);
       return newDyad;
   }
 
