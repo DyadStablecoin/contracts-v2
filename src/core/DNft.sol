@@ -21,11 +21,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   uint public constant MAX_SUPPLY      = 10_000;
 
-  uint public constant XP_SYNC_REWARD      = 1_000;
-  uint public constant XP_MINT_REWARD      = 400;
-  uint public constant XP_DIBS_BURN_REWARD = 300;
-  uint public constant XP_DIBS_MINT_REWARD = 200;
-  uint public constant XP_CLAIM_REWARD     = 50;
+  uint public constant XP_SYNC_REWARD        = 1_000;
+  uint public constant XP_LIQUIDATION_REWARD = 600;
+  uint public constant XP_MINT_REWARD        = 400;
+  uint public constant XP_DIBS_BURN_REWARD   = 300;
+  uint public constant XP_DIBS_MINT_REWARD   = 200;
+  uint public constant XP_CLAIM_REWARD       = 50;
 
   uint public immutable DEPOSIT_MIMIMUM;
 
@@ -279,6 +280,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _burn(id); 
       delete idToNft[id];
       _mintCopy(to, nft, id);
+      idToNft[id].xp += XP_LIQUIDATION_REWARD;
+      totalXp        += XP_LIQUIDATION_REWARD;
       emit NftLiquidated(owner, to,  id); 
       return id;
   }
