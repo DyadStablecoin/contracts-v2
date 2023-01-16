@@ -160,7 +160,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _from,
       uint _to,
       int  _amount
-  ) external onlyOwner(_from) {
+  ) external onlyOwner(_from) exists(_to) {
       _move(_from, _to, _amount);
   }
 
@@ -169,7 +169,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int  _amount
   ) private {
-      require(_amount > 0);
+      require(_amount > 0);             // needed because _amount is int
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
       unchecked {
@@ -250,16 +250,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       claimed[_from][prevSyncedBlock] = true;
   }
 
-  // return share of `_amount` weighted by `xp`
-  function _calcShare(
-      int _amount,
-      uint _xp
-  ) private view returns (int) {
-      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
-      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(_amount, relativeXp);
-  }
-
   function _dibsMint(
       uint _from, 
       uint _to,
@@ -284,9 +274,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       totalXp         += XP_DIBS_BURN_REWARD;
   }
 
+  // return share of `_amount` weighted by `xp`
+  function _calcShare(
+      int _amount,
+      uint _xp
+  ) private view returns (int) {
+      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
+      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(_amount, relativeXp);
+  }
+
   // Liquidate dNFT by burning it and minting a new copy to `to`
   function liquidate(
-      uint id,
+      uint id,   // if id does not exists => nft.deposit is always 0
       address to
   ) external addressNotZero(to) payable returns (uint) {
       Nft memory nft = idToNft[id];
