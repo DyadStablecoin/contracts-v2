@@ -147,7 +147,7 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.lastSyncedBlock()));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.syncedBlock()));
     dNft.claim(id);
   }
   function testClaimTwice() public {

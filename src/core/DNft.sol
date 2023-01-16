@@ -20,18 +20,25 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using FixedPointMathLib for uint256;
 
   uint public constant MAX_SUPPLY      = 10_000;
+
   uint public constant XP_SYNC_REWARD  = 1_000;
-  uint public constant XP_MINT_REWARD  = 100;
+  uint public constant XP_MINT_REWARD  = 400;
+  uint public constant XP_DIBS_REWARD  = 200;
   uint public constant XP_CLAIM_REWARD = 50;
 
   uint public immutable DEPOSIT_MIMIMUM;
 
-  int  public dyadDelta;
   int  public lastEthPrice;
   uint public totalXp;
-  uint public lastSyncedBlock;
+
+  int  public dyadDelta;
+  int  public prevDyadDelta;
+
+  uint public syncedBlock;
+  uint public prevSyncedBlock;
 
   mapping(uint => Nft)  public idToNft;
+
   // id => (blockNumber => claimed)
   mapping(uint => mapping(uint => bool)) public claimed;
 
@@ -62,7 +69,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);
-  error AlreadyClaimed          (uint id, uint lastSyncedBlock);
+  error AlreadyClaimed          (uint id, uint syncedBlock);
 
   modifier addressNotZero(address addr) {
     if (addr == address(0)) revert AddressZero(addr); _;
@@ -194,25 +201,40 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   function sync(uint id) external dNftExists(id) {
-      lastSyncedBlock = block.number;
+      prevSyncedBlock = syncedBlock;
+      syncedBlock     = block.number;
       int priceChange = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
       uint newXp      = XP_SYNC_REWARD.mulWadUp(priceChange.abs());
       idToNft[id].xp += newXp;
       totalXp        += newXp;
+      prevDyadDelta   = dyadDelta;
       dyadDelta       = wadMul(dyad.totalSupply().toInt256(), priceChange);
       emit Synced(id);
   }
 
   function claim(uint id) external isDNftOwner(id) {
-      if (claimed[id][lastSyncedBlock]) { revert AlreadyClaimed(id, lastSyncedBlock); }
-      uint xp              = idToNft[id].xp;
-      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256()); 
-      if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
-      int newDeposit       = wadMul(dyadDelta, relativeXp);
-      idToNft[id].deposit += newDeposit;
-      idToNft[id].xp      += XP_CLAIM_REWARD;
-      totalXp             += XP_CLAIM_REWARD;
-      claimed[id][lastSyncedBlock] = true;
+      if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
+      Nft storage nft  = idToNft[id];
+      nft.deposit     += _calcClaim(nft.xp, dyadDelta);
+      nft.xp          += XP_CLAIM_REWARD;
+      totalXp         += XP_CLAIM_REWARD;
+      claimed[id][syncedBlock] = true;
+  }
+
+  function claim(uint _from, uint _to) external {
+      if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
+      Nft storage from  = idToNft[_from];
+      from.deposit     += _calcClaim(from.xp, prevDyadDelta);
+      Nft storage to    = idToNft[_to];
+      to.xp            += XP_DIBS_REWARD;
+      totalXp          += XP_DIBS_REWARD;
+      claimed[_from][prevSyncedBlock] = true;
+  }
+
+  function _calcClaim(uint xp, int _dyadDelta) private view returns (int) {
+      int relativeXp = wadDiv(xp.toInt256(), totalXp.toInt256());
+      if (_dyadDelta < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(_dyadDelta, relativeXp);
   }
 
   // ETH price in USD
