@@ -239,9 +239,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share        = _calcShare(dyadDelta, nft.xp);
       nft.deposit     += share;
       uint xpAccrual   = XP_CLAIM_REWARD;
-      if (dyadDelta < 0) { 
-        xpAccrual += _calcBurnXpAccrual(nft.xp, share);
-      }
+      if (dyadDelta < 0) { xpAccrual += _calcBurnXpAccrual(nft.xp, share); }
       nft.xp          += xpAccrual;
       totalXp         += xpAccrual;
       claimed[id][syncedBlock] = true;
