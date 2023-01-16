@@ -19,7 +19,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
 
-  uint public constant MAX_SUPPLY      = 10_000;
+  uint public constant MAX_SUPPLY                = 10_000;
+  uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 150%
 
   uint public constant XP_SYNC_REWARD        = 1_000;
   uint public constant XP_LIQUIDATION_REWARD = 600;
@@ -67,6 +68,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error NotLiquidatable         (uint id);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
+  error CrTooLow                (uint cr);
   error NotReachedMinAmount     (uint amount);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -182,6 +184,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint amount
   ) external isDNftOwner(id) {
+      uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
+      uint totalWithdrawn = dyad.totalSupply() + amount;
+      uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
+      if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
       Nft storage nft = idToNft[id];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       unchecked {

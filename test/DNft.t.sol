@@ -94,7 +94,8 @@ contract DNftsTest is BaseTest, Parameters {
   function testWithdraw() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.withdraw(id, 10000);
+    dNft.withdraw(id, 2000*1e18);
+    dNft.withdraw(id, 1000*1e18);
   }
 
   // -------------------- redeem --------------------
