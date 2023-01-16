@@ -19,7 +19,11 @@ interface IDNft {
     uint withdrawal;
   }
 
+  function XP_MINT_REWARD() external view returns (uint);
+  function XP_SYNC_REWARD() external view returns (uint);
+
   function dyadDelta() external view returns (int);
+  function totalXp()   external view returns (uint);
   function idToNft(uint id) external view returns (Nft memory);
 
   function mint    (address to) external payable;
