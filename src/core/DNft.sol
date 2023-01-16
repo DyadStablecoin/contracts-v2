@@ -317,7 +317,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // ETH price in USD
-  function _getLatestEthPrice() private view returns (int newEthPrice) {
-    ( , newEthPrice, , , ) = oracle.latestRoundData();
+  function _getLatestEthPrice() private view returns (int price) {
+    ( , price, , , ) = oracle.latestRoundData();
   }
 }
