@@ -68,8 +68,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error NotLiquidatable         (uint id);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
+  error AmountLessThanMimimum   (uint amount);
   error CrTooLow                (uint cr);
-  error NotReachedMinAmount     (uint amount);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);
@@ -124,8 +124,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit NftMinted(to, id);
   }
 
-  // Deposit DYAD for ETH
-  function deposit(uint id) external dNftExists(id) payable {
+  // Convert ETH to deposited DYAD
+  function convert(uint id) external dNftExists(id) payable {
       _deposit(id, 0);
   }
 
@@ -135,24 +135,26 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint minAmount
   ) private returns (uint) {
       uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();
-      if (newDyad < minAmount) { revert NotReachedMinAmount(newDyad); }
+      if (newDyad < minAmount) { revert AmountLessThanMimimum(newDyad); }
       idToNft[id].deposit += newDyad.toInt256();
       emit DyadDeposited(id, newDyad);
       return newDyad;
   }
 
-  // Deposit DYAD for DYAD
+  // Deposit DYAD 
   function deposit(
       uint id,
       uint amount
   ) external dNftExists(id) {
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
-      dyad.burn(msg.sender, amount);
       unchecked {
       nft.withdrawal -= amount; // amount <= nft.withdrawal
       }
       nft.deposit    += amount.toInt256();
+      bool success = dyad.transferFrom(msg.sender, address(this), amount);
+      require(success);
+      dyad.burn(address(this), amount);
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
@@ -181,38 +183,40 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Withdraw DYAD from dNFT deposit
   function withdraw(
-      uint id,
-      uint amount
-  ) external isDNftOwner(id) {
+      uint from,
+      address to, 
+      uint amount 
+  ) external isDNftOwner(from) {
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint totalWithdrawn = dyad.totalSupply() + amount;
       uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
-      Nft storage nft = idToNft[id];
+      Nft storage nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       unchecked {
       nft.deposit    -= amount.toInt256(); // amount <= nft.deposit
       }
       nft.withdrawal += amount; 
-      dyad.mint(msg.sender, amount);
-      emit DyadWithdrawn(id, amount);
+      dyad.mint(to, amount);
+      emit DyadWithdrawn(from, amount);
   }
 
   // Redeem DYAD for ETH
   function redeem(
-      uint id,
+      uint from,
+      address to,
       uint amount
-  ) external nonReentrant isDNftOwner(id) {
-      Nft storage nft = idToNft[id];
+  ) external nonReentrant isDNftOwner(from) {
+      Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
       nft.withdrawal -= amount; // amount <= nft.withdrawal
       }
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success, ) = payable(msg.sender).call{value: eth}("");
+      (bool success, ) = payable(to).call{value: eth}("");
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
-      emit DyadRedeemed(msg.sender, id, amount);
+      emit DyadRedeemed(msg.sender, from, amount);
   }
 
   function sync(uint id) external dNftExists(id) {
@@ -236,7 +240,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       claimed[id][syncedBlock] = true;
   }
 
-  // Claim DYAD from the previouse sync window for other dNFTs to get a bonus
+  // Claim DYAD from previouse sync window to get a bonus
   function dibs(
       uint _from,
       uint _to

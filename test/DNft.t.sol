@@ -30,7 +30,7 @@ contract DNftsTest is BaseTest, Parameters {
   function testCannotMintNotReachedMinAmount() public {
     vm.expectRevert(
       abi.encodeWithSelector(
-        IDNft.NotReachedMinAmount.selector,
+        IDNft.AmountLessThanMimimum.selector,
         1 ether/1e8 * oracleMock.price()
       )
     );
@@ -46,17 +46,17 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mint{value: 5 ether}(address(this));
   }
 
-  // -------------------- deposit --------------------
-  function testDeposit() public {
+  // -------------------- convert --------------------
+  function testConvert() public {
     int depositBefore = dNft.idToNft(0).deposit;
-    dNft.deposit{value: 5 ether}(0);
+    dNft.convert{value: 5 ether}(0);
     int depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
   }
-  function testCannotDepositDNftDoesNotExist() public {
+  function testCannotConvertDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
     vm.expectRevert(abi.encodeWithSelector(IDNft.DNftDoesNotExist.selector, id));
-    dNft.deposit{value: 5 ether}(id);
+    dNft.convert{value: 5 ether}(id);
   }
 
   // -------------------- move --------------------
@@ -94,8 +94,17 @@ contract DNftsTest is BaseTest, Parameters {
   function testWithdraw() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.withdraw(id, 2000*1e18);
-    dNft.withdraw(id, 1000*1e18);
+    dNft.withdraw(id, address(this), 2000*1e18);
+    dNft.withdraw(id, address(this), 1000*1e18);
+  }
+
+  // -------------------- deposit --------------------
+  function testDeposit() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 2000*1e18);
+    dyad.approve(address(dNft), 2000*1e18);
+    dNft.deposit(id, 2000*1e18);
   }
 
   // -------------------- redeem --------------------
@@ -103,16 +112,16 @@ contract DNftsTest is BaseTest, Parameters {
     uint AMOUNT_TO_REDEEM = 10000;
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.withdraw(id, AMOUNT_TO_REDEEM);
-    dNft.redeem  (id, AMOUNT_TO_REDEEM);
+    dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
+    dNft.redeem  (id, address(this), AMOUNT_TO_REDEEM);
   }
   function testCannotRedeemNotDNftOwner() public {
     uint AMOUNT_TO_REDEEM = 10000;
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.withdraw(id, AMOUNT_TO_REDEEM);
+    dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
     vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
-    dNft.redeem  (0, AMOUNT_TO_REDEEM);
+    dNft.redeem  (0, address(this), AMOUNT_TO_REDEEM);
   }
 
   // -------------------- sync --------------------

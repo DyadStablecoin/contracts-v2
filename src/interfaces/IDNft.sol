@@ -8,7 +8,7 @@ interface IDNft {
   error NotNFTOwner             (uint id);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error NotReachedMinAmount     (uint amount);
+  error AmountLessThanMimimum   (uint amount);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);
@@ -29,11 +29,11 @@ interface IDNft {
   function syncedBlock() external view returns (uint);
 
   function mint    (address to) external payable;
-  function deposit (uint id) external payable;
+  function convert (uint id) external payable;
   function deposit (uint id, uint amount) external;
   function move    (uint from, uint to, int amount) external payable;
-  function withdraw(uint id, uint amount) external payable;
-  function redeem  (uint id, uint amount) external payable;
+  function withdraw(uint from, address to, uint amount) external payable;
+  function redeem  (uint from, address to, uint amount) external payable;
   function sync    (uint id) external payable;
   function claim   (uint id) external payable;
   function dibs    (uint from, uint to) external payable;
