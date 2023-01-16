@@ -7,13 +7,13 @@ import {DNft} from "../../src/core/DNft.sol";
 import {Parameters} from "../../src/Parameters.sol";
 
 contract DeployBase is Script, Parameters {
-  function deploy() public returns (address, address) {
+  function deploy(address _oracle) public returns (address, address) {
     vm.startBroadcast();
 
     Dyad dyad = new Dyad();
     DNft dNft = new DNft(
       address(dyad),
-      ORACLE_MAINNET,
+      _oracle,
       DEPOSIT_MIMIMUM,
       INSIDERS
     );

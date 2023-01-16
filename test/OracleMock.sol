@@ -1,0 +1,20 @@
+// SPDX-License-Identifier: MIT
+pragma solidity = 0.8.17;
+
+contract OracleMock {
+  int public price = 120000000000; // ETH/USD
+
+  function setPrice(int _price) external {
+    price = _price;
+  }
+
+  function latestRoundData() public view returns (
+      uint80 roundId,
+      int256 answer,
+      uint256 startedAt,
+      uint256 updatedAt,
+      uint80 answeredInRound
+    ) {
+      return (1, price, 1, 1, 1);  
+    }
+}

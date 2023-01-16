@@ -31,7 +31,7 @@ contract DNftsTest is BaseTest, Parameters {
     vm.expectRevert(
       abi.encodeWithSelector(
         IDNft.NotReachedMinAmount.selector,
-        1385100000000000000000
+        1 ether/1e8 * oracleMock.price()
       )
     );
     dNft.mint{value: 1 ether}(address(this));
