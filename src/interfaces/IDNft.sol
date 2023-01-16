@@ -6,9 +6,12 @@ interface IDNft {
   error NoEthSupplied           ();
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
+  error NotLiquidatable         (uint id);
+  error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
   error AmountLessThanMimimum   (uint amount);
+  error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
   error FailedEthTransfer       (address to, uint amount);

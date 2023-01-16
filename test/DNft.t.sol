@@ -145,6 +145,9 @@ contract DNftsTest is BaseTest, Parameters {
       dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + dNft.XP_SYNC_REWARD()
     );
   }
+  function testFailSyncPriceChangeTooSmall() public {
+    _sync(0, 10001*1e7);
+  }
 
   // -------------------- claim --------------------
   function testClaim() public {
