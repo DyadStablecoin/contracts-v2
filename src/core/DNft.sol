@@ -25,8 +25,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public constant XP_SYNC_REWARD        = 1_000;
   uint public constant XP_LIQUIDATION_REWARD = 600;
   uint public constant XP_MINT_REWARD        = 400;
-  uint public constant XP_DIBS_BURN_REWARD   = 300;
-  uint public constant XP_DIBS_MINT_REWARD   = 200;
+  uint public constant XP_DIBS_BURN_REWARD   = 200;
+  uint public constant XP_DIBS_MINT_REWARD   = 100;
   uint public constant XP_CLAIM_REWARD       = 50;
 
   uint public immutable DEPOSIT_MIMIMUM;
@@ -232,9 +232,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function claim(uint id) external onlyOwner(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft storage nft  = idToNft[id];
-      nft.deposit     += _calcShare(dyadDelta, nft.xp);
-      nft.xp          += XP_CLAIM_REWARD;
-      totalXp         += XP_CLAIM_REWARD;
+      int share        = _calcShare(dyadDelta, nft.xp);
+      nft.deposit     += share;
+      uint xpAccrual   = XP_CLAIM_REWARD;
+      if (dyadDelta < 0) { 
+        xpAccrual += _calcBurnXpAccrual(nft.xp, share);
+      }
+      nft.xp          += xpAccrual;
+      totalXp         += xpAccrual;
       claimed[id][syncedBlock] = true;
   }
 
@@ -268,13 +273,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int _share
   ) private {
       idToNft[_from].deposit += _share; 
-      int toMove = wadMul(_share, 0.10e18); // 10%
+      int toMove = wadMul(_share, 0.10e17); // 1%
       if (toMove > idToNft[_to].deposit) { _move(_from, _to, toMove); }
-      idToNft[_to].xp += XP_DIBS_BURN_REWARD;
-      totalXp         += XP_DIBS_BURN_REWARD;
+      uint xpAccrual   = XP_DIBS_BURN_REWARD;
+      xpAccrual       += _calcBurnXpAccrual(idToNft[_to].xp, _share); 
+      idToNft[_to].xp += xpAccrual;
+      totalXp         += xpAccrual;
   }
 
-  // return share of `_amount` weighted by `xp`
+  // Calculate xp accrual for burning `share` of DYAD 
+  function _calcBurnXpAccrual(uint xp, int share) private view returns (uint) {
+      uint relativeXp  = xp.divWadDown(totalXp);
+      return ((1e18 - relativeXp) * share.toUint256()); 
+  }
+
+  // Return share of `_amount` weighted by `xp`
   function _calcShare(
       int _amount,
       uint _xp
