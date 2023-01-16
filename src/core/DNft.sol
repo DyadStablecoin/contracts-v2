@@ -261,7 +261,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int _share
   ) private {
       idToNft[_from].deposit += _share; 
-      int toMove = wadMul(_share, 0.10e18) // 10%
+      int toMove = wadMul(_share, 0.10e18); // 10%
       if (toMove > idToNft[_to].deposit) { _move(_from, _to, toMove); }
       idToNft[_to].xp += XP_DIBS_BURN_REWARD;
       totalXp         += XP_DIBS_BURN_REWARD;
