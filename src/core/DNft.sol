@@ -21,10 +21,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   uint public constant MAX_SUPPLY      = 10_000;
 
-  uint public constant XP_SYNC_REWARD  = 1_000;
-  uint public constant XP_MINT_REWARD  = 400;
-  uint public constant XP_DIBS_REWARD  = 200;
-  uint public constant XP_CLAIM_REWARD = 50;
+  uint public constant XP_SYNC_REWARD      = 1_000;
+  uint public constant XP_MINT_REWARD      = 400;
+  uint public constant XP_DIBS_BURN_REWARD = 300;
+  uint public constant XP_DIBS_MINT_REWARD = 200;
+  uint public constant XP_CLAIM_REWARD     = 50;
 
   uint public immutable DEPOSIT_MIMIMUM;
 
@@ -56,11 +57,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event DyadMinted       (uint indexed id, uint amount);
   event Synced           (uint id);
+  event NftLiquidated    (address indexed from, address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
+  error NotLiquidatable         (uint id);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
   error NotReachedMinAmount     (uint amount);
@@ -156,6 +159,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int  _amount
   ) external isDNftOwner(_from) {
+      _move(_from, _to, _amount);
+  }
+
+  function _move(
+      uint _from,
+      uint _to,
+      int  _amount
+  ) private {
       require(_amount > 0);
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
@@ -219,17 +230,74 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       claimed[id][syncedBlock] = true;
   }
 
+  // Claim DYAD from the previouse sync window for other dNFTs to get a bonus
   function dibs(
       uint _from,
       uint _to
   ) external dNftExists(_from) dNftExists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
-      Nft storage from  = idToNft[_from];
-      from.deposit     += _calcShare(prevDyadDelta, from.xp);
-      Nft storage to    = idToNft[_to];
-      to.xp            += XP_DIBS_REWARD;
-      totalXp          += XP_DIBS_REWARD;
+      int share         = _calcShare(prevDyadDelta, idToNft[_from].xp);
+      prevDyadDelta > 0 ? _dibsMint(_from, _to, share) 
+                        : _dibsBurn(_from, _to, share);
       claimed[_from][prevSyncedBlock] = true;
+  }
+
+  function _dibsMint(
+      uint _from, 
+      uint _to,
+      int _share
+  ) private {
+      Nft storage from  = idToNft[_from];
+      Nft storage to    = idToNft[_to];
+      from.deposit += wadMul(_share, 0.5e18); // 50% 
+      to.deposit   += wadMul(_share, 0.5e18); // 50%
+      to.xp        += XP_DIBS_MINT_REWARD;
+      totalXp      += XP_DIBS_MINT_REWARD;
+  }
+
+  function _dibsBurn(
+      uint _from, 
+      uint _to,
+      int _share
+  ) private {
+      Nft storage from  = idToNft[_from];
+      Nft storage to    = idToNft[_to];
+      from.deposit += _share; 
+      _move(_from, _to, wadMul(_share, 0.5e18)); // 50%
+      to.xp        += XP_DIBS_BURN_REWARD;
+      totalXp      += XP_DIBS_BURN_REWARD;
+  }
+
+  // Liquidate dNFT by burning it and minting a new copy to `to`
+  function liquidate(
+      uint id,
+      address to
+  ) external addressNotZero(to) payable returns (uint) {
+      Nft memory nft = idToNft[id];
+      if (nft.deposit >= 0) { revert NotLiquidatable(id); }
+      address owner  = ownerOf(id);
+      _burn(id); 
+      delete idToNft[id];
+      _mintCopy(to, nft, id);
+      emit NftLiquidated(owner, to,  id); 
+      return id;
+  }
+
+  // Mint nft with `id` to `to` with the same xp and withdrawn amount as `nft`
+  function _mintCopy(
+      address to,
+      Nft memory nft, 
+      uint id
+  ) private returns (uint) { 
+      _mintNft(to, id);
+      Nft storage newNft = idToNft[id];
+      uint minDeposit;
+      if (nft.deposit < 0) { minDeposit = nft.deposit.abs(); }
+      int newDeposit    = _mintDyad(id, minDeposit).toInt256();
+      newNft.deposit    = newDeposit + nft.deposit;
+      newNft.xp         = nft.xp;
+      newNft.withdrawal = nft.withdrawal;
+      return id;
   }
 
   // return share of `_amount` weighted by `xp`
