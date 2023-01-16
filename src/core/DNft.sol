@@ -238,7 +238,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external dNftExists(_from) dNftExists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       int share         = _calcShare(prevDyadDelta, idToNft[_from].xp);
-      prevDyadDelta > 0 ? _dibsMint(_from, _to, share) 
+      prevDyadDelta > 0 ? _dibsMint(_from, _to, share)   // prevDyadDelta != 0
                         : _dibsBurn(_from, _to, share);
       claimed[_from][prevSyncedBlock] = true;
   }
@@ -248,11 +248,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int _share
   ) private {
+      idToNft[_from].deposit += wadMul(_share, 0.75e18); // 25% 
       Nft storage to = idToNft[_to];
+      to.deposit             += wadMul(_share, 0.25e18); // 75%
       to.xp   += XP_DIBS_MINT_REWARD;
       totalXp += XP_DIBS_MINT_REWARD;
-      to.deposit             += wadMul(_share, 0.5e18); // 50%
-      idToNft[_from].deposit += wadMul(_share, 0.5e18); // 50% 
   }
 
   function _dibsBurn(
