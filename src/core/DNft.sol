@@ -215,26 +215,27 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function claim(uint id) external isDNftOwner(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft storage nft  = idToNft[id];
-      nft.deposit     += _calcClaim(nft.xp, dyadDelta);
+      nft.deposit     += _calcShare(dyadDelta, nft.xp);
       nft.xp          += XP_CLAIM_REWARD;
       totalXp         += XP_CLAIM_REWARD;
       claimed[id][syncedBlock] = true;
   }
 
-  function claim(uint _from, uint _to) external {
+  function dibs(uint _from, uint _to) external dNftExists(_from) dNftExists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft storage from  = idToNft[_from];
-      from.deposit     += _calcClaim(from.xp, prevDyadDelta);
+      from.deposit     += _calcShare(prevDyadDelta, from.xp);
       Nft storage to    = idToNft[_to];
       to.xp            += XP_DIBS_REWARD;
       totalXp          += XP_DIBS_REWARD;
       claimed[_from][prevSyncedBlock] = true;
   }
 
-  function _calcClaim(uint xp, int _dyadDelta) private view returns (int) {
-      int relativeXp = wadDiv(xp.toInt256(), totalXp.toInt256());
-      if (_dyadDelta < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(_dyadDelta, relativeXp);
+  // return share of `_amount` weighted by `xp`
+  function _calcShare(int _amount, uint _xp) private view returns (int) {
+      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
+      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(_amount, relativeXp);
   }
 
   // ETH price in USD
