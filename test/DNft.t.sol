@@ -118,7 +118,10 @@ contract DNftsTest is BaseTest, Parameters {
   function testSync() public {
     uint totalSupply = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
+    oracleMock.setPrice(oracleMock.price()*2); // double the price of eth
     dNft.sync(totalSupply);
-    dNft.claim(totalSupply);
+
+    // if we double the price we need to double the total supply
+    assertTrue(dNft.dyadDelta() == int(dyad.totalSupply()));
   }
 }

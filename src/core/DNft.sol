@@ -83,9 +83,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad            = Dyad(_dyad);
       oracle          = IAggregatorV3(_oracle);
       DEPOSIT_MIMIMUM = _depositMinimum;
-
-      lastEthPrice    = 158510000000;
-      // lastEthPrice    = _getLatestEthPrice();
+      lastEthPrice    = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; ) { 
         _mintNft(_insiders[i], i);

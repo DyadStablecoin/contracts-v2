@@ -19,7 +19,8 @@ interface IDNft {
     uint withdrawal;
   }
 
-  function idToNft( uint id) external view returns (Nft memory);
+  function dyadDelta() external view returns (int);
+  function idToNft(uint id) external view returns (Nft memory);
 
   function mint    (address to) external payable;
   function deposit (uint id) external payable;

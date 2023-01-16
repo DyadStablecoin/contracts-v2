@@ -2,7 +2,7 @@
 pragma solidity = 0.8.17;
 
 contract OracleMock {
-  int public price = 120000000000; // ETH/USD
+  int public price = 100000000000; // ETH/USD
 
   function setPrice(int _price) external {
     price = _price;
