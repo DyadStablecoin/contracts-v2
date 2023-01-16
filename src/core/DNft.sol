@@ -248,12 +248,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int _share
   ) private {
-      Nft storage from  = idToNft[_from];
-      Nft storage to    = idToNft[_to];
-      from.deposit += wadMul(_share, 0.5e18); // 50% 
-      to.deposit   += wadMul(_share, 0.5e18); // 50%
-      to.xp        += XP_DIBS_MINT_REWARD;
-      totalXp      += XP_DIBS_MINT_REWARD;
+      Nft storage to = idToNft[_to];
+      to.xp   += XP_DIBS_MINT_REWARD;
+      totalXp += XP_DIBS_MINT_REWARD;
+      to.deposit             += wadMul(_share, 0.5e18); // 50%
+      idToNft[_from].deposit += wadMul(_share, 0.5e18); // 50% 
   }
 
   function _dibsBurn(
@@ -261,12 +260,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int _share
   ) private {
-      Nft storage from  = idToNft[_from];
-      Nft storage to    = idToNft[_to];
-      from.deposit += _share; 
-      _move(_from, _to, wadMul(_share, 0.5e18)); // 50%
-      to.xp        += XP_DIBS_BURN_REWARD;
-      totalXp      += XP_DIBS_BURN_REWARD;
+      idToNft[_from].deposit += _share; 
+      int toMove = wadMul(_share, 0.10e18) // 10%
+      if (toMove > idToNft[_to].deposit) { _move(_from, _to, toMove); }
+      idToNft[_to].xp += XP_DIBS_BURN_REWARD;
+      totalXp         += XP_DIBS_BURN_REWARD;
   }
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
