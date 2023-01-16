@@ -7,15 +7,17 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import "@solmate/src/utils/ReentrancyGuard.sol";
-import {wadDiv} from "@solmate/src/utils/SignedWadMath.sol";
+import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
+import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 
 contract DNft is ERC721Enumerable, ReentrancyGuard {
-  using SafeCast      for uint256;
-  using SafeCast      for int256;
-  using SignedMath    for int256;
+  using SafeCast          for uint256;
+  using SafeCast          for int256;
+  using SignedMath        for int256;
+  using FixedPointMathLib for uint256;
 
   uint public constant MAX_SUPPLY      = 10_000;
   uint public constant XP_SYNC_REWARD  = 1_000;
@@ -192,18 +194,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   function sync(uint id) external dNftExists(id) {
       int ethPriceDelta = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
-      uint newXp        = (XP_SYNC_REWARD  * ethPriceDelta.abs() / 1e18);
+      uint newXp        = XP_SYNC_REWARD.mulWadDown(ethPriceDelta.abs());
       idToNft[id].xp   += newXp;
       totalXp          += newXp;
-      dyadDelta         = dyad.totalSupply().toInt256() * ethPriceDelta / 1e18;
+      dyadDelta         = wadMul(dyad.totalSupply().toInt256(), ethPriceDelta);
       emit Synced(id);
   }
 
   function claim(uint id) external isDNftOwner(id) {
       uint xp              = idToNft[id].xp;
-      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256()); // between 0 and 1e18
+      int relativeXp       = wadDiv(xp.toInt256(), totalXp.toInt256()); 
       if (dyadDelta < 0)   { relativeXp = 1e18 - relativeXp; }
-      int newDeposit       = dyadDelta * relativeXp / 1e18;
+      int newDeposit       = wadMul(dyadDelta, relativeXp);
       idToNft[id].deposit += newDeposit;
       idToNft[id].xp      += XP_CLAIM_REWARD;
       totalXp             += XP_CLAIM_REWARD;
