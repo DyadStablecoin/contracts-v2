@@ -133,10 +133,13 @@ contract DNftsTest is BaseTest, Parameters {
   function testSync() public {
     uint totalSupply = dNft.totalSupply();
     uint id          = totalSupply;
-    _sync(id, oracleMock.price()*2);
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    _sync(id, 1001*1e8);
 
-    // if we double the price we need to double the total supply
-    assertTrue(dNft.dyadDelta() == int(dyad.totalSupply()));
+    assertTrue(dNft.dyadDelta() == 1e18);
+
+    // assertTrue(dNft.idToNft(id).xp == 1000*1e18);
 
     // xp bonus is the mint reward + the full sync reward
     // assertTrue(dNft.idToNft(id).xp == dNft.XP_MINT_REWARD() + dNft.XP_SYNC_REWARD());

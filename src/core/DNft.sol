@@ -23,6 +23,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 15000 bps or 150%
   uint public constant SYNC_MIN_PRICE_CHANGE     = 1e15;     // 10    bps or 0.1%
 
+  uint public constant XP_NORM_FACTOR        = 1e16;
   uint public constant XP_MINT_REWARD        = 1_000;
   uint public constant XP_SYNC_REWARD        = 4e15;         // 4 bps or 0.04%
   uint public constant XP_LIQUIDATION_REWARD = 4e15;         // 4 bps or 0.04%
@@ -227,8 +228,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       syncedBlock      = block.number;
       prevDyadDelta    = dyadDelta;
       dyadDelta        = wadMul(dyad.totalSupply().toInt256(), priceChange);
-      uint totalSupply = dyad.totalSupply();
-      uint xp          = totalSupply.mulWadDown(XP_SYNC_REWARD + priceChangeAbs);
+      uint xp          = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
       idToNft[id].xp  += xp;
       totalXp         += xp;
       emit Synced(id);
@@ -239,10 +239,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Nft storage nft  = idToNft[id];
       int share        = _calcShare(dyadDelta, nft.xp);
       nft.deposit     += share;
-      uint xpAccrual   = dyad.totalSupply().mulWadDown(XP_CLAIM_REWARD);
-      if (dyadDelta < 0) { xpAccrual += _calcBurnXpAccrual(nft.xp, share); }
-      nft.xp          += xpAccrual;
-      totalXp         += xpAccrual;
+      uint xpAccrual   = dyad.totalSupply().mulWadDown(XP_CLAIM_REWARD) / XP_NORM_FACTOR;
+      uint xp          = _calcXpReward(XP_CLAIM_REWARD);
+      if (dyadDelta < 0) { xpAccrual += _calcBurnXpReward(nft.xp, share); }
+      nft.xp          += xp;
+      totalXp         += xp;
       claimed[id][syncedBlock] = true;
   }
 
@@ -266,7 +267,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToNft[_from].deposit += wadMul(_share, 0.75e18); // 25% 
       Nft storage to = idToNft[_to];
       to.deposit             += wadMul(_share, 0.25e18); // 75%
-      uint xp  = dyad.totalSupply().mulWadDown(XP_DIBS_MINT_REWARD);
+      uint xp  = _calcXpReward(XP_DIBS_MINT_REWARD);
       to.xp   += xp;
       totalXp += xp;
   }
@@ -279,14 +280,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToNft[_from].deposit += _share; 
       int toMove = wadMul(_share, 0.10e17); // 1%
       if (toMove > idToNft[_to].deposit) { _move(_from, _to, toMove); }
-      uint xpAccrual   = dyad.totalSupply().mulWadDown(XP_DIBS_BURN_REWARD);
-      xpAccrual       += _calcBurnXpAccrual(idToNft[_to].xp, _share); 
-      idToNft[_to].xp += xpAccrual;
-      totalXp         += xpAccrual;
+      uint xp          = _calcXpReward(XP_DIBS_BURN_REWARD);
+      xp              += _calcBurnXpReward(idToNft[_to].xp, _share); 
+      idToNft[_to].xp += xp;
+      totalXp         += xp;
+  }
+
+  function _calcXpReward(uint percent) private view returns (uint) {
+    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
   }
 
   // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
-  function _calcBurnXpAccrual(uint xp, int share) private view returns (uint) {
+  function _calcBurnXpReward(uint xp, int share) private view returns (uint) {
       uint relativeXp  = xp.divWadDown(totalXp);
       return ((1e18 - relativeXp) * share.toUint256()); 
   }
@@ -312,7 +317,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _burn(id); 
       delete idToNft[id];
       _mintCopy(to, nft, id);
-      uint xp         = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD);
+      uint xp         = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       idToNft[id].xp += xp;
       totalXp        += xp;
       emit NftLiquidated(owner, to,  id); 
