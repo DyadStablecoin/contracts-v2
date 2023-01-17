@@ -102,8 +102,7 @@ contract DNft is ERC721, ReentrancyGuard {
       lastEthPrice    = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], i);
-        ++totalSupply;
+        _mintNft(_insiders[i], totalSupply++);
         unchecked { ++i; }
       }
   }
@@ -111,9 +110,9 @@ contract DNft is ERC721, ReentrancyGuard {
   // Mint new DNft to `to` 
   function mint(address to) external payable {
       uint id = totalSupply; // save gas
+      ++totalSupply;
       _mintNft(to, id); 
       _deposit(id, DEPOSIT_MIMIMUM);
-      ++totalSupply;
   }
 
   function tokenURI(uint256 tokenId) public view override returns (string memory) { 
