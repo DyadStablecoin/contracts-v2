@@ -61,7 +61,7 @@ contract DNft is ERC721, ReentrancyGuard {
   event NftMinted        (address indexed to, uint indexed id);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
   event DyadWithdrawn    (uint indexed id, uint amount);
-  event DyadDeposited    (uint indexed id, uint amount);
+  event DyadExchanged    (uint indexed id, int amount);
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event Synced           (uint id);
@@ -75,7 +75,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error AmountLessThanMimimum   (uint amount);
+  error AmountLessThanMimimum   (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -116,7 +116,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       uint id = totalSupply++; 
       _mintNft(to, id); 
-      _exchange(id, DEPOSIT_MIMIMUM);
+      idToNft[id].deposit = _eth2dyad(DEPOSIT_MIMIMUM);
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -133,19 +133,9 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
-      _exchange(id, 0);
-  }
-
-  // Deposit at least `minAmount` of DYAD for ETH
-  function _exchange(
-      uint id,
-      uint minAmount
-  ) private returns (uint) {
-      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();    // `newDyad` can be 0
-      if (newDyad < minAmount) { revert AmountLessThanMimimum(newDyad); }
-      idToNft[id].deposit += newDyad.toInt256();
-      emit DyadDeposited(id, newDyad);
-      return newDyad;
+      int newDeposit       = _eth2dyad(0);
+      idToNft[id].deposit += newDeposit;
+      emit DyadExchanged(id, newDeposit);
   }
 
   // Deposit DYAD 
@@ -326,10 +316,17 @@ contract DNft is ERC721, ReentrancyGuard {
       uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       nft.xp      += xp;
       totalXp     += xp;
-      nft.deposit += _exchange(id, nft.deposit.abs()).toInt256(); // nft.deposit must be >= 0 now
+      nft.deposit += _eth2dyad(nft.deposit.abs()); // nft.deposit must be >= 0 now
       idToNft[id] = nft; // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
+  }
+
+  // How much dyad do I get for `eth`?
+  function _eth2dyad(uint minAmount) private view returns (int) {
+      int newDyad = (msg.value/1e8).toInt256() * _getLatestEthPrice(); // `newDyad` can be 0
+      if (newDyad < minAmount.toInt256()) { revert AmountLessThanMimimum(newDyad); }
+      return newDyad;
   }
 
   // ETH price in USD

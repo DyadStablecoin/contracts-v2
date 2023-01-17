@@ -10,7 +10,7 @@ interface IDNft {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error AmountLessThanMimimum   (uint amount);
+  error AmountLessThanMimimum   (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
