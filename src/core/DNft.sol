@@ -110,7 +110,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      uint id = totalSupply;
+      uint id = totalSupply; // save gas
       _mintNft(to, id); 
       _deposit(id, DEPOSIT_MIMIMUM);
       ++totalSupply;
