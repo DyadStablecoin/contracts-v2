@@ -128,8 +128,8 @@ contract DNft is ERC721, ReentrancyGuard {
       emit NftMinted(to, id);
   }
 
-  // Convert ETH to deposited DYAD
-  function convert(uint id) external exists(id) payable {
+  // Exchange ETH for deposited DYAD
+  function exchange(uint id) external exists(id) payable {
       _deposit(id, 0);
   }
 
@@ -138,7 +138,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint id,
       uint minAmount
   ) private returns (uint) {
-      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();
+      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();    // newDyad can be 0
       if (newDyad < minAmount) { revert AmountLessThanMimimum(newDyad); }
       idToNft[id].deposit += newDyad.toInt256();
       emit DyadDeposited(id, newDyad);

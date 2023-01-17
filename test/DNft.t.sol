@@ -46,17 +46,17 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mint{value: 5 ether}(address(this));
   }
 
-  // -------------------- convert --------------------
-  function testConvert() public {
+  // -------------------- exchange --------------------
+  function testExchange() public {
     int depositBefore = dNft.idToNft(0).deposit;
-    dNft.convert{value: 5 ether}(0);
+    dNft.exchange{value: 5 ether}(0);
     int depositAfter = dNft.idToNft(0).deposit;
     assertTrue(depositAfter > depositBefore);
   }
-  function testCannotConvertDNftDoesNotExist() public {
+  function testCannotExchangeDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
     vm.expectRevert('NOT_MINTED');
-    dNft.convert{value: 5 ether}(id);
+    dNft.exchange{value: 5 ether}(id);
   }
 
   // -------------------- move --------------------

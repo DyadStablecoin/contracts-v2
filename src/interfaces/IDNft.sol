@@ -32,7 +32,7 @@ interface IDNft {
   function syncedBlock() external view returns (uint);
 
   function mint    (address to) external payable;
-  function convert (uint id) external payable;
+  function exchange(uint id) external payable;
   function deposit (uint id, uint amount) external;
   function move    (uint from, uint to, int amount) external payable;
   function withdraw(uint from, address to, uint amount) external payable;
