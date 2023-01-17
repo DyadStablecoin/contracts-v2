@@ -116,9 +116,9 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       uint id = totalSupply++; 
       _mintNft(to, id); 
-      int _dyad = _eth2dyad(msg.value);
-      if (_dyad < DEPOSIT_MIMIMUM) { revert AmountLessThanMimimum(_dyad); }
-      idToNft[id].deposit = _dyad;
+      int newDyad = _eth2dyad(msg.value);
+      if (newDyad < DEPOSIT_MIMIMUM) { revert AmountLessThanMimimum(newDyad); }
+      idToNft[id].deposit = newDyad;
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -265,9 +265,9 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft storage to = idToNft[_to];
       to.deposit             += wadMul(_share, 1e18-DIBS_MINT_SPLIT); 
       idToNft[_from].deposit += wadMul(_share, DIBS_MINT_SPLIT); 
-      uint xp  = _calcXpReward(XP_DIBS_MINT_REWARD);
-      to.xp   += xp;
-      totalXp += xp;
+      uint newXp = _calcXpReward(XP_DIBS_MINT_REWARD);
+      to.xp   += newXp;
+      totalXp += newXp;
   }
 
   function _dibsBurn(
@@ -280,10 +280,10 @@ contract DNft is ERC721, ReentrancyGuard {
       if (toMove > idToNft[_to].deposit) {  // without if, deposit would never become negative
         _move(_from, _to, toMove); 
       } 
-      uint xp          = _calcXpReward(XP_DIBS_BURN_REWARD);
-      xp              += _calcBurnXpReward(idToNft[_to].xp, _share); 
-      idToNft[_to].xp += xp;
-      totalXp         += xp;
+      uint newXp       = _calcXpReward(XP_DIBS_BURN_REWARD);
+      newXp           += _calcBurnXpReward(idToNft[_to].xp, _share); 
+      idToNft[_to].xp += newXp;
+      totalXp         += newXp;
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
@@ -315,12 +315,12 @@ contract DNft is ERC721, ReentrancyGuard {
       if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
       _mint(to, id); // no need to increment totalSupply, because burn + mint
-      uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
-      nft.xp      += xp;
-      totalXp     += xp;
-      int _dyad     = _eth2dyad(msg.value);
-      if (_dyad < nft.deposit.abs().toInt256()) { revert AmountLessThanMimimum(_dyad); }
-      nft.deposit += _dyad; // nft.deposit must be >= 0 now
+      uint newXp   = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
+      nft.xp      += newXp;
+      totalXp     += newXp;
+      int newDyad     = _eth2dyad(msg.value);
+      if (newDyad < nft.deposit.abs().toInt256()) { revert AmountLessThanMimimum(newDyad); }
+      nft.deposit += newDyad; // nft.deposit must be >= 0 now
       idToNft[id]  = nft;  // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
