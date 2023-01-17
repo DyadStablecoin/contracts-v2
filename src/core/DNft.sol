@@ -3,21 +3,23 @@ pragma solidity = 0.8.17;
 
 import "forge-std/console.sol";
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import "@solmate/src/utils/ReentrancyGuard.sol";
+import "@solmate/src/tokens/ERC721.sol";
+import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 
-contract DNft is ERC721Enumerable, ReentrancyGuard {
+contract DNft is ERC721, ReentrancyGuard {
   using SafeCast          for uint256;
   using SafeCast          for int256;
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
+  using LibString         for uint256;
 
   uint public constant MAX_SUPPLY                = 10_000;
   uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 15000 bps or 150%
@@ -33,6 +35,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   uint public immutable DEPOSIT_MIMIMUM;
 
+  uint public totalSupply;
   int  public lastEthPrice;           // ETH price from the last sync call
   uint public totalXp;                // Sum of all dNfts Xp
   int  public dyadDelta;
@@ -83,7 +86,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     if (amount == 0) revert AmountZero(amount); _;
   }
   modifier exists(uint id) {
-    if (!_exists(id)) revert DNftDoesNotExist(id); _;
+    ownerOf(id); _; // ownerOf reverts if dNft does not exist
   }
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
@@ -101,14 +104,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       lastEthPrice    = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], i);
+        _mintNft(_insiders[i], totalSupply++);
         unchecked { ++i; }
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      uint id = totalSupply();
+      uint id = totalSupply++; 
       _mintNft(to, id); 
       _deposit(id, DEPOSIT_MIMIMUM);
   }
@@ -345,5 +348,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
     ( , price, , , ) = oracle.latestRoundData();
+  }
+
+  function tokenURI(uint256 id) exists(id) public view override returns (string memory) { 
+    return string.concat("https://dyad.xyz.com/api/dnfts/", id.toString());
   }
 }

@@ -55,7 +55,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotConvertDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
-    vm.expectRevert(abi.encodeWithSelector(IDNft.DNftDoesNotExist.selector, id));
+    vm.expectRevert('NOT_MINTED');
     dNft.convert{value: 5 ether}(id);
   }
 
