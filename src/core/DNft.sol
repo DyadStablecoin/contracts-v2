@@ -297,6 +297,7 @@ contract DNft is ERC721, ReentrancyGuard {
       return id;
   }
 
+  // Update dNft in memory and increase `totalXp` and check for `maxXp`
   function _updateNftXp(Nft memory nft, uint xp) private {
     nft.xp  += xp;
     if (nft.xp > maxXp) { maxXp = nft.xp; }
