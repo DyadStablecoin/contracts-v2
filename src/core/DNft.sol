@@ -40,11 +40,13 @@ contract DNft is ERC721, ReentrancyGuard {
 
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
-  uint public totalXp;                // Sum of all dNfts Xp
   int  public dyadDelta;
   int  public prevDyadDelta;
   uint public syncedBlock;            // Last block, sync was called on
   uint public prevSyncedBlock;        // Second last block, sync was called on
+  uint public totalXp;                // Sum of all dNfts Xp
+  uint public maxXp;                  // Max XP over all dNFTs
+
 
   mapping(uint => Nft)  public idToNft;
   mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
@@ -128,8 +130,9 @@ contract DNft is ERC721, ReentrancyGuard {
   ) private {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); 
-      idToNft[id].xp = XP_MINT_REWARD;
-      totalXp       += XP_MINT_REWARD;
+      Nft memory nft = idToNft[id];
+      _updateNftXp(nft, XP_MINT_REWARD);
+      idToNft[id] = nft;
       emit NftMinted(to, id);
   }
 
@@ -227,21 +230,22 @@ contract DNft is ERC721, ReentrancyGuard {
       prevDyadDelta    = dyadDelta;
       dyadDelta        = wadMul(dyad.totalSupply().toInt256(), priceChange);
       uint newXp       = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
-      idToNft[id].xp  += newXp;
-      totalXp         += newXp;
+      Nft memory nft   = idToNft[id];
+      _updateNftXp(nft, newXp);
+      idToNft[id]      = nft;
       emit Synced(id);
   }
 
   // Claim DYAD from this sync window
   function claim(uint id) external onlyOwner(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
-      Nft storage nft  = idToNft[id];
+      Nft memory nft  = idToNft[id];
       int share        = _calcShare(dyadDelta, nft.xp);
       nft.deposit     += share;
       uint newXp       = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta < 0) { newXp += _calcBurnXpReward(nft.xp, share); }
-      nft.xp          += newXp;
-      totalXp         += newXp;
+      _updateNftXp(nft, newXp);
+      idToNft[id]      = nft;
       claimed[id][syncedBlock] = true;
   }
 
@@ -251,8 +255,8 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to
   ) external exists(_from) exists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
-      Nft storage from = idToNft[_from];
-      Nft storage to   = idToNft[_to];
+      Nft memory from = idToNft[_from];
+      Nft memory to   = idToNft[_to];
       int share        = _calcShare(prevDyadDelta, from.xp);
       uint newXp;
       if (prevDyadDelta > 0) {         // ETH price went up
@@ -260,18 +264,17 @@ contract DNft is ERC721, ReentrancyGuard {
         to.deposit   += wadMul(share, 1e18-DIBS_MINT_SPLIT); 
         newXp         = _calcXpReward(XP_DIBS_MINT_REWARD);
         to.xp        += newXp;
+        _updateNftXp(to, newXp);
       } else {                         // ETH price went down
         from.deposit += share;      
         int reward = wadMul(share, DIBS_BURN_PENALTY); 
         // without this check, deposit would never become negative
         if (reward > from.deposit) { _move(_from, _to, reward); } 
-        uint xpDibsReward = _calcXpReward(XP_DIBS_BURN_REWARD);
-        uint xpBurnReward = _calcBurnXpReward(from.xp, share);
-        newXp    = (xpDibsReward + xpBurnReward);
-        from.xp += xpBurnReward;
-        to.xp   += xpDibsReward;
+        _updateNftXp(from, _calcBurnXpReward(from.xp, share));
+        _updateNftXp(to,   _calcXpReward(XP_DIBS_BURN_REWARD));
       }
-      totalXp += newXp;
+      idToNft[_from] = from;
+      idToNft[_to]   = to;
       claimed[_from][prevSyncedBlock] = true;
   }
 
@@ -285,14 +288,19 @@ contract DNft is ERC721, ReentrancyGuard {
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
       _mint(to, id); // no need to increment totalSupply, because burn + mint
       uint newXp   = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
-      nft.xp      += newXp;
-      totalXp     += newXp;
+      _updateNftXp(nft, newXp);
       int newDyad     = _eth2dyad(msg.value);
       if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
       nft.deposit += newDyad; // nft.deposit must be >= 0 now
       idToNft[id]  = nft;     // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
+  }
+
+  function _updateNftXp(Nft memory nft, uint xp) private {
+    nft.xp  += xp;
+    if (nft.xp > maxXp) { maxXp = nft.xp; }
+    totalXp += xp;
   }
 
   // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
