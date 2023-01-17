@@ -22,16 +22,19 @@ contract DNft is ERC721, ReentrancyGuard {
   using LibString         for uint256;
 
   uint public constant MAX_SUPPLY                = 10_000;
-  uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 15000 bps or 150%
-  uint public constant SYNC_MIN_PRICE_CHANGE     = 1e15;     // 10    bps or 0.1%
+  uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18;  // 15000 bps or 150%
+  uint public constant SYNC_MIN_PRICE_CHANGE     = 0.001e18; // 10    bps or 0.1%
 
   uint public constant XP_NORM_FACTOR        = 1e16;
   uint public constant XP_MINT_REWARD        = 1_000;
-  uint public constant XP_SYNC_REWARD        = 4e15;         // 4 bps or 0.04%
-  uint public constant XP_LIQUIDATION_REWARD = 4e15;         // 4 bps or 0.04%
-  uint public constant XP_DIBS_BURN_REWARD   = 3e15;         // 3 bps or 0.03%
-  uint public constant XP_DIBS_MINT_REWARD   = 2e15;         // 2 bps or 0.02%
-  uint public constant XP_CLAIM_REWARD       = 1e15;         // 1 bps or 0.01%
+  uint public constant XP_SYNC_REWARD        = 0.0004e18;    // 4 bps or 0.04%
+  uint public constant XP_LIQUIDATION_REWARD = 0.0004e18;    // 4 bps or 0.04%
+  uint public constant XP_DIBS_BURN_REWARD   = 0.0003e18;    // 3 bps or 0.03%
+  uint public constant XP_DIBS_MINT_REWARD   = 0.0002e18;    // 2 bps or 0.02%
+  uint public constant XP_CLAIM_REWARD       = 0.0001e18;    // 1 bps or 0.01%
+
+  int public constant DIBS_MINT_SPLIT        = 0.75e18;      // 7500 bps or 75%
+  int public constant DIBS_BURN_PENALTY      = 0.01e18;      // 100  bps or 1%
 
   uint public immutable DEPOSIT_MIMIMUM;
 
@@ -138,7 +141,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint id,
       uint minAmount
   ) private returns (uint) {
-      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();    // newDyad can be 0
+      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();    // `newDyad` can be 0
       if (newDyad < minAmount) { revert AmountLessThanMimimum(newDyad); }
       idToNft[id].deposit += newDyad.toInt256();
       emit DyadDeposited(id, newDyad);
@@ -231,9 +234,9 @@ contract DNft is ERC721, ReentrancyGuard {
       syncedBlock      = block.number;
       prevDyadDelta    = dyadDelta;
       dyadDelta        = wadMul(dyad.totalSupply().toInt256(), priceChange);
-      uint xp          = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
-      idToNft[id].xp  += xp;
-      totalXp         += xp;
+      uint newXp       = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
+      idToNft[id].xp  += newXp;
+      totalXp         += newXp;
       emit Synced(id);
   }
 
@@ -243,11 +246,10 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft storage nft  = idToNft[id];
       int share        = _calcShare(dyadDelta, nft.xp);
       nft.deposit     += share;
-      uint xpAccrual   = dyad.totalSupply().mulWadDown(XP_CLAIM_REWARD) / XP_NORM_FACTOR;
-      uint xp          = _calcXpReward(XP_CLAIM_REWARD);
-      if (dyadDelta < 0) { xpAccrual += _calcBurnXpReward(nft.xp, share); }
-      nft.xp          += xp;
-      totalXp         += xp;
+      uint newXp       = _calcXpReward(XP_CLAIM_REWARD);
+      if (dyadDelta < 0) { newXp += _calcBurnXpReward(nft.xp, share); }
+      nft.xp          += newXp;
+      totalXp         += newXp;
       claimed[id][syncedBlock] = true;
   }
 
@@ -258,7 +260,7 @@ contract DNft is ERC721, ReentrancyGuard {
   ) external exists(_from) exists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       int share         = _calcShare(prevDyadDelta, idToNft[_from].xp);
-      prevDyadDelta > 0 ? _dibsMint(_from, _to, share)   // prevDyadDelta != 0
+      prevDyadDelta > 0 ? _dibsMint(_from, _to, share)   // prevDyadDelta is always != 0
                         : _dibsBurn(_from, _to, share);
       claimed[_from][prevSyncedBlock] = true;
   }
@@ -268,9 +270,9 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to,
       int _share
   ) private {
-      idToNft[_from].deposit += wadMul(_share, 0.75e18); // 25% 
       Nft storage to = idToNft[_to];
-      to.deposit             += wadMul(_share, 0.25e18); // 75%
+      to.deposit             += wadMul(_share, 1e18-DIBS_MINT_SPLIT); 
+      idToNft[_from].deposit += wadMul(_share, DIBS_MINT_SPLIT); 
       uint xp  = _calcXpReward(XP_DIBS_MINT_REWARD);
       to.xp   += xp;
       totalXp += xp;
@@ -282,8 +284,10 @@ contract DNft is ERC721, ReentrancyGuard {
       int _share
   ) private {
       idToNft[_from].deposit += _share; 
-      int toMove = wadMul(_share, 0.10e17); // 1%
-      if (toMove > idToNft[_to].deposit) { _move(_from, _to, toMove); }
+      int toMove = wadMul(_share, DIBS_BURN_PENALTY); 
+      if (toMove > idToNft[_to].deposit) {  // without if, deposit would never become negative
+        _move(_from, _to, toMove); 
+      } 
       uint xp          = _calcXpReward(XP_DIBS_BURN_REWARD);
       xp              += _calcBurnXpReward(idToNft[_to].xp, _share); 
       idToNft[_to].xp += xp;
@@ -296,7 +300,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
   function _calcBurnXpReward(uint xp, int share) private view returns (uint) {
-      uint relativeXp  = xp.divWadDown(totalXp);
+      uint relativeXp = xp.divWadDown(totalXp);
       return ((1e18 - relativeXp) * share.toUint256()); 
   }
 
