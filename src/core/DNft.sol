@@ -317,7 +317,7 @@ contract DNft is ERC721, ReentrancyGuard {
   ) external addressNotZero(to) payable returns (uint) {
       Nft memory nft = idToNft[id];
       if (nft.deposit >= 0) { revert NotLiquidatable(id); }
-      _burn(id);                    // no need to delete idToNft[id] because it will be overwritten
+      _burn(id);              // no need to delete idToNft[id] because it will be overwritten
       _mintCopy(to, nft, id);
       uint xp         = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       idToNft[id].xp += xp;
