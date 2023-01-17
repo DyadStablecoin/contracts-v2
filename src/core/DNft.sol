@@ -325,7 +325,7 @@ contract DNft is ERC721, ReentrancyGuard {
       nft.xp      += xp;
       totalXp     += xp;
       nft.deposit += _deposit(id, minDeposit).toInt256();
-      idToNft[id] = nft;
+      idToNft[id] = nft; // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
   }
