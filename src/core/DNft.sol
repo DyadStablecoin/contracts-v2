@@ -249,12 +249,12 @@ contract DNft is ERC721, ReentrancyGuard {
         int _share   = _calcShare(dyadDelta, nft.xp);
         nft.deposit += _share;
       } else {
-        (uint xp, int _share) = _calcBurn(nft.xp, share);
-        nft.deposit += _share;
+        (uint xp, int relativeShare) = _calcBurn(nft.xp, share);
+        nft.deposit += relativeShare;
         newXp       += xp;
       }
       _updateXp(nft, newXp);
-      idToNft[id]      = nft;
+      idToNft[id] = nft;
       claimed[id][syncedBlock] = true;
   }
 
@@ -275,8 +275,8 @@ contract DNft is ERC721, ReentrancyGuard {
         to.xp        += newXp;
         _updateXp(to, newXp);
       } else {                         // ETH price went down
-        (uint xp, int _share) = _calcBurn(from.xp, share);
-        from.deposit += _share;      
+        (uint xp, int relativeShare) = _calcBurn(from.xp, share);
+        from.deposit += relativeShare;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
