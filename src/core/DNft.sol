@@ -249,7 +249,7 @@ contract DNft is ERC721, ReentrancyGuard {
         int _share   = _calcShare(dyadDelta, nft.xp);
         nft.deposit += _share;
       } else {
-        (int _share, uint xp) = _calcBurn(nft.xp, share);
+        (uint xp, int _share) = _calcBurn(nft.xp, share);
         nft.deposit += _share;
         newXp       += xp;
       }
@@ -275,7 +275,7 @@ contract DNft is ERC721, ReentrancyGuard {
         to.xp        += newXp;
         _updateXp(to, newXp);
       } else {                         // ETH price went down
-        (int _share, uint xp) = _calcBurn(from.xp, share);
+        (uint xp, int _share) = _calcBurn(from.xp, share);
         from.deposit += _share;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
@@ -311,13 +311,14 @@ contract DNft is ERC721, ReentrancyGuard {
     totalXp += xp;
   }
 
-  // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
-  function _calcBurn(uint xp, int share) private view returns (int, uint) {
+  // Calculate xp accrual and share
+  function _calcBurn(uint xp, int share) private view returns (uint, int) {
       uint relaitveXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint multi             = (1e18 - relaitveXpToMax) / (totalSupply*1e18 - (relativeXpToTotal.divWadDown(relaitveXpToMax)));
-      int allocation         = multi.toInt256() * share;
-      return (allocation, allocation.toUint256().divWadDown(relaitveXpToMax)); 
+      int relativeShare      = multi.toInt256() * share;
+      uint xpAccrual         = relativeShare.toUint256().divWadDown(relaitveXpToMax);
+      return (xpAccrual, relativeShare); 
 
   }
 
