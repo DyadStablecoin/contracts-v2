@@ -27,24 +27,24 @@ contract DNft is ERC721, ReentrancyGuard {
 
   uint public constant XP_NORM_FACTOR        = 1e16;
   uint public constant XP_MINT_REWARD        = 1_000;
-  uint public constant XP_SYNC_REWARD        = 0.0004e18;    // 4 bps or 0.04%
-  uint public constant XP_LIQUIDATION_REWARD = 0.0004e18;    // 4 bps or 0.04%
-  uint public constant XP_DIBS_BURN_REWARD   = 0.0003e18;    // 3 bps or 0.03%
-  uint public constant XP_DIBS_MINT_REWARD   = 0.0002e18;    // 2 bps or 0.02%
-  uint public constant XP_CLAIM_REWARD       = 0.0001e18;    // 1 bps or 0.01%
+  uint public constant XP_SYNC_REWARD        = 0.0004e18; // 4 bps or 0.04%
+  uint public constant XP_LIQUIDATION_REWARD = 0.0004e18; // 4 bps or 0.04%
+  uint public constant XP_DIBS_BURN_REWARD   = 0.0003e18; // 3 bps or 0.03%
+  uint public constant XP_DIBS_MINT_REWARD   = 0.0002e18; // 2 bps or 0.02%
+  uint public constant XP_CLAIM_REWARD       = 0.0001e18; // 1 bps or 0.01%
 
-  int public constant DIBS_MINT_SPLIT        = 0.75e18;      // 7500 bps or 75%
-  int public constant DIBS_BURN_PENALTY      = 0.01e18;      // 100  bps or 1%
+  int public constant DIBS_MINT_SPLIT        = 0.75e18;   // 7500 bps or 75%
+  int public constant DIBS_BURN_PENALTY      = 0.01e18;   // 100  bps or 1%
 
   uint public immutable DEPOSIT_MIMIMUM;
 
-  uint public totalSupply;
+  uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
   uint public totalXp;                // Sum of all dNfts Xp
   int  public dyadDelta;
   int  public prevDyadDelta;
-  uint public syncedBlock;            // Last block sync was called on
-  uint public prevSyncedBlock;        // Second last block sync was called on
+  uint public syncedBlock;            // Last block, sync was called on
+  uint public prevSyncedBlock;        // Second last block, sync was called on
 
   mapping(uint => Nft)  public idToNft;
   mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
@@ -116,12 +116,12 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       uint id = totalSupply++; 
       _mintNft(to, id); 
-      _deposit(id, DEPOSIT_MIMIMUM);
+      _exchange(id, DEPOSIT_MIMIMUM);
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
-      address to,
+      address to, // address(0) will make `_mint` fail
       uint id
   ) private {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
@@ -133,11 +133,11 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
-      _deposit(id, 0);
+      _exchange(id, 0);
   }
 
   // Deposit at least `minAmount` of DYAD for ETH
-  function _deposit(
+  function _exchange(
       uint id,
       uint minAmount
   ) private returns (uint) {
@@ -328,7 +328,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       nft.xp      += xp;
       totalXp     += xp;
-      nft.deposit += _deposit(id, minDeposit).toInt256();
+      nft.deposit += _exchange(id, minDeposit).toInt256();
       idToNft[id] = nft; // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;

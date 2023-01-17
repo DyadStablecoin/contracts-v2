@@ -23,23 +23,25 @@ interface IDNft {
     uint withdrawal;
   }
 
+  // view functions
   function XP_MINT_REWARD() external view returns (uint);
   function XP_SYNC_REWARD() external view returns (uint);
+  function idToNft(uint id) external view returns (Nft memory);
+  function dyadDelta()      external view returns (int);
+  function totalXp()        external view returns (uint);
+  function syncedBlock()    external view returns (uint);
+  function lastEthPrice()   external view returns (uint);
 
-  function idToNft(uint id)  external view returns (Nft memory);
-  function dyadDelta()       external view returns (int);
-  function totalXp()         external view returns (uint);
-  function syncedBlock() external view returns (uint);
-
+  // state changing functions
   function mint    (address to) external payable;
   function exchange(uint id) external payable;
   function deposit (uint id, uint amount) external;
-  function move    (uint from, uint to, int amount) external payable;
-  function withdraw(uint from, address to, uint amount) external payable;
-  function redeem  (uint from, address to, uint amount) external payable;
-  function sync    (uint id) external payable;
-  function claim   (uint id) external payable;
-  function dibs    (uint from, uint to) external payable;
+  function move    (uint from, uint to, int amount) external;
+  function withdraw(uint from, address to, uint amount) external;
+  function redeem  (uint from, address to, uint amount) external;
+  function sync    (uint id) external;
+  function claim   (uint id) external;
+  function dibs    (uint from, uint to) external;
 
   function MAX_SUPPLY() external pure returns (uint);
   function DEPOSIT_MIMIMUM() external pure returns (uint);

@@ -17,15 +17,21 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(dNft.ownerOf(0), INSIDERS[0]);
     assertEq(dNft.ownerOf(1), INSIDERS[1]);
     assertEq(dNft.ownerOf(2), INSIDERS[2]);
+
+    assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
   }
 
   // -------------------- mint --------------------
   function testMintNft() public {
+    uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     assertEq(dNft.totalSupply(), INSIDERS.length + 1);
+    assertEq(dNft.idToNft(id).xp, dNft.XP_MINT_REWARD());
+    assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.lastEthPrice());
+    assertEq(dNft.idToNft(id).withdrawal, 0);
   }
   function testFailMintToZeroAddress() public {
-    dNft.mint(address(0));
+    dNft.mint{value: 5 ether}(address(0));
   }
   function testCannotMintNotReachedMinAmount() public {
     vm.expectRevert(
