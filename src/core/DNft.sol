@@ -60,14 +60,14 @@ contract DNft is ERC721, ReentrancyGuard {
     uint withdrawal;
   }
 
-  event NftMinted        (address indexed to, uint indexed id);
-  event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
-  event DyadWithdrawn    (uint indexed id, uint amount);
-  event EthExchanged     (uint indexed id, int amount);
-  event DyadDepositBurned(uint indexed id, uint amount);
-  event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
-  event Synced           (uint id);
-  event NftLiquidated    (address indexed to, uint indexed id);
+  event NftMinted          (address indexed to, uint indexed id);
+  event DyadRedeemed       (address indexed to, uint indexed id, uint amount);
+  event DyadWithdrawn      (uint indexed id, uint amount);
+  event EthExchangedForDyad(uint indexed id, int amount);
+  event DyadDepositBurned  (uint indexed id, uint amount);
+  event DyadDepositMoved   (uint indexed from, uint indexed to, int amount);
+  event Synced             (uint id);
+  event NftLiquidated      (address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
@@ -143,7 +143,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
-      emit EthExchanged(id, newDeposit);
+      emit EthExchangedForDyad(id, newDeposit);
   }
 
   // Deposit DYAD 
