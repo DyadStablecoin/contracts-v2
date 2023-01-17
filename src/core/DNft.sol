@@ -312,34 +312,21 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
   function liquidate(
-      uint id,   // if id does not exists => nft.deposit is always 0
-      address to
-  ) external addressNotZero(to) payable returns (uint) {
+      uint id,   // no check for `exists(id)`, because if it doesn't (nft.deposit == 0) is true
+      address to 
+  ) external payable returns (uint) {
       Nft memory nft = idToNft[id];
       if (nft.deposit >= 0) { revert NotLiquidatable(id); }
-      _burn(id);              // no need to delete idToNft[id] because it will be overwritten
-      _mintCopy(to, nft, id);
-      uint xp         = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
-      idToNft[id].xp += xp;
-      totalXp        += xp;
-      emit NftLiquidated(to,  id); 
-      return id;
-  }
-
-  // Mint nft with `id` to `to` with the same xp and withdrawn amount as `nft`
-  function _mintCopy(
-      address to,
-      Nft memory nft, 
-      uint id
-  ) private returns (uint) { 
-      _mintNft(to, id);
-      Nft storage newNft = idToNft[id];
+      _burn(id);        // no need to delete idToNft[id] because it will be overwritten
+      _mintNft(to, id); // no need to increment totalSupply, because burn + mint
       uint minDeposit;
       if (nft.deposit < 0) { minDeposit = nft.deposit.abs(); }
-      int newDeposit    = _deposit(id, minDeposit).toInt256();
-      newNft.deposit    = newDeposit + nft.deposit;
-      newNft.xp         = nft.xp;
-      newNft.withdrawal = nft.withdrawal;
+      uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
+      nft.xp      += xp;
+      totalXp     += xp;
+      nft.deposit += _deposit(id, minDeposit).toInt256();
+      idToNft[id] = nft;
+      emit NftLiquidated(to,  id); 
       return id;
   }
 
