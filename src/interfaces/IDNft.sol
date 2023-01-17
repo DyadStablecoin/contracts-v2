@@ -44,7 +44,7 @@ interface IDNft {
   function dibs    (uint from, uint to) external;
 
   function MAX_SUPPLY() external pure returns (uint);
-  function DEPOSIT_MIMIMUM() external pure returns (uint);
+  function MINT_MINIMUM() external pure returns (uint);
 
   // ERC721
   function ownerOf(uint tokenId) external view returns (address);
