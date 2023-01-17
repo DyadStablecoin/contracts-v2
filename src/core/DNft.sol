@@ -307,7 +307,7 @@ contract DNft is ERC721, ReentrancyGuard {
     totalXp += xp;
   }
 
-  // Return share of `amount` weighted by `xp`
+  // Calculate share weighted by relative xp
   function _calcMint(
       uint xp, 
       int share
@@ -317,7 +317,7 @@ contract DNft is ERC721, ReentrancyGuard {
       return wadMul(share, relativeXp.toInt256());
   }
 
-  // Calculate xp accrual and share
+  // Calculate xp accrual and share by relative xp
   function _calcBurn(
       uint xp,
       int share
