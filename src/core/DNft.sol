@@ -125,7 +125,7 @@ contract DNft is ERC721, ReentrancyGuard {
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
-      uint eth
+      uint eth    // amount of ETH to be converted to deposited DYAD
   ) private {
       uint id = totalSupply++;
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
