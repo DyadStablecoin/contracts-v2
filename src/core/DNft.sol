@@ -251,59 +251,28 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to
   ) external exists(_from) exists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
-      int share         = _calcShare(prevDyadDelta, idToNft[_from].xp);
-      prevDyadDelta > 0 ? _dibsMint(_from, _to, share)   // prevDyadDelta is always != 0
-                        : _dibsBurn(_from, _to, share);
-      claimed[_from][prevSyncedBlock] = true;
-  }
-
-  function _dibsMint(
-      uint _from, 
-      uint _to,
-      int _share
-  ) private {
-      Nft storage to = idToNft[_to];
-      to.deposit             += wadMul(_share, 1e18-DIBS_MINT_SPLIT); 
-      idToNft[_from].deposit += wadMul(_share, DIBS_MINT_SPLIT); 
-      uint newXp = _calcXpReward(XP_DIBS_MINT_REWARD);
-      to.xp   += newXp;
+      Nft storage from = idToNft[_from];
+      Nft storage to   = idToNft[_to];
+      int share        = _calcShare(prevDyadDelta, from.xp);
+      uint newXp;
+      if (prevDyadDelta > 0) {         // ETH price went up
+        from.deposit += wadMul(share, DIBS_MINT_SPLIT); 
+        to.deposit   += wadMul(share, 1e18-DIBS_MINT_SPLIT); 
+        newXp         = _calcXpReward(XP_DIBS_MINT_REWARD);
+        to.xp        += newXp;
+      } else {                         // ETH price went down
+        from.deposit += share;      
+        int reward = wadMul(share, DIBS_BURN_PENALTY); 
+        // without this check, deposit would never become negative
+        if (reward > from.deposit) { _move(_from, _to, reward); } 
+        uint xpDibsReward = _calcXpReward(XP_DIBS_BURN_REWARD);
+        uint xpBurnReward = _calcBurnXpReward(from.xp, share);
+        newXp    = (xpReward + xpBurnReward);
+        from.xp += xpBurnReward;
+        to.xp   += xpDibsReward;
+      }
       totalXp += newXp;
-  }
-
-  function _dibsBurn(
-      uint _from, 
-      uint _to,
-      int _share
-  ) private {
-      idToNft[_from].deposit += _share; 
-      int toMove = wadMul(_share, DIBS_BURN_PENALTY); 
-      if (toMove > idToNft[_to].deposit) {  // without if, deposit would never become negative
-        _move(_from, _to, toMove); 
-      } 
-      uint newXp       = _calcXpReward(XP_DIBS_BURN_REWARD);
-      newXp           += _calcBurnXpReward(idToNft[_to].xp, _share); 
-      idToNft[_to].xp += newXp;
-      totalXp         += newXp;
-  }
-
-  function _calcXpReward(uint percent) private view returns (uint) {
-    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
-  }
-
-  // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
-  function _calcBurnXpReward(uint xp, int share) private view returns (uint) {
-      uint relativeXp = xp.divWadDown(totalXp);
-      return ((1e18 - relativeXp) * share.toUint256()); 
-  }
-
-  // Return share of `_amount` weighted by `xp`
-  function _calcShare(
-      int _amount,
-      uint _xp
-  ) private view returns (int) {
-      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
-      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(_amount, relativeXp);
+      claimed[_from][prevSyncedBlock] = true;
   }
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
@@ -324,6 +293,26 @@ contract DNft is ERC721, ReentrancyGuard {
       idToNft[id]  = nft;     // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
+  }
+
+  // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
+  function _calcBurnXpReward(uint xp, int share) private view returns (uint) {
+      uint relativeXp = xp.divWadDown(totalXp);
+      return ((1e18 - relativeXp) * share.toUint256()); 
+  }
+
+  // Return share of `_amount` weighted by `xp`
+  function _calcShare(
+      int _amount,
+      uint _xp
+  ) private view returns (int) {
+      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
+      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(_amount, relativeXp);
+  }
+
+  function _calcXpReward(uint percent) private view returns (uint) {
+    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
   }
 
   // Retrun the value of `eth` in DYAD
