@@ -266,7 +266,7 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       if (prevDyadDelta > 0) {         // ETH price went up
-        int share = _calcMint(from.xp, prevDyadDelta);
+        int share     = _calcMint(from.xp, prevDyadDelta);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
