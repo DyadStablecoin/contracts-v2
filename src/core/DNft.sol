@@ -329,7 +329,6 @@ contract DNft is ERC721, ReentrancyGuard {
       int  relativeShare     = wadMul(multi.toInt256(), share);
       uint xpAccrual         = relativeShare.toUint256().divWadDown(relaitveXpToMax);
       return (xpAccrual, relativeShare); 
-
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
