@@ -33,7 +33,7 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public constant XP_DIBS_MINT_REWARD   = 0.0002e18; // 2 bps or 0.02%
   uint public constant XP_CLAIM_REWARD       = 0.0001e18; // 1 bps or 0.01%
 
-  int public constant DIBS_MINT_SPLIT        = 0.75e18;   // 7500 bps or 75%
+  int public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
   int public constant DIBS_BURN_PENALTY      = 0.01e18;   // 100  bps or 1%
 
   int public immutable MINT_MINIMUM;  // in DYAD
@@ -265,14 +265,11 @@ contract DNft is ERC721, ReentrancyGuard {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      uint newXp;
       if (prevDyadDelta > 0) {         // ETH price went up
         int relativeShare = _calcMint(from.xp, prevDyadDelta);
-        from.deposit += wadMul(relativeShare, DIBS_MINT_SPLIT); 
-        to.deposit   += wadMul(relativeShare, 1e18-DIBS_MINT_SPLIT); 
-        newXp         = _calcXpReward(XP_DIBS_MINT_REWARD);
-        to.xp        += newXp;
-        _updateXp(to, newXp);
+        from.deposit += wadMul(relativeShare, 1e18 - DIBS_MINT_SHARE_REWARD); 
+        to.deposit   += wadMul(relativeShare, DIBS_MINT_SHARE_REWARD); 
+        _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                         // ETH price went down
         (uint xp, int relativeShare) = _calcBurn(from.xp, prevDyadDelta);
         from.deposit += relativeShare;      
@@ -310,6 +307,16 @@ contract DNft is ERC721, ReentrancyGuard {
     totalXp += xp;
   }
 
+  // Return share of `amount` weighted by `xp`
+  function _calcMint(
+      uint xp, 
+      int share
+  ) private view returns (int) { // no xp accrual for minting
+      uint relativeXp = xp.divWadDown(totalXp);
+      if (share < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(share, relativeXp.toInt256());
+  }
+
   // Calculate xp accrual and share
   function _calcBurn(
       uint xp,
@@ -317,21 +324,12 @@ contract DNft is ERC721, ReentrancyGuard {
   ) private view returns (uint, int) {
       uint relaitveXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
-      uint multi             = (1e18 - relaitveXpToMax) / (totalSupply*1e18 - (relativeXpToTotal.divWadDown(relaitveXpToMax)));
-      int relativeShare      = multi.toInt256() * share;
+      uint norm              = relativeXpToTotal.divWadDown(relaitveXpToMax);
+      uint multi             = (1e18 - relaitveXpToMax).divWadDown(norm);
+      int  relativeShare     = wadMul(multi.toInt256(), share);
       uint xpAccrual         = relativeShare.toUint256().divWadDown(relaitveXpToMax);
       return (xpAccrual, relativeShare); 
 
-  }
-
-  // Return share of `amount` weighted by `xp`
-  function _calcMint(
-      uint xp, 
-      int amount
-  ) private view returns (int) {
-      int relativeXp = wadDiv(xp.toInt256(), totalXp.toInt256());
-      if (amount < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(amount, relativeXp);
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
