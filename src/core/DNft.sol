@@ -326,7 +326,7 @@ contract DNft is ERC721, ReentrancyGuard {
       return id;
   }
 
-  // How much dyad do I get for `eth`?
+  // Retrun the value of `eth` in DYAD
   function _eth2dyad(uint eth) private view returns (int) {
       return (eth/1e8).toInt256() * _getLatestEthPrice(); // can be 0
   }
