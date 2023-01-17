@@ -36,7 +36,7 @@ contract DNftsTest is BaseTest, Parameters {
   function testCannotMintNotReachedMinAmount() public {
     vm.expectRevert(
       abi.encodeWithSelector(
-        IDNft.AmountLessThanMimimum.selector,
+        IDNft.UnderDepositMinimum.selector,
         1 ether/1e8 * oracleMock.price()
       )
     );

@@ -61,7 +61,7 @@ contract DNft is ERC721, ReentrancyGuard {
   event NftMinted        (address indexed to, uint indexed id);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
   event DyadWithdrawn    (uint indexed id, uint amount);
-  event EthExchanged    (uint indexed id, int amount);
+  event EthExchanged     (uint indexed id, int amount);
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event Synced           (uint id);
@@ -75,7 +75,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error AmountLessThanMimimum   (int amount);
+  error UnderDepositMinimum   (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -117,7 +117,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint id = totalSupply++; 
       _mintNft(to, id); 
       int newDyad = _eth2dyad(msg.value);
-      if (newDyad < MINT_MINIMUM) { revert AmountLessThanMimimum(newDyad); }
+      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
       idToNft[id].deposit = newDyad;
   }
 
@@ -319,16 +319,16 @@ contract DNft is ERC721, ReentrancyGuard {
       nft.xp      += newXp;
       totalXp     += newXp;
       int newDyad     = _eth2dyad(msg.value);
-      if (newDyad < nft.deposit.abs().toInt256()) { revert AmountLessThanMimimum(newDyad); }
+      if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
       nft.deposit += newDyad; // nft.deposit must be >= 0 now
-      idToNft[id]  = nft;  // withdrawal stays exactly as it was
+      idToNft[id]  = nft;     // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
   }
 
   // Retrun the value of `eth` in DYAD
   function _eth2dyad(uint eth) private view returns (int) {
-      return (eth/1e8).toInt256() * _getLatestEthPrice(); // can be 0
+      return (eth/1e8).toInt256() * _getLatestEthPrice(); 
   }
 
   // ETH price in USD
