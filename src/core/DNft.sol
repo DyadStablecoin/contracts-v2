@@ -36,7 +36,7 @@ contract DNft is ERC721, ReentrancyGuard {
   int public constant DIBS_MINT_SPLIT        = 0.75e18;   // 7500 bps or 75%
   int public constant DIBS_BURN_PENALTY      = 0.01e18;   // 100  bps or 1%
 
-  uint public immutable DEPOSIT_MIMIMUM;
+  int public immutable MINT_MINIMUM;  // in DYAD
 
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
@@ -61,7 +61,7 @@ contract DNft is ERC721, ReentrancyGuard {
   event NftMinted        (address indexed to, uint indexed id);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
   event DyadWithdrawn    (uint indexed id, uint amount);
-  event DyadDeposited    (uint indexed id, uint amount);
+  event EthExchanged     (uint indexed id, int amount);
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event Synced           (uint id);
@@ -75,7 +75,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error AmountLessThanMimimum   (uint amount);
+  error UnderDepositMinimum   (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -98,13 +98,13 @@ contract DNft is ERC721, ReentrancyGuard {
   constructor(
       address _dyad,
       address _oracle, 
-      uint    _depositMinimum,
+      int     _mintMinimum,
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-      dyad            = Dyad(_dyad);
-      oracle          = IAggregatorV3(_oracle);
-      DEPOSIT_MIMIMUM = _depositMinimum;
-      lastEthPrice    = _getLatestEthPrice();
+      dyad         = Dyad(_dyad);
+      oracle       = IAggregatorV3(_oracle);
+      MINT_MINIMUM = _mintMinimum;
+      lastEthPrice = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; ) { 
         _mintNft(_insiders[i], totalSupply++);
@@ -116,7 +116,9 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       uint id = totalSupply++; 
       _mintNft(to, id); 
-      _exchange(id, DEPOSIT_MIMIMUM);
+      int newDyad = _eth2dyad(msg.value);
+      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
+      idToNft[id].deposit = newDyad;
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -133,19 +135,9 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
-      _exchange(id, 0);
-  }
-
-  // Deposit at least `minAmount` of DYAD for ETH
-  function _exchange(
-      uint id,
-      uint minAmount
-  ) private returns (uint) {
-      uint newDyad = msg.value/1e8 * _getLatestEthPrice().toUint256();    // `newDyad` can be 0
-      if (newDyad < minAmount) { revert AmountLessThanMimimum(newDyad); }
-      idToNft[id].deposit += newDyad.toInt256();
-      emit DyadDeposited(id, newDyad);
-      return newDyad;
+      int newDeposit       = _eth2dyad(msg.value);
+      idToNft[id].deposit += newDeposit;
+      emit EthExchanged(id, newDeposit);
   }
 
   // Deposit DYAD 
@@ -259,43 +251,48 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to
   ) external exists(_from) exists(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
-      int share         = _calcShare(prevDyadDelta, idToNft[_from].xp);
-      prevDyadDelta > 0 ? _dibsMint(_from, _to, share)   // prevDyadDelta is always != 0
-                        : _dibsBurn(_from, _to, share);
+      Nft storage from = idToNft[_from];
+      Nft storage to   = idToNft[_to];
+      int share        = _calcShare(prevDyadDelta, from.xp);
+      uint newXp;
+      if (prevDyadDelta > 0) {         // ETH price went up
+        from.deposit += wadMul(share, DIBS_MINT_SPLIT); 
+        to.deposit   += wadMul(share, 1e18-DIBS_MINT_SPLIT); 
+        newXp         = _calcXpReward(XP_DIBS_MINT_REWARD);
+        to.xp        += newXp;
+      } else {                         // ETH price went down
+        from.deposit += share;      
+        int reward = wadMul(share, DIBS_BURN_PENALTY); 
+        // without this check, deposit would never become negative
+        if (reward > from.deposit) { _move(_from, _to, reward); } 
+        uint xpDibsReward = _calcXpReward(XP_DIBS_BURN_REWARD);
+        uint xpBurnReward = _calcBurnXpReward(from.xp, share);
+        newXp    = (xpDibsReward + xpBurnReward);
+        from.xp += xpBurnReward;
+        to.xp   += xpDibsReward;
+      }
+      totalXp += newXp;
       claimed[_from][prevSyncedBlock] = true;
   }
 
-  function _dibsMint(
-      uint _from, 
-      uint _to,
-      int _share
-  ) private {
-      Nft storage to = idToNft[_to];
-      to.deposit             += wadMul(_share, 1e18-DIBS_MINT_SPLIT); 
-      idToNft[_from].deposit += wadMul(_share, DIBS_MINT_SPLIT); 
-      uint xp  = _calcXpReward(XP_DIBS_MINT_REWARD);
-      to.xp   += xp;
-      totalXp += xp;
-  }
-
-  function _dibsBurn(
-      uint _from, 
-      uint _to,
-      int _share
-  ) private {
-      idToNft[_from].deposit += _share; 
-      int toMove = wadMul(_share, DIBS_BURN_PENALTY); 
-      if (toMove > idToNft[_to].deposit) {  // without if, deposit would never become negative
-        _move(_from, _to, toMove); 
-      } 
-      uint xp          = _calcXpReward(XP_DIBS_BURN_REWARD);
-      xp              += _calcBurnXpReward(idToNft[_to].xp, _share); 
-      idToNft[_to].xp += xp;
-      totalXp         += xp;
-  }
-
-  function _calcXpReward(uint percent) private view returns (uint) {
-    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
+  // Liquidate dNFT by burning it and minting a new copy to `to`
+  function liquidate(
+      uint id,   // no check for `exists(id)`, because if it doesn't (nft.deposit == 0) is true
+      address to 
+  ) external payable returns (uint) {
+      Nft memory nft = idToNft[id];
+      if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
+      _burn(id);     // no need to delete idToNft[id] because it will be overwritten
+      _mint(to, id); // no need to increment totalSupply, because burn + mint
+      uint newXp   = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
+      nft.xp      += newXp;
+      totalXp     += newXp;
+      int newDyad     = _eth2dyad(msg.value);
+      if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
+      nft.deposit += newDyad; // nft.deposit must be >= 0 now
+      idToNft[id]  = nft;     // withdrawal stays exactly as it was
+      emit NftLiquidated(to,  id); 
+      return id;
   }
 
   // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
@@ -314,22 +311,13 @@ contract DNft is ERC721, ReentrancyGuard {
       return wadMul(_amount, relativeXp);
   }
 
-  // Liquidate dNFT by burning it and minting a new copy to `to`
-  function liquidate(
-      uint id,   // no check for `exists(id)`, because if it doesn't (nft.deposit == 0) is true
-      address to 
-  ) external payable returns (uint) {
-      Nft memory nft = idToNft[id];
-      if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
-      _burn(id);     // no need to delete idToNft[id] because it will be overwritten
-      _mint(to, id); // no need to increment totalSupply, because burn + mint
-      uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
-      nft.xp      += xp;
-      totalXp     += xp;
-      nft.deposit += _exchange(id, nft.deposit.abs()).toInt256(); // nft.deposit must be >= 0 now
-      idToNft[id] = nft; // withdrawal stays exactly as it was
-      emit NftLiquidated(to,  id); 
-      return id;
+  function _calcXpReward(uint percent) private view returns (uint) {
+    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
+  }
+
+  // Retrun the value of `eth` in DYAD
+  function _eth2dyad(uint eth) private view returns (int) {
+      return (eth/1e8).toInt256() * _getLatestEthPrice(); 
   }
 
   // ETH price in USD
