@@ -62,7 +62,7 @@ contract DNft is ERC721, ReentrancyGuard {
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event Synced           (uint id);
-  event NftLiquidated    (address indexed from, address indexed to, uint indexed id);
+  event NftLiquidated    (address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
@@ -317,14 +317,12 @@ contract DNft is ERC721, ReentrancyGuard {
   ) external addressNotZero(to) payable returns (uint) {
       Nft memory nft = idToNft[id];
       if (nft.deposit >= 0) { revert NotLiquidatable(id); }
-      address owner  = ownerOf(id);
-      _burn(id); 
-      delete idToNft[id];
+      _burn(id);                    // no need to delete idToNft[id] because it will be overwritten
       _mintCopy(to, nft, id);
       uint xp         = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       idToNft[id].xp += xp;
       totalXp        += xp;
-      emit NftLiquidated(owner, to,  id); 
+      emit NftLiquidated(to,  id); 
       return id;
   }
 
