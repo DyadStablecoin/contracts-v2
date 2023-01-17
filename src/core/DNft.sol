@@ -266,13 +266,13 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       if (prevDyadDelta > 0) {         // ETH price went up
-        int relativeShare = _calcMint(from.xp, prevDyadDelta);
-        from.deposit += wadMul(relativeShare, 1e18 - DIBS_MINT_SHARE_REWARD); 
-        to.deposit   += wadMul(relativeShare, DIBS_MINT_SHARE_REWARD); 
+        int share = _calcMint(from.xp, prevDyadDelta);
+        from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
+        to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                         // ETH price went down
-        (uint xp, int relativeShare) = _calcBurn(from.xp, prevDyadDelta);
-        from.deposit += relativeShare;      
+        (uint xp, int share) = _calcBurn(from.xp, prevDyadDelta);
+        from.deposit += share;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
@@ -326,7 +326,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint norm              = relativeXpToTotal.divWadDown(relaitveXpToMax);
       uint multi             = (1e18 - relaitveXpToMax).divWadDown(norm);
-      int  relativeShare     = wadMul(multi.toInt256(), share);
+      int  relativeShare     = wadMul(share, multi.toInt256());
       uint xpAccrual         = relativeShare.toUint256().divWadDown(relaitveXpToMax);
       return (xpAccrual, relativeShare); 
   }
