@@ -102,36 +102,37 @@ contract DNft is ERC721, ReentrancyGuard {
       address _oracle, 
       int     _mintMinimum,
       address[] memory _insiders
-  ) ERC721("Dyad NFT", "dNFT") {
+  ) ERC721("Dyad NFT", "dNFT") payable {
       dyad         = Dyad(_dyad);
       oracle       = IAggregatorV3(_oracle);
       MINT_MINIMUM = _mintMinimum;
       lastEthPrice = _getLatestEthPrice();
 
+      require(_eth2dyad(msg.value) >= MINT_MINIMUM * int(_insiders.length)); // safe cast to int
       for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], totalSupply++);
+        _mintNft(_insiders[i], totalSupply++, msg.value / _insiders.length);
         unchecked { ++i; }
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      uint id = totalSupply++; 
-      _mintNft(to, id); 
-      int newDyad = _eth2dyad(msg.value);
-      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
-      idToNft[id].deposit = newDyad;
+      _mintNft(to, totalSupply++, msg.value); 
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
-      uint id
+      uint id, 
+      uint eth
   ) private {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
+      int newDyad = _eth2dyad(eth);
+      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
       _mint(to, id); 
       Nft memory nft = idToNft[id];
       _updateXp(nft, XP_MINT_REWARD);
+      nft.deposit = newDyad;
       idToNft[id] = nft;
       emit NftMinted(to, id);
   }
@@ -257,7 +258,7 @@ contract DNft is ERC721, ReentrancyGuard {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      int share        = _calcShare(prevDyadDelta, from.xp);
+      int share       = _calcShare(prevDyadDelta, from.xp);
       uint newXp;
       if (prevDyadDelta > 0) {         // ETH price went up
         from.deposit += wadMul(share, DIBS_MINT_SPLIT); 
