@@ -246,7 +246,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       int share  = dyadDelta / totalSupply.toInt256();
       if (dyadDelta > 0) {
-        int _share   = _calcShare(dyadDelta, nft.xp);
+        int _share   = _calcMint(nft.xp, dyadDelta);
         nft.deposit += _share;
       } else {
         (uint xp, int relativeShare) = _calcBurn(nft.xp, share);
@@ -266,7 +266,7 @@ contract DNft is ERC721, ReentrancyGuard {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      int share       = _calcShare(prevDyadDelta, from.xp);
+      int share       = _calcMint(from.xp, prevDyadDelta);
       uint newXp;
       if (prevDyadDelta > 0) {         // ETH price went up
         from.deposit += wadMul(share, DIBS_MINT_SPLIT); 
@@ -312,7 +312,10 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate xp accrual and share
-  function _calcBurn(uint xp, int share) private view returns (uint, int) {
+  function _calcBurn(
+      uint xp,
+      int share
+  ) private view returns (uint, int) {
       uint relaitveXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint multi             = (1e18 - relaitveXpToMax) / (totalSupply*1e18 - (relativeXpToTotal.divWadDown(relaitveXpToMax)));
@@ -322,14 +325,14 @@ contract DNft is ERC721, ReentrancyGuard {
 
   }
 
-  // Return share of `_amount` weighted by `xp`
-  function _calcShare(
-      int _amount,
-      uint _xp
+  // Return share of `amount` weighted by `xp`
+  function _calcMint(
+      uint xp, 
+      int amount
   ) private view returns (int) {
-      int relativeXp = wadDiv(_xp.toInt256(), totalXp.toInt256());
-      if (_amount < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(_amount, relativeXp);
+      int relativeXp = wadDiv(xp.toInt256(), totalXp.toInt256());
+      if (amount < 0) { relativeXp = 1e18 - relativeXp; }
+      return wadMul(amount, relativeXp);
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
