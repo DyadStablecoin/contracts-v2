@@ -108,24 +108,26 @@ contract DNft is ERC721, ReentrancyGuard {
       MINT_MINIMUM = _mintMinimum;
       lastEthPrice = _getLatestEthPrice();
 
+      // make sure there is enough ETH for every insider
       require(_eth2dyad(msg.value) >= MINT_MINIMUM * int(_insiders.length)); // safe cast to int
+
       for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], totalSupply++, msg.value / _insiders.length);
+        _mintNft(_insiders[i], msg.value / _insiders.length); // every insider gets the same ETH
         unchecked { ++i; }
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      _mintNft(to, totalSupply++, msg.value); 
+      _mintNft(to, msg.value); 
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
-      uint id, 
       uint eth
   ) private {
+      uint id = totalSupply++;
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       int newDyad = _eth2dyad(eth);
       if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
