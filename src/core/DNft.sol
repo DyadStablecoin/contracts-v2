@@ -243,10 +243,16 @@ contract DNft is ERC721, ReentrancyGuard {
   function claim(uint id) external onlyOwner(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft memory nft  = idToNft[id];
-      int share        = _calcShare(dyadDelta, nft.xp);
-      nft.deposit     += share;
-      uint newXp       = _calcXpReward(XP_CLAIM_REWARD);
-      if (dyadDelta < 0) { newXp += _calcBurnXpReward(nft.xp, share); }
+      uint newXp = _calcXpReward(XP_CLAIM_REWARD);
+      int share  = dyadDelta / totalSupply.toInt256();
+      if (dyadDelta > 0) {
+        int _share   = _calcShare(dyadDelta, nft.xp);
+        nft.deposit += _share;
+      } else {
+        (int _share, uint xp) = _calcBurn(nft.xp, share);
+        nft.deposit += _share;
+        newXp       += xp;
+      }
       _updateXp(nft, newXp);
       idToNft[id]      = nft;
       claimed[id][syncedBlock] = true;
@@ -269,12 +275,10 @@ contract DNft is ERC721, ReentrancyGuard {
         to.xp        += newXp;
         _updateXp(to, newXp);
       } else {                         // ETH price went down
-        from.deposit += share;      
-        int reward = wadMul(share, DIBS_BURN_PENALTY); 
-        // without this check, deposit would never become negative
-        if (reward > from.deposit) { _move(_from, _to, reward); } 
-        _updateXp(from, _calcBurnXpReward(from.xp, share));
-        _updateXp(to,   _calcXpReward(XP_DIBS_BURN_REWARD));
+        (int _share, uint xp) = _calcBurn(from.xp, share);
+        from.deposit += _share;      
+        _updateXp(from, xp);
+        _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
@@ -308,9 +312,13 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate xp accrual for burning `share` of DYAD weighted by relative `xp`
-  function _calcBurnXpReward(uint xp, int share) private view returns (uint) {
-      uint relativeXp = xp.divWadDown(totalXp);
-      return ((1e18 - relativeXp) * share.toUint256()); 
+  function _calcBurn(uint xp, int share) private view returns (int, uint) {
+      uint relaitveXpToMax   = xp.divWadDown(maxXp);
+      uint relativeXpToTotal = xp.divWadDown(totalXp);
+      uint multi             = (1e18 - relaitveXpToMax) / (totalSupply*1e18 - (relativeXpToTotal.divWadDown(relaitveXpToMax)));
+      int allocation         = multi.toInt256() * share;
+      return (allocation, allocation.toUint256().divWadDown(relaitveXpToMax)); 
+
   }
 
   // Return share of `_amount` weighted by `xp`
