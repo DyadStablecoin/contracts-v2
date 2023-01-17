@@ -20,6 +20,15 @@ contract DNftsTest is BaseTest, Parameters {
 
     assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
   }
+  function testInsidersDeposit() public {
+    // all insiders have the same deposit
+    assertEq(dNft.idToNft(0).deposit, 10_000*1e18);
+    assertEq(dNft.idToNft(1).deposit, 10_000*1e18);
+    assertEq(dNft.idToNft(2).deposit, 10_000*1e18);
+
+    // sanity check: dnft that does not exist has no deposit
+    assertEq(dNft.idToNft(INSIDERS.length).deposit, 0);
+  }
 
   // -------------------- mint --------------------
   function testMintNft() public {
