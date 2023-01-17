@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import "@solmate/src/utils/ReentrancyGuard.sol";
 import "@solmate/src/tokens/ERC721.sol";
+import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 
@@ -18,6 +19,7 @@ contract DNft is ERC721, ReentrancyGuard {
   using SafeCast          for int256;
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
+  using LibString         for uint256;
 
   uint public constant MAX_SUPPLY                = 10_000;
   uint public constant MIN_COLLATERIZATION_RATIO = 150*1e16; // 15000 bps or 150%
@@ -113,10 +115,6 @@ contract DNft is ERC721, ReentrancyGuard {
       ++totalSupply;
       _mintNft(to, id); 
       _deposit(id, DEPOSIT_MIMIMUM);
-  }
-
-  function tokenURI(uint256 tokenId) public view override returns (string memory) { 
-    return "Not implemented";
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -351,5 +349,9 @@ contract DNft is ERC721, ReentrancyGuard {
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
     ( , price, , , ) = oracle.latestRoundData();
+  }
+
+  function tokenURI(uint256 id) exists(id) public view override returns (string memory) { 
+    return string.concat("https://dyad.xyz.com/api/dnfts/", id.toString());
   }
 }
