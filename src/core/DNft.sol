@@ -36,7 +36,7 @@ contract DNft is ERC721, ReentrancyGuard {
   int public constant DIBS_MINT_SPLIT        = 0.75e18;   // 7500 bps or 75%
   int public constant DIBS_BURN_PENALTY      = 0.01e18;   // 100  bps or 1%
 
-  uint public immutable DEPOSIT_MIMIMUM;
+  int public immutable DEPOSIT_MIMIMUM;
 
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
@@ -98,7 +98,7 @@ contract DNft is ERC721, ReentrancyGuard {
   constructor(
       address _dyad,
       address _oracle, 
-      uint    _depositMinimum,
+      int     _depositMinimum,
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
       dyad            = Dyad(_dyad);
@@ -116,7 +116,9 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       uint id = totalSupply++; 
       _mintNft(to, id); 
-      idToNft[id].deposit = _eth2dyad(DEPOSIT_MIMIMUM);
+      int _dyad = _eth2dyad(msg.value);
+      if (_dyad < DEPOSIT_MIMIMUM) { revert AmountLessThanMimimum(_dyad); }
+      idToNft[id].deposit = _dyad;
   }
 
   // Mint new DNft to `to` with `id` id 
@@ -133,7 +135,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
-      int newDeposit       = _eth2dyad(0);
+      int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
       emit DyadExchanged(id, newDeposit);
   }
@@ -316,17 +318,17 @@ contract DNft is ERC721, ReentrancyGuard {
       uint xp      = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
       nft.xp      += xp;
       totalXp     += xp;
-      nft.deposit += _eth2dyad(nft.deposit.abs()); // nft.deposit must be >= 0 now
-      idToNft[id] = nft; // withdrawal stays exactly as it was
+      int _dyad     = _eth2dyad(msg.value);
+      if (_dyad < nft.deposit.abs().toInt256()) { revert AmountLessThanMimimum(_dyad); }
+      nft.deposit += _dyad; // nft.deposit must be >= 0 now
+      idToNft[id]  = nft;  // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
   }
 
   // How much dyad do I get for `eth`?
-  function _eth2dyad(uint minAmount) private view returns (int) {
-      int newDyad = (msg.value/1e8).toInt256() * _getLatestEthPrice(); // `newDyad` can be 0
-      if (newDyad < minAmount.toInt256()) { revert AmountLessThanMimimum(newDyad); }
-      return newDyad;
+  function _eth2dyad(uint eth) private view returns (int) {
+      return (eth/1e8).toInt256() * _getLatestEthPrice(); // can be 0
   }
 
   // ETH price in USD
