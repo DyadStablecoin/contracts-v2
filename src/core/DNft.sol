@@ -60,14 +60,14 @@ contract DNft is ERC721, ReentrancyGuard {
     uint withdrawal;
   }
 
-  event NftMinted        (address indexed to, uint indexed id);
-  event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
-  event DyadWithdrawn    (uint indexed id, uint amount);
-  event EthExchanged     (uint indexed id, int amount);
-  event DyadDepositBurned(uint indexed id, uint amount);
-  event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
-  event Synced           (uint id);
-  event NftLiquidated    (address indexed to, uint indexed id);
+  event NftMinted          (address indexed to, uint indexed id);
+  event DyadRedeemed       (address indexed to, uint indexed id, uint amount);
+  event DyadWithdrawn      (uint indexed id, uint amount);
+  event EthExchangedForDyad(uint indexed id, int amount);
+  event DyadDepositBurned  (uint indexed id, uint amount);
+  event DyadDepositMoved   (uint indexed from, uint indexed to, int amount);
+  event Synced             (uint id);
+  event NftLiquidated      (address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
@@ -102,36 +102,39 @@ contract DNft is ERC721, ReentrancyGuard {
       address _oracle, 
       int     _mintMinimum,
       address[] memory _insiders
-  ) ERC721("Dyad NFT", "dNFT") {
+  ) ERC721("Dyad NFT", "dNFT") payable {
       dyad         = Dyad(_dyad);
       oracle       = IAggregatorV3(_oracle);
       MINT_MINIMUM = _mintMinimum;
       lastEthPrice = _getLatestEthPrice();
 
+      // make sure there is enough ETH for every insider
+      require(_eth2dyad(msg.value) >= MINT_MINIMUM * int(_insiders.length)); // safe cast to int
+
       for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], totalSupply++);
+        _mintNft(_insiders[i], msg.value / _insiders.length); // every insider gets the same ETH
         unchecked { ++i; }
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      uint id = totalSupply++; 
-      _mintNft(to, id); 
-      int newDyad = _eth2dyad(msg.value);
-      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
-      idToNft[id].deposit = newDyad;
+      _mintNft(to, msg.value); 
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
-      uint id
+      uint eth    // amount of ETH to be converted to deposited DYAD
   ) private {
+      uint id = totalSupply++;
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
+      int newDyad = _eth2dyad(eth);
+      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
       _mint(to, id); 
       Nft memory nft = idToNft[id];
       _updateXp(nft, XP_MINT_REWARD);
+      nft.deposit = newDyad;
       idToNft[id] = nft;
       emit NftMinted(to, id);
   }
@@ -140,7 +143,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
-      emit EthExchanged(id, newDeposit);
+      emit EthExchangedForDyad(id, newDeposit);
   }
 
   // Deposit DYAD 
@@ -257,7 +260,7 @@ contract DNft is ERC721, ReentrancyGuard {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      int share        = _calcShare(prevDyadDelta, from.xp);
+      int share       = _calcShare(prevDyadDelta, from.xp);
       uint newXp;
       if (prevDyadDelta > 0) {         // ETH price went up
         from.deposit += wadMul(share, DIBS_MINT_SPLIT); 
