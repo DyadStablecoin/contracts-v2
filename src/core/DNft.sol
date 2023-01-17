@@ -61,7 +61,7 @@ contract DNft is ERC721, ReentrancyGuard {
   event NftMinted        (address indexed to, uint indexed id);
   event DyadRedeemed     (address indexed to, uint indexed id, uint amount);
   event DyadWithdrawn    (uint indexed id, uint amount);
-  event DyadExchanged    (uint indexed id, int amount);
+  event EthExchanged    (uint indexed id, int amount);
   event DyadDepositBurned(uint indexed id, uint amount);
   event DyadDepositMoved (uint indexed from, uint indexed to, int amount);
   event Synced           (uint id);
@@ -137,7 +137,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
-      emit DyadExchanged(id, newDeposit);
+      emit EthExchanged(id, newDeposit);
   }
 
   // Deposit DYAD 
