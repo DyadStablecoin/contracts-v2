@@ -267,7 +267,7 @@ contract DNft is ERC721, ReentrancyGuard {
         if (reward > from.deposit) { _move(_from, _to, reward); } 
         uint xpDibsReward = _calcXpReward(XP_DIBS_BURN_REWARD);
         uint xpBurnReward = _calcBurnXpReward(from.xp, share);
-        newXp    = (xpReward + xpBurnReward);
+        newXp    = (xpDibsReward + xpBurnReward);
         from.xp += xpBurnReward;
         to.xp   += xpDibsReward;
       }
