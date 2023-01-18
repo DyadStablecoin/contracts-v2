@@ -38,6 +38,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   int public immutable MINT_MINIMUM;  // in DYAD
 
+  uint public maxXp;                  // Max XP over all dNFTs
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
   int  public dyadDelta;
@@ -45,7 +46,6 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public syncedBlock;            // Last block, sync was called on
   uint public prevSyncedBlock;        // Second last block, sync was called on
   uint public totalXp;                // Sum of all dNfts Xp
-  uint public maxXp;                  // Max XP over all dNFTs
 
 
   mapping(uint => Nft)  public idToNft;
@@ -77,7 +77,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error UnderDepositMinimum   (int amount);
+  error UnderDepositMinimum     (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -117,22 +117,25 @@ contract DNft is ERC721, ReentrancyGuard {
   // Mint new DNft to `to` 
   function mint(address to) external payable {
       uint id = totalSupply++; 
-      _mintNft(to, id); 
+      Nft memory nft = _mintNft(to, id); 
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
-      idToNft[id].deposit = newDyad;
+      nft.deposit = newDyad;
+      idToNft[id] = nft;
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
       uint id
-  ) private {
+  ) private returns (Nft memory) {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); 
-      idToNft[id].xp = XP_MINT_REWARD;
-      totalXp       += XP_MINT_REWARD;
+      Nft memory nft;                 // newly minted nft
+      _updateXp(nft, XP_MINT_REWARD);
+      idToNft[id] = nft;
       emit NftMinted(to, id);
+      return nft;
   }
 
   // Exchange ETH for deposited DYAD

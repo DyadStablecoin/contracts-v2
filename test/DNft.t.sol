@@ -21,7 +21,7 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
   }
   function testInsidersDeposit() public {
-    // all insiders have the same deposit
+    // all insiders have the no deposit
     assertEq(dNft.idToNft(0).deposit, 0);
     assertEq(dNft.idToNft(1).deposit, 0);
     assertEq(dNft.idToNft(2).deposit, 0);
