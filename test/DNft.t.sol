@@ -163,9 +163,10 @@ contract DNftsTest is BaseTest, Parameters {
 
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
     assertTrue(dNft.idToNft(id).xp == 11040);  // nft.xp
-    assertTrue(
+    assertTrue(                                // totalXp
       dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 10040
     );
+    assertTrue(dNft.maxXp() == dNft.idToNft(id).xp); // maxXp
   }
   function testFailSyncPriceChangeTooSmall() public {
     _sync(0, 10001*1e7);
