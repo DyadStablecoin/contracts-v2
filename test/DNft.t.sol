@@ -150,17 +150,16 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
 
-    assertEq(dNft.syncedBlock(), 0);
-    assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD());
+    assertEq(dNft.syncedBlock(), 0);           // syncedBlock
+    assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD()); // nft.xp
 
     uint lastEthPrice = dNft.lastEthPrice();
-    _sync(id, 1100*1e8);                         
+    _sync(id, 1100*1e8);                       // 10% price increas
     uint newEthPrice  = dNft.lastEthPrice();
-    assertTrue(newEthPrice > lastEthPrice);  // 10% increase
 
-    assertEq(dNft.prevSyncedBlock(), 0);
-    assertEq(dNft.syncedBlock(), block.number);
-
+    assertTrue(newEthPrice > lastEthPrice);    // lastEthPrice
+    assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
+    assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
     assertTrue(dNft.idToNft(id).xp == 11040);  // nft.xp
     assertTrue(                                // totalXp
@@ -175,9 +174,21 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- claim --------------------
   function testClaim() public {
     uint id = dNft.totalSupply();
-    _sync(id, oracleMock.price()*2);
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    _sync(id, 1100*1e8);              // 10% price increas
+    console.log(dNft.idToNft(id).xp);
+    console.log(dNft.totalXp());
+
+    /* before claim */
+    assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
+    assertTrue(dNft.idToNft(id).deposit == 4000*1e18); // nft.deposit
 
     dNft.claim(id);
+
+    /* after claim */
+    assertTrue(dNft.idToNft(id).deposit == 4050090744101633393800); // nft.deposit
+    assertTrue(dNft.idToNft(id).xp == 11050);                       // nft.xp
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
