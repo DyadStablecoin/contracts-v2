@@ -38,7 +38,6 @@ contract DNft is ERC721, ReentrancyGuard {
 
   int public immutable MINT_MINIMUM;  // in DYAD
 
-  uint public maxXp;                  // Max XP over all dNFTs
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
   int  public dyadDelta;
@@ -46,7 +45,7 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public syncedBlock;            // Last block, sync was called on
   uint public prevSyncedBlock;        // Second last block, sync was called on
   uint public totalXp;                // Sum of all dNfts Xp
-
+  uint public maxXp;                  // Max XP over all dNFTs
 
   mapping(uint => Nft)  public idToNft;
   mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
