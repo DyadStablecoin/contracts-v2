@@ -172,13 +172,11 @@ contract DNftsTest is BaseTest, Parameters {
   }
 
   // -------------------- claim --------------------
-  function testClaim() public {
+  function testClaimMint() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, 1100*1e8);              // 10% price increas
-    console.log(dNft.idToNft(id).xp);
-    console.log(dNft.totalXp());
 
     /* before claim */
     assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
@@ -189,6 +187,26 @@ contract DNftsTest is BaseTest, Parameters {
     /* after claim */
     assertTrue(dNft.idToNft(id).deposit == 4050090744101633393800); // nft.deposit
     assertTrue(dNft.idToNft(id).xp == 11050);                       // nft.xp
+  }
+  function testClaimBurn() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    dNft.exchange{value: 1 ether}(id);
+    uint id2 = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    _sync(id, 900*1e8);              // 10% price decrease
+
+    console.log("xp1", dNft.idToNft(id).xp);
+    console.log("xp2", dNft.idToNft(id2).xp);
+
+    int deposit1Before = dNft.idToNft(id).deposit;
+    dNft.claim(id);
+    int deposit2Before = dNft.idToNft(id2).deposit;
+    dNft.claim(id2);
+
+    console.log("xp1", dNft.idToNft(id).xp);
+    console.log("xp2", dNft.idToNft(id2).xp);
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
