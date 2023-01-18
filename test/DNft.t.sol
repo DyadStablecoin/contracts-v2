@@ -193,20 +193,31 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     dNft.exchange{value: 1 ether}(id);
+
     uint id2 = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
+
     _sync(id, 900*1e8);              // 10% price decrease
 
-    console.log("xp1", dNft.idToNft(id).xp);
-    console.log("xp2", dNft.idToNft(id2).xp);
+    int id1DepositBefore = dNft.idToNft(id).deposit;
+    int id2DepositBefore = dNft.idToNft(id2).deposit;
+    assertEq(id1DepositBefore, id2DepositBefore);
 
-    int deposit1Before = dNft.idToNft(id).deposit;
+    uint id1XpBefore = dNft.idToNft(id).xp;
+    uint id2XpBefore = dNft.idToNft(id2).xp;
+
+    // claim
     dNft.claim(id);
-    int deposit2Before = dNft.idToNft(id2).deposit;
     dNft.claim(id2);
 
-    console.log("xp1", dNft.idToNft(id).xp);
-    console.log("xp2", dNft.idToNft(id2).xp);
+    // id1 got burned less, because he has more xp
+    assertTrue(dNft.idToNft(id).deposit > dNft.idToNft(id2).deposit);
+
+    uint id1XpAfter = dNft.idToNft(id).xp;
+    uint id2XpAfter = dNft.idToNft(id2).xp;
+
+    // xp accrual of id2 was higher, because he has less xp
+    assertTrue(id2XpAfter-id2XpBefore > id1XpAfter-id1XpBefore);
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
