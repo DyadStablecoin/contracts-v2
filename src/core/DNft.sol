@@ -225,7 +225,9 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   function sync(uint id) external exists(id) {
-      int  priceChange    = wadDiv(_getLatestEthPrice() - lastEthPrice, lastEthPrice); 
+      int newEthPrice  = _getLatestEthPrice();
+      int priceChange  = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
+      lastEthPrice     = newEthPrice; // makes calling `sync` multiple times in same block impossible
       uint priceChangeAbs = priceChange.abs();
       if (priceChangeAbs < SYNC_MIN_PRICE_CHANGE) { revert PriceChangeTooSmall(priceChange); }
       prevSyncedBlock  = syncedBlock;
@@ -302,9 +304,9 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
   function _updateXp(Nft memory nft, uint xp) private {
-    nft.xp  += xp;
-    if (nft.xp > maxXp) { maxXp = nft.xp; }
-    totalXp += xp;
+      nft.xp  += xp;
+      if (nft.xp > maxXp) { maxXp = nft.xp; }
+      totalXp += xp;
   }
 
   // Calculate share weighted by relative xp
@@ -326,7 +328,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint norm              = relativeXpToTotal.divWadDown(relaitveXpToMax);
       uint multi             = (1e18 - relaitveXpToMax).divWadDown(norm);
-      int  relativeShare     = wadMul(share, multi.toInt256());
+      int  relativeShare     = wadMul(share, (totalSupply*1e18 - multi).toInt256());
       uint xpAccrual         = relativeShare.toUint256().divWadDown(relaitveXpToMax);
       return (xpAccrual, relativeShare); 
   }

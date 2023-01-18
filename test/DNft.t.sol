@@ -146,22 +146,26 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.sync(id);
   }
   function testSync() public {
-    uint totalSupply = dNft.totalSupply();
-    uint id          = totalSupply;
+    uint id          = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
-    _sync(id, 1001*1e8);
 
-    assertTrue(dNft.dyadDelta() == 1e18);
+    assertEq(dNft.syncedBlock(), 0);
+    assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD());
 
-    // assertTrue(dNft.idToNft(id).xp == 1000*1e18);
+    uint lastEthPrice = dNft.lastEthPrice();
+    _sync(id, 1100*1e8);                         
+    uint newEthPrice  = dNft.lastEthPrice();
+    assertTrue(newEthPrice > lastEthPrice);  // 10% increase
 
-    // xp bonus is the mint reward + the full sync reward
-    // assertTrue(dNft.idToNft(id).xp == dNft.XP_MINT_REWARD() + dNft.XP_SYNC_REWARD());
-    // total xp
-    // assertTrue(
-    //   dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + dNft.XP_SYNC_REWARD()
-    // );
+    assertEq(dNft.prevSyncedBlock(), 0);
+    assertEq(dNft.syncedBlock(), block.number);
+
+    assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
+    assertTrue(dNft.idToNft(id).xp == 11040);  // nft.xp
+    assertTrue(
+      dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 10040
+    );
   }
   function testFailSyncPriceChangeTooSmall() public {
     _sync(0, 10001*1e7);

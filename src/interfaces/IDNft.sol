@@ -30,6 +30,7 @@ interface IDNft {
   function dyadDelta()      external view returns (int);
   function totalXp()        external view returns (uint);
   function syncedBlock()    external view returns (uint);
+  function prevSyncedBlock()external view returns (uint);
   function lastEthPrice()   external view returns (uint);
 
   // state changing functions
