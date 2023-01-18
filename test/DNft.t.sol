@@ -150,33 +150,74 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
 
-    assertEq(dNft.syncedBlock(), 0);
-    assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD());
+    assertEq(dNft.syncedBlock(), 0);           // syncedBlock
+    assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD()); // nft.xp
 
     uint lastEthPrice = dNft.lastEthPrice();
-    _sync(id, 1100*1e8);                         
+    _sync(id, 1100*1e8);                       // 10% price increas
     uint newEthPrice  = dNft.lastEthPrice();
-    assertTrue(newEthPrice > lastEthPrice);  // 10% increase
 
-    assertEq(dNft.prevSyncedBlock(), 0);
-    assertEq(dNft.syncedBlock(), block.number);
-
+    assertTrue(newEthPrice > lastEthPrice);    // lastEthPrice
+    assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
+    assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
     assertTrue(dNft.idToNft(id).xp == 11040);  // nft.xp
-    assertTrue(
+    assertTrue(                                // totalXp
       dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 10040
     );
+    assertTrue(dNft.maxXp() == dNft.idToNft(id).xp); // maxXp
   }
   function testFailSyncPriceChangeTooSmall() public {
     _sync(0, 10001*1e7);
   }
 
   // -------------------- claim --------------------
-  function testClaim() public {
+  function testClaimMint() public {
     uint id = dNft.totalSupply();
-    _sync(id, oracleMock.price()*2);
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    _sync(id, 1100*1e8);              // 10% price increas
+
+    /* before claim */
+    assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
+    assertTrue(dNft.idToNft(id).deposit == 4000*1e18); // nft.deposit
 
     dNft.claim(id);
+
+    /* after claim */
+    assertTrue(dNft.idToNft(id).deposit == 4050090744101633393800); // nft.deposit
+    assertTrue(dNft.idToNft(id).xp == 11050);                       // nft.xp
+  }
+  function testClaimBurn() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    dNft.exchange{value: 1 ether}(id);
+
+    uint id2 = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+
+    _sync(id, 900*1e8);              // 10% price decrease
+
+    int id1DepositBefore = dNft.idToNft(id).deposit;
+    int id2DepositBefore = dNft.idToNft(id2).deposit;
+    assertEq(id1DepositBefore, id2DepositBefore);
+
+    uint id1XpBefore = dNft.idToNft(id).xp;
+    uint id2XpBefore = dNft.idToNft(id2).xp;
+
+    // claim
+    dNft.claim(id);
+    dNft.claim(id2);
+
+    // id1 got burned less, because he has more xp
+    assertTrue(dNft.idToNft(id).deposit > dNft.idToNft(id2).deposit);
+
+    uint id1XpAfter = dNft.idToNft(id).xp;
+    uint id2XpAfter = dNft.idToNft(id2).xp;
+
+    // xp accrual of id2 was higher, because he has less xp
+    assertTrue(id2XpAfter-id2XpBefore > id1XpAfter-id1XpBefore);
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
