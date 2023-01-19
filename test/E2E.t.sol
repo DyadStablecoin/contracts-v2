@@ -34,7 +34,7 @@ contract E2ETest is BaseTest, Parameters {
     overwrite(address(dNft), "totalXp()", xpSum);
   }
 
-  function testE2eMint() public {
+  function testE2eClaimMint() public {
     startHoax(dNft.ownerOf(0));
     setNfts();
     dNft.activate(0);
@@ -54,5 +54,20 @@ contract E2ETest is BaseTest, Parameters {
     dNft.activate(1);
     dNft.claim(1);
     assertEq(dNft.idToNft(1).deposit/1e18, 5566);
+  }
+
+  function testE2eClaimBurn() public {
+    startHoax(dNft.ownerOf(0));
+    setNfts();
+    dNft.activate(0);
+    overwrite(address(dNft), "lastEthPrice()", 100000000000);
+    oracleMock.setPrice(90000000000);
+    dNft.sync(0);
+
+    overwriteNft(0, 2161.00, uint(dNft.idToNft(0).deposit), dNft.idToNft(0).withdrawal);
+    overwrite(address(dNft), "totalXp()", 45394);
+    overwrite(address(dNft), "maxXp()", 8048);
+    dNft.claim(0);
+    assertEq(dNft.idToNft(0).deposit/1e18, -807);
   }
 }

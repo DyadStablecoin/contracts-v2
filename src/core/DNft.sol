@@ -355,9 +355,9 @@ contract DNft is ERC721, ReentrancyGuard {
   ) private view returns (uint, int) {
       uint relativeXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
-      uint relativeXpNorm    = relativeXpToTotal.divWadDown(relativeXpToMax);
+      uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);
       uint oneMinusRank      = (1e18 - relativeXpToMax);
-      int  multi             = oneMinusRank.divWadDown(totalSupply*1e18-relativeXpNorm).toInt256();
+      int  multi             = oneMinusRank.divWadDown((totalSupply*1e18)-relativeXpNorm).toInt256();
       int  allocation        = wadMul(multi, share);
       uint xpAccrual         = allocation.abs().divWadDown(relativeXpToMax);
       return (xpAccrual/1e18, allocation); 
