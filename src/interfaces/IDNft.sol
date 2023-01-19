@@ -35,17 +35,17 @@ interface IDNft {
   function lastEthPrice()   external view returns (uint);
 
   // state changing functions
-  function mint    (address to) external payable;
-  function exchange(uint id) external payable;
-  function deposit (uint id, uint amount) external;
-  function move    (uint from, uint to, int amount) external;
-  function withdraw(uint from, address to, uint amount) external;
-  function redeem  (uint from, address to, uint amount) external;
-  function sync    (uint id) external;
-  function claim   (uint id) external;
-  function snipe   (uint from, uint to) external;
-  function pause   (uint id) external;
-  function unpause (uint id) external;
+  function mint      (address to) external payable;
+  function exchange  (uint id) external payable;
+  function deposit   (uint id, uint amount) external;
+  function move      (uint from, uint to, int amount) external;
+  function withdraw  (uint from, address to, uint amount) external;
+  function redeem    (uint from, address to, uint amount) external;
+  function sync      (uint id) external;
+  function claim     (uint id) external;
+  function snipe     (uint from, uint to) external;
+  function activate  (uint id) external;
+  function deactivate(uint id) external;
 
   function MAX_SUPPLY() external pure returns (uint);
   function MINT_MINIMUM() external pure returns (uint);
