@@ -29,11 +29,9 @@ contract E2ETest is BaseTest, Parameters {
 
     uint xpSum;
     for (uint i = 0; i < dNft.totalSupply(); i++) {
-      console.log("idToNft(%d).xp = %d", i, dNft.idToNft(i).xp);
       xpSum += dNft.idToNft(i).xp;
     }
     overwrite(address(dNft), "totalXp()", xpSum);
-    console.log(xpSum);
   }
 
   function testE2EMint() public {
@@ -44,10 +42,10 @@ contract E2ETest is BaseTest, Parameters {
     oracleMock.setPrice(110000000000);
     dNft.sync(0);
 
-    // console.logInt(dNft.idToNft(0).deposit);
+    overwriteNft(0, 2161.00, uint(dNft.idToNft(0).deposit), dNft.idToNft(0).withdrawal);
+    overwrite(address(dNft), "totalXp()", 45394);
     dNft.claim(0);
-    // console.logInt(dNft.idToNft(0).deposit);
 
+    assertEq(dNft.idToNft(0).deposit/1e18, 416);
   }
 }
-
