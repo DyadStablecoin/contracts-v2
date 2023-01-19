@@ -34,4 +34,8 @@ contract BaseTest is Test {
     stdstore.target(address(dNft)).sig("idToNft(uint256)").with_key(id)
       .depth(2).checked_write(withdrawal);
   }
+
+  function overwrite(string memory signature, uint value) public {
+    stdstore.target(address(dNft)).sig(signature).checked_write(value); 
+  }
 }
