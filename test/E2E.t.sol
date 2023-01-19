@@ -19,15 +19,18 @@ contract E2ETest is BaseTest, Parameters {
     overwriteNft(8, 3435, 1753, 4427 );
     overwriteNft(9, 1079, 2002, 244  );
 
-    overwrite("lastEthPrice()", 100000000000000000000000);
+    overwrite(address(dNft), "lastEthPrice()", 100000000000000000000000);
+    overwrite(address(dyad), "totalSupply()", 5);
   }
 
   function testMint() public {
 
     console.log(dNft.lastEthPrice());
+    console.log(dyad.totalSupply());
     overwriteNft(0, 100, 200, 400);
     setNfts();
     console.log(dNft.lastEthPrice());
+    console.log(dyad.totalSupply());
   }
 }
 

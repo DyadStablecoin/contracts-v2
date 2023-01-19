@@ -35,7 +35,7 @@ contract BaseTest is Test {
       .depth(2).checked_write(withdrawal);
   }
 
-  function overwrite(string memory signature, uint value) public {
-    stdstore.target(address(dNft)).sig(signature).checked_write(value); 
+  function overwrite(address _contract, string memory signature, uint value) public {
+    stdstore.target(_contract).sig(signature).checked_write(value); 
   }
 }
