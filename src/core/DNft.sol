@@ -162,7 +162,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function deposit(
       uint id,
       uint amount
-  ) external exists(id) isNotPaused(id) {
+  ) external exists(id) isNotPaused(id) { 
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -223,7 +223,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant onlyOwner(from) isNotPaused(from) {
+  ) external nonReentrant onlyOwner(from) isNotPaused(from) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
