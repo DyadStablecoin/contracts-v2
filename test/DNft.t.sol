@@ -63,9 +63,12 @@ contract DNftsTest is BaseTest, Parameters {
 
   // -------------------- exchange --------------------
   function testExchange() public {
-    int depositBefore = dNft.idToNft(0).deposit;
-    dNft.exchange{value: 5 ether}(0);
-    int depositAfter = dNft.idToNft(0).deposit;
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+
+    int depositBefore = dNft.idToNft(id).deposit;
+    dNft.exchange{value: 5 ether}(id);
+    int depositAfter = dNft.idToNft(id).deposit;
     assertTrue(depositAfter > depositBefore);
   }
   function testCannotExchangeDNftDoesNotExist() public {
