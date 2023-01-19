@@ -302,9 +302,9 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
   function liquidate(
-      uint id,   // no check for `exists(id)`, because if it doesn't (nft.deposit == 0) is true
+      uint id, 
       address to 
-  ) external payable returns (uint) {
+  ) external exists(id) payable returns (uint) {
       Nft memory nft = idToNft[id];
       if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
