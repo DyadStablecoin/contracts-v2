@@ -271,8 +271,8 @@ contract DNft is ERC721, ReentrancyGuard {
       claimed[id][syncedBlock] = true;
   }
 
-  // Claim DYAD from previouse sync window to get a bonus
-  function dibs(
+  // Snipe DYAD from previouse sync window to get a bonus
+  function snipe(
       uint _from,
       uint _to
   ) external exists(_from) exists(_to) isNotPaused(_from) isNotPaused(_to) {
