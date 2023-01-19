@@ -77,6 +77,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error NotNFTOwner             (uint id);
   error NotLiquidatable         (uint id);
   error WithdrawalsNotZero      (uint id);
+  error DepositIsNegative       (uint id);
   error IsPaused                (uint id);
   error IsNotPaused             (uint id);
   error PriceChangeTooSmall     (int priceChange);
@@ -315,6 +316,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   function pause(uint id) external onlyOwner(id) IsNotPaused(id) {
     if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
+    if (idToNft[id].deposit     < 0) revert DepositIsNegative(id);
     idToNft[id].isPaused = true;
     emit Paused(id);
   }
