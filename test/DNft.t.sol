@@ -234,6 +234,7 @@ contract DNftsTest is BaseTest, Parameters {
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
     vm.roll(block.number + 1);
+    vm.warp(block.timestamp + 1 days);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
   }
