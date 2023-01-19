@@ -47,7 +47,6 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public totalXp;                // Sum of all dNfts Xp
   uint public maxXp;                  // Max XP over all dNFTs
 
-
   mapping(uint => Nft)  public idToNft;
   mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
 
@@ -77,7 +76,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
-  error UnderDepositMinimum   (int amount);
+  error UnderDepositMinimum     (int amount);
   error CrTooLow                (uint cr);
   error ExceedsDepositBalance   (int deposit);
   error ExceedsWithdrawalBalance(uint amount);
@@ -102,41 +101,39 @@ contract DNft is ERC721, ReentrancyGuard {
       address _oracle, 
       int     _mintMinimum,
       address[] memory _insiders
-  ) ERC721("Dyad NFT", "dNFT") payable {
+  ) ERC721("Dyad NFT", "dNFT") {
       dyad         = Dyad(_dyad);
       oracle       = IAggregatorV3(_oracle);
       MINT_MINIMUM = _mintMinimum;
       lastEthPrice = _getLatestEthPrice();
 
-      // make sure there is enough ETH for every insider
-      require(_eth2dyad(msg.value) >= MINT_MINIMUM * int(_insiders.length)); // safe cast to int
-
-      for (uint i = 0; i < _insiders.length; ) { 
-        _mintNft(_insiders[i], msg.value / _insiders.length); // every insider gets the same ETH
-        unchecked { ++i; }
+      for (uint id = 0; id < _insiders.length; id++) {
+        idToNft[id] = _mintNft(_insiders[id], id);
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      _mintNft(to, msg.value); 
+      uint id = totalSupply; 
+      Nft memory nft = _mintNft(to, id); 
+      int newDyad = _eth2dyad(msg.value);
+      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
+      nft.deposit = newDyad;
+      idToNft[id] = nft;
   }
 
   // Mint new DNft to `to` with `id` id 
   function _mintNft(
       address to, // address(0) will make `_mint` fail
-      uint eth    // amount of ETH to be converted to deposited DYAD
-  ) private {
-      uint id = totalSupply++;
+      uint id
+  ) private returns (Nft memory) {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
-      int newDyad = _eth2dyad(eth);
-      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
+      totalSupply++;
       _mint(to, id); 
-      Nft memory nft = idToNft[id];
+      Nft memory nft;                 // newly minted nft
       _updateXp(nft, XP_MINT_REWARD);
-      nft.deposit = newDyad;
-      idToNft[id] = nft;
       emit NftMinted(to, id);
+      return nft;
   }
 
   // Exchange ETH for deposited DYAD

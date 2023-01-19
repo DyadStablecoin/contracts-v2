@@ -11,7 +11,7 @@ contract DeployBase is Script, Parameters {
     vm.startBroadcast();
 
     Dyad dyad = new Dyad();
-    DNft dNft = new DNft{value: msg.value}(
+    DNft dNft = new DNft(
       address(dyad),
       _oracle,
       MINT_MINIMUM,
