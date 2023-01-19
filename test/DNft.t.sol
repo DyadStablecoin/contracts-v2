@@ -224,13 +224,17 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
     vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.syncedBlock()));
     dNft.claim(id);
   }
-  function testClaimTwice() public {
+  function test2ClaimTwice() public {
     uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
     vm.roll(block.number + 1);
