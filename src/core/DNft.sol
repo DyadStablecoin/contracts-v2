@@ -82,7 +82,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error WithdrawalsNotZero      (uint id);
   error DepositIsNegative       (uint id);
   error IsActive                (uint id);
-  error IsNotActive             (uint id);
+  error IsInactive              (uint id);
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
@@ -106,9 +106,9 @@ contract DNft is ERC721, ReentrancyGuard {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
   modifier isActive(uint id) {
-    if (idToNft[id].isActive == false) revert IsNotActive(id); _;
+    if (idToNft[id].isActive == false) revert IsInactive(id); _;
   }
-  modifier isNotActive(uint id) {
+  modifier isInactive(uint id) {
     if (idToNft[id].isActive == true) revert IsActive(id); _;
   }
 
@@ -319,7 +319,7 @@ contract DNft is ERC721, ReentrancyGuard {
       return id;
   }
 
-  function activate(uint id) external onlyOwner(id) isNotActive(id) {
+  function activate(uint id) external onlyOwner(id) isInactive(id) {
     idToNft[id].isActive = true;
     emit Activated(id);
   }
