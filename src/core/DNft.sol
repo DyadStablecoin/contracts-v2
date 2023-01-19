@@ -21,9 +21,10 @@ contract DNft is ERC721, ReentrancyGuard {
   using FixedPointMathLib for uint256;
   using LibString         for uint256;
 
-  uint public constant MAX_SUPPLY                = 10_000;
-  uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18;  // 15000 bps or 150%
-  uint public constant SYNC_MIN_PRICE_CHANGE     = 0.001e18; // 10    bps or 0.1%
+  uint public constant MAX_SUPPLY                    = 10_000;
+  uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
+  uint public constant MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18;   // 10    bps or 0.1%
+  uint public constant MIN_TIME_BETWEEN_SYNC         = 10 minutes;
 
   uint public constant XP_NORM_FACTOR        = 1e16;
   uint public constant XP_MINT_REWARD        = 1_000;
@@ -46,6 +47,7 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public prevSyncedBlock;        // Second last block, sync was called on
   uint public totalXp;                // Sum of all dNfts Xp
   uint public maxXp;                  // Max XP over all dNFTs
+  uint public timeOfLastSync;
 
   mapping(uint => Nft)  public idToNft;
   mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
@@ -73,6 +75,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
+  error SyncTooSoon             ();
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
   error NotLiquidatable         (uint id);
@@ -241,7 +244,9 @@ contract DNft is ERC721, ReentrancyGuard {
       int priceChange  = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       lastEthPrice     = newEthPrice; // makes calling `sync` multiple times in same block impossible
       uint priceChangeAbs = priceChange.abs();
-      if (priceChangeAbs < SYNC_MIN_PRICE_CHANGE) { revert PriceChangeTooSmall(priceChange); }
+      if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
+      if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
+      timeOfLastSync   = block.timestamp;
       prevSyncedBlock  = syncedBlock;
       syncedBlock      = block.number;
       prevDyadDelta    = dyadDelta;
