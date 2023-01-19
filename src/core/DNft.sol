@@ -264,7 +264,9 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory nft  = idToNft[id];
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
+        console.log(nft.xp);
         int _share   = _calcMint(nft.xp, dyadDelta);
+        console.logInt(_share);
         nft.deposit += _share;
       } else {
         (uint xp, int relativeShare) = _calcBurn(nft.xp, dyadDelta);

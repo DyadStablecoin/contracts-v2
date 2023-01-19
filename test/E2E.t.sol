@@ -8,29 +8,46 @@ import {IDNft} from "../src/interfaces/IDNft.sol";
 
 contract E2ETest is BaseTest, Parameters {
   function setNfts() internal {
-    overwriteNft(0, 2161, 146,  3920 );
-    overwriteNft(1, 7588, 4616, 7496 );
-    overwriteNft(2, 3892, 2731, 10644);
-    overwriteNft(3, 3350, 4515, 2929 );
-    overwriteNft(4, 3012, 2086, 3149 );
-    overwriteNft(5, 5496, 7241, 7127 );
-    overwriteNft(6, 8000, 8197, 7548 );
-    overwriteNft(7, 7000, 5873, 9359 );
-    overwriteNft(8, 3435, 1753, 4427 );
-    overwriteNft(9, 1079, 2002, 244  );
+    overwriteNft(0, 2161, 146 *1e18, 3920 );
+    overwriteNft(1, 7588, 4616*1e18, 7496 );
+    overwriteNft(2, 3892, 2731*1e18, 10644);
+    overwriteNft(3, 3350, 4515*1e18, 2929 );
+    overwriteNft(4, 3012, 2086*1e18, 3149 );
+    overwriteNft(5, 5496, 7241*1e18, 7127 );
+    overwriteNft(6, 8048, 8197*1e18, 7548 );
+    overwriteNft(7, 7333, 5873*1e18, 9359 );
+    overwriteNft(8, 3435, 1753*1e18, 4427 );
+    overwriteNft(9, 1079, 2002*1e18, 244  );
 
     overwrite(address(dNft), "lastEthPrice()", 100000000000000000000000);
-    overwrite(address(dyad), "totalSupply()", 5);
+
+    uint withdrawalSum;
+    for (uint i = 0; i < dNft.totalSupply(); i++) {
+      withdrawalSum += dNft.idToNft(i).withdrawal;
+    }
+    overwrite(address(dyad), "totalSupply()", withdrawalSum*1e18);
+
+    uint xpSum;
+    for (uint i = 0; i < dNft.totalSupply(); i++) {
+      console.log("idToNft(%d).xp = %d", i, dNft.idToNft(i).xp);
+      xpSum += dNft.idToNft(i).xp;
+    }
+    overwrite(address(dNft), "totalXp()", xpSum);
+    console.log(xpSum);
   }
 
-  function testMint() public {
-
-    console.log(dNft.lastEthPrice());
-    console.log(dyad.totalSupply());
-    overwriteNft(0, 100, 200, 400);
+  function testE2EMint() public {
+    startHoax(dNft.ownerOf(0));
     setNfts();
-    console.log(dNft.lastEthPrice());
-    console.log(dyad.totalSupply());
+    dNft.activate(0);
+    overwrite(address(dNft), "lastEthPrice()", 100000000000);
+    oracleMock.setPrice(110000000000);
+    dNft.sync(0);
+
+    // console.logInt(dNft.idToNft(0).deposit);
+    dNft.claim(0);
+    // console.logInt(dNft.idToNft(0).deposit);
+
   }
 }
 
