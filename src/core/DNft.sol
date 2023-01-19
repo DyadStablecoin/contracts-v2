@@ -103,10 +103,10 @@ contract DNft is ERC721, ReentrancyGuard {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
   modifier isPaused(uint id) {
-    if (idToNft[id].isPaused == false) revert IsPaused(id); _;
+    if (idToNft[id].isPaused == false) revert IsNotPaused(id); _;
   }
   modifier isNotPaused(uint id) {
-    if (idToNft[id].isPaused == true) revert IsNotPaused(id); _;
+    if (idToNft[id].isPaused == true) revert IsPaused(id); _;
   }
 
   constructor(
@@ -152,7 +152,7 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Exchange ETH for deposited DYAD
-  function exchange(uint id) external exists(id) isNotPaused(id) payable {
+  function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
       emit EthExchangedForDyad(id, newDeposit);
