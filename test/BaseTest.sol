@@ -20,6 +20,6 @@ contract BaseTest is Test {
     (address _dNfts, address _dyad) = deployBase.deploy{value: 100 ether}(address(oracleMock));
     dNft = IDNft(_dNfts);
     dyad = Dyad(_dyad);
+    vm.warp(block.timestamp + 1 days);
   }
-
 }
