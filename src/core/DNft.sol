@@ -57,6 +57,7 @@ contract DNft is ERC721, ReentrancyGuard {
     uint xp;
     int  deposit;
     uint withdrawal;
+    bool isPaused;
   }
 
   event NftMinted          (address indexed to, uint indexed id);
@@ -108,7 +109,9 @@ contract DNft is ERC721, ReentrancyGuard {
       lastEthPrice = _getLatestEthPrice();
 
       for (uint id = 0; id < _insiders.length; id++) {
-        idToNft[id] = _mintNft(_insiders[id], id);
+        Nft memory nft = _mintNft(_insiders[id], id)
+        nft.isPaused   = true;
+        idToNft[id]    = nft;
       }
   }
 
