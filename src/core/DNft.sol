@@ -67,6 +67,8 @@ contract DNft is ERC721, ReentrancyGuard {
   event DyadDepositBurned  (uint indexed id, uint amount);
   event DyadDepositMoved   (uint indexed from, uint indexed to, int amount);
   event Synced             (uint id);
+  event Paused             (uint id);
+  event Unpaused           (uint id);
   event NftLiquidated      (address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
@@ -74,6 +76,9 @@ contract DNft is ERC721, ReentrancyGuard {
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
   error NotLiquidatable         (uint id);
+  error WithdrawalsNotZero      (uint id);
+  error IsPaused                (uint id);
+  error IsNotPaused             (uint id);
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
@@ -96,6 +101,12 @@ contract DNft is ERC721, ReentrancyGuard {
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
+  modifier isPaused(uint id) {
+    if (idToNft[id].isPaused == false) revert IsPaused(id); _;
+  }
+  modifier isNotPaused(uint id) {
+    if (idToNft[id].isPaused == true) revert IsNotPaused(id); _;
+  }
 
   constructor(
       address _dyad,
@@ -109,10 +120,21 @@ contract DNft is ERC721, ReentrancyGuard {
       lastEthPrice = _getLatestEthPrice();
 
       for (uint id = 0; id < _insiders.length; id++) {
-        Nft memory nft = _mintNft(_insiders[id], id)
+        Nft memory nft = _mintNft(_insiders[id], id);
         nft.isPaused   = true;
         idToNft[id]    = nft;
       }
+  }
+
+  function pause(uint id) external onlyOwner(id) {
+    if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
+    idToNft[id].isPaused = true;
+    emit Paused(id);
+  }
+
+  function unpause(uint id) external onlyOwner(id) {
+    idToNft[id].isPaused = false;
+    emit Unpaused(id);
   }
 
   // Mint new DNft to `to` 
