@@ -2,12 +2,15 @@
 pragma solidity = 0.8.17;
 
 import "forge-std/Test.sol";
+import "forge-std/console.sol";
 import {DeployBase} from "../script/deploy/DeployBase.s.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 import {Dyad} from "../src/core/Dyad.sol";
 import {OracleMock} from "./OracleMock.sol";
 
 contract BaseTest is Test {
+  using stdStorage for StdStorage;
+
   IDNft      dNft;
   Dyad       dyad;
   OracleMock oracleMock;
@@ -21,5 +24,14 @@ contract BaseTest is Test {
     dNft = IDNft(_dNfts);
     dyad = Dyad(_dyad);
     vm.warp(block.timestamp + 1 days);
+  }
+
+  function overwriteNft(uint id, uint xp, uint deposit, uint withdrawal) public {
+    stdstore.target(address(dNft)).sig("idToNft(uint256)").with_key(id)
+      .depth(0).checked_write(xp);
+    stdstore.target(address(dNft)).sig("idToNft(uint256)").with_key(id)
+      .depth(1).checked_write(deposit);
+    stdstore.target(address(dNft)).sig("idToNft(uint256)").with_key(id)
+      .depth(2).checked_write(withdrawal);
   }
 }
