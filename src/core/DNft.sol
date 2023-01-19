@@ -76,6 +76,7 @@ contract DNft is ERC721, ReentrancyGuard {
   error ReachedMaxSupply        ();
   error NoEthSupplied           ();
   error SyncTooSoon             ();
+  error DyadTotalSupplyZero     ();
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
   error NotLiquidatable         (uint id);
@@ -240,17 +241,19 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   function sync(uint id) external exists(id) isActive(id) {
+      uint dyadTotalSupply = dyad.totalSupply();
+      if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); }
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
-      timeOfLastSync   = block.timestamp;
-      int newEthPrice  = _getLatestEthPrice();
-      int priceChange  = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
-      lastEthPrice     = newEthPrice; // makes calling `sync` multiple times in same block impossible
+      timeOfLastSync      = block.timestamp;
+      int newEthPrice     = _getLatestEthPrice();
+      int priceChange     = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       uint priceChangeAbs = priceChange.abs();
       if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
+      lastEthPrice     = newEthPrice; 
       prevSyncedBlock  = syncedBlock;
       syncedBlock      = block.number;
       prevDyadDelta    = dyadDelta;
-      dyadDelta        = wadMul(dyad.totalSupply().toInt256(), priceChange);
+      dyadDelta        = wadMul(dyadTotalSupply.toInt256(), priceChange);
       uint newXp       = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
       Nft memory nft   = idToNft[id];
       _updateXp(nft, newXp);
