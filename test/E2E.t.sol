@@ -34,7 +34,7 @@ contract E2ETest is BaseTest, Parameters {
     overwrite(address(dNft), "totalXp()", xpSum);
   }
 
-  function testE2EMint() public {
+  function testE2eMint() public {
     startHoax(dNft.ownerOf(0));
     setNfts();
     dNft.activate(0);
@@ -47,5 +47,12 @@ contract E2ETest is BaseTest, Parameters {
     dNft.claim(0);
 
     assertEq(dNft.idToNft(0).deposit/1e18, 416);
+    vm.stopPrank();
+
+    overwrite(address(dNft), "totalXp()", 45394);
+    startHoax(dNft.ownerOf(1));
+    dNft.activate(1);
+    dNft.claim(1);
+    assertEq(dNft.idToNft(1).deposit/1e18, 5566);
   }
 }
