@@ -57,6 +57,7 @@ contract DNft is ERC721, ReentrancyGuard {
     uint xp;
     int  deposit;
     uint withdrawal;
+    bool isPaused;
   }
 
   event NftMinted          (address indexed to, uint indexed id);
@@ -66,6 +67,8 @@ contract DNft is ERC721, ReentrancyGuard {
   event DyadDepositBurned  (uint indexed id, uint amount);
   event DyadDepositMoved   (uint indexed from, uint indexed to, int amount);
   event Synced             (uint id);
+  event Paused             (uint id);
+  event Unpaused           (uint id);
   event NftLiquidated      (address indexed to, uint indexed id);
 
   error ReachedMaxSupply        ();
@@ -73,6 +76,10 @@ contract DNft is ERC721, ReentrancyGuard {
   error DNftDoesNotExist        (uint id);
   error NotNFTOwner             (uint id);
   error NotLiquidatable         (uint id);
+  error WithdrawalsNotZero      (uint id);
+  error DepositIsNegative       (uint id);
+  error IsPaused                (uint id);
+  error IsNotPaused             (uint id);
   error PriceChangeTooSmall     (int priceChange);
   error AddressZero             (address addr);
   error AmountZero              (uint amount);
@@ -95,6 +102,12 @@ contract DNft is ERC721, ReentrancyGuard {
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
+  modifier isPaused(uint id) {
+    if (idToNft[id].isPaused == false) revert IsNotPaused(id); _;
+  }
+  modifier isNotPaused(uint id) {
+    if (idToNft[id].isPaused == true) revert IsPaused(id); _;
+  }
 
   constructor(
       address _dyad,
@@ -108,7 +121,9 @@ contract DNft is ERC721, ReentrancyGuard {
       lastEthPrice = _getLatestEthPrice();
 
       for (uint id = 0; id < _insiders.length; id++) {
-        idToNft[id] = _mintNft(_insiders[id], id);
+        Nft memory nft = _mintNft(_insiders[id], id);
+        nft.isPaused   = true;
+        idToNft[id]    = nft;
       }
   }
 
@@ -130,7 +145,7 @@ contract DNft is ERC721, ReentrancyGuard {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       totalSupply++;
       _mint(to, id); 
-      Nft memory nft;                 // newly minted nft
+      Nft memory nft; // by default withdrawal = 0 and isPaused = false
       _updateXp(nft, XP_MINT_REWARD);
       emit NftMinted(to, id);
       return nft;
@@ -147,7 +162,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function deposit(
       uint id,
       uint amount
-  ) external exists(id) {
+  ) external exists(id) isNotPaused(id) { 
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -164,7 +179,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _from,
       uint _to,
       int  _amount
-  ) external onlyOwner(_from) exists(_to) {
+  ) external onlyOwner(_from) exists(_to) isNotPaused(_from) {
       _move(_from, _to, _amount);
   }
 
@@ -188,7 +203,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint from,
       address to, 
       uint amount 
-  ) external onlyOwner(from) {
+  ) external onlyOwner(from) isNotPaused(from) {
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint totalWithdrawn = dyad.totalSupply() + amount;
       uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
@@ -208,7 +223,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant onlyOwner(from) {
+  ) external nonReentrant onlyOwner(from) isNotPaused(from) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -221,7 +236,7 @@ contract DNft is ERC721, ReentrancyGuard {
       emit DyadRedeemed(msg.sender, from, amount);
   }
 
-  function sync(uint id) external exists(id) {
+  function sync(uint id) external exists(id) isNotPaused(id) {
       int newEthPrice  = _getLatestEthPrice();
       int priceChange  = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       lastEthPrice     = newEthPrice; // makes calling `sync` multiple times in same block impossible
@@ -239,7 +254,7 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Claim DYAD from this sync window
-  function claim(uint id) external onlyOwner(id) {
+  function claim(uint id) external onlyOwner(id) isNotPaused(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft memory nft  = idToNft[id];
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
@@ -256,11 +271,11 @@ contract DNft is ERC721, ReentrancyGuard {
       claimed[id][syncedBlock] = true;
   }
 
-  // Claim DYAD from previouse sync window to get a bonus
-  function dibs(
+  // Snipe DYAD from previouse sync window to get a bonus
+  function snipe(
       uint _from,
       uint _to
-  ) external exists(_from) exists(_to) {
+  ) external exists(_from) exists(_to) isNotPaused(_from) isNotPaused(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
@@ -297,6 +312,18 @@ contract DNft is ERC721, ReentrancyGuard {
       idToNft[id]  = nft;     // withdrawal stays exactly as it was
       emit NftLiquidated(to,  id); 
       return id;
+  }
+
+  function pause(uint id) external onlyOwner(id) isNotPaused(id) {
+    if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
+    if (idToNft[id].deposit    <= 0) revert DepositIsNegative(id);
+    idToNft[id].isPaused = true;
+    emit Paused(id);
+  }
+
+  function unpause(uint id) external onlyOwner(id) isPaused(id) {
+    idToNft[id].isPaused = false;
+    emit Unpaused(id);
   }
 
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 

@@ -43,7 +43,9 @@ interface IDNft {
   function redeem  (uint from, address to, uint amount) external;
   function sync    (uint id) external;
   function claim   (uint id) external;
-  function dibs    (uint from, uint to) external;
+  function snipe   (uint from, uint to) external;
+  function pause   (uint id) external;
+  function unpause (uint id) external;
 
   function MAX_SUPPLY() external pure returns (uint);
   function MINT_MINIMUM() external pure returns (uint);
