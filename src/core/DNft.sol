@@ -21,8 +21,8 @@ contract DNft is ERC721, ReentrancyGuard {
   using FixedPointMathLib for uint256;
   using LibString         for uint256;
 
-  uint public constant MAX_SUPPLY                = 10_000;
-  uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18;        // 15000 bps or 150%
+  uint public constant MAX_SUPPLY                    = 10_000;
+  uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
   uint public constant MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18;   // 10    bps or 0.1%
   uint public constant MIN_TIME_BETWEEN_SYNC         = 10 minutes;
 
