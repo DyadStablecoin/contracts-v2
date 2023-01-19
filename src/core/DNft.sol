@@ -240,13 +240,13 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   function sync(uint id) external exists(id) isNotPaused(id) {
+      if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
+      timeOfLastSync   = block.timestamp;
       int newEthPrice  = _getLatestEthPrice();
       int priceChange  = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       lastEthPrice     = newEthPrice; // makes calling `sync` multiple times in same block impossible
       uint priceChangeAbs = priceChange.abs();
       if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
-      if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
-      timeOfLastSync   = block.timestamp;
       prevSyncedBlock  = syncedBlock;
       syncedBlock      = block.number;
       prevDyadDelta    = dyadDelta;
