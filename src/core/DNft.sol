@@ -297,13 +297,13 @@ contract DNft is ERC721, ReentrancyGuard {
       idToNft[_to]   = to;
   }
 
-  // Liquidate dNFT by burning it and minting a new copy to `to`
+  // Liquidate dNft by covering its negative deposit
   function liquidate(
       uint id, 
       address to 
   ) external exists(id) payable returns (uint) {
       Nft memory nft = idToNft[id];
-      if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
+      if (nft.deposit >= 0) { revert NotLiquidatable(id); } 
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
