@@ -264,7 +264,8 @@ contract DNft is ERC721, ReentrancyGuard {
   // Claim DYAD from this sync window
   function claim(uint id) external onlyOwner(id) isActive(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
-      Nft memory nft  = idToNft[id];
+      claimed[id][syncedBlock] = true;
+      Nft memory nft = idToNft[id];
       int  share;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
@@ -277,7 +278,6 @@ contract DNft is ERC721, ReentrancyGuard {
       nft.deposit += share;
       _updateXp(nft, newXp);
       idToNft[id] = nft;
-      claimed[id][syncedBlock] = true;
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
@@ -286,6 +286,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to
   ) external exists(_from) exists(_to) isActive(_from) isActive(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
+      claimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       uint newXp = _calcXpReward(XP_DIBS_MINT_REWARD);
@@ -301,7 +302,6 @@ contract DNft is ERC721, ReentrancyGuard {
       _updateXp(to, newXp);
       idToNft[_from] = from;
       idToNft[_to]   = to;
-      claimed[_from][prevSyncedBlock] = true;
   }
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
