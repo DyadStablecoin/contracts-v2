@@ -245,8 +245,8 @@ contract DNft is ERC721, ReentrancyGuard {
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); }
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
       timeOfLastSync      = block.timestamp;
-      int newEthPrice     = _getLatestEthPrice();
-      int priceChange     = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
+      int  newEthPrice    = _getLatestEthPrice();
+      int  priceChange    = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       uint priceChangeAbs = priceChange.abs();
       if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
       lastEthPrice     = newEthPrice; 
