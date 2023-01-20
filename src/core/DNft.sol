@@ -148,7 +148,7 @@ contract DNft is ERC721, ReentrancyGuard {
       return (id, nft);
   }
 
-  // Exchange ETH for deposited DYAD
+  // Permissionlessly exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
