@@ -21,7 +21,7 @@ contract DNft is ERC721, ReentrancyGuard {
   using FixedPointMathLib for uint256;
   using LibString         for uint256;
 
-  uint public constant MAX_SUPPLY                    = 10_000;
+  uint public constant MAX_SUPPLY                    = 10_000;     // Max supply of DNfts
   uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
   uint public constant MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18;   // 10    bps or 0.1%
   uint public constant MIN_TIME_BETWEEN_SYNC         = 10 minutes;
@@ -35,16 +35,15 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public constant XP_CLAIM_REWARD       = 0.0001e18; // 1 bps or 0.01%
 
   int public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
-  int public constant DIBS_BURN_PENALTY      = 0.01e18;   // 100  bps or 1%
 
-  int public immutable MINT_MINIMUM;  // in DYAD
+  int public immutable MIN_DYAD_DEPOSIT; // Minimum of dyad required to mint a new DNft
 
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
-  int  public dyadDelta;
-  int  public prevDyadDelta;
-  uint public syncedBlock;            // Last block, sync was called on
-  uint public prevSyncedBlock;        // Second last block, sync was called on
+  int  public dyadDelta;              // Amount of dyad to mint/burn in this sync cycle
+  int  public prevDyadDelta;          // Amount of dyad to mint/burn in the previous sync cycle
+  uint public syncedBlock;            // Start of the current sync cycle
+  uint public prevSyncedBlock;        // Start of the previous sync cycle
   uint public totalXp;                // Sum of all dNfts Xp
   uint public maxXp;                  // Max XP over all dNFTs
   uint public timeOfLastSync;
@@ -56,9 +55,9 @@ contract DNft is ERC721, ReentrancyGuard {
   IAggregatorV3 internal oracle;
 
   struct Nft {
-    uint xp;
-    int  deposit;
-    uint withdrawal;
+    uint xp;         // always inflationary
+    int  deposit;    // deposited dyad
+    uint withdrawal; // withdrawn dyad
     bool isActive;
   }
 
@@ -94,9 +93,6 @@ contract DNft is ERC721, ReentrancyGuard {
   error FailedEthTransfer       (address to, uint amount);
   error AlreadyClaimed          (uint id, uint syncedBlock);
 
-  modifier addressNotZero(address addr) {
-    if (addr == address(0)) revert AddressZero(addr); _;
-  }
   modifier amountNotZero(uint amount) {
     if (amount == 0) revert AmountZero(amount); _;
   }
@@ -119,43 +115,40 @@ contract DNft is ERC721, ReentrancyGuard {
       int     _mintMinimum,
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-      dyad         = Dyad(_dyad);
-      oracle       = IAggregatorV3(_oracle);
-      MINT_MINIMUM = _mintMinimum;
-      lastEthPrice = _getLatestEthPrice();
+      dyad             = Dyad(_dyad);
+      oracle           = IAggregatorV3(_oracle);
+      MIN_DYAD_DEPOSIT = _mintMinimum;
+      lastEthPrice     = _getLatestEthPrice();
 
-      for (uint id = 0; id < _insiders.length; id++) {
-        Nft memory nft = _mintNft(_insiders[id], id);
-        idToNft[id]    = nft;
+      for (uint i = 0; i < _insiders.length; i++) {
+        (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
+        idToNft[id] = nft; 
       }
   }
 
   // Mint new DNft to `to` 
   function mint(address to) external payable {
-      uint id = totalSupply; 
-      Nft memory nft = _mintNft(to, id); 
-      int newDyad    = _eth2dyad(msg.value);
-      if (newDyad < MINT_MINIMUM) { revert UnderDepositMinimum(newDyad); }
+      (uint id, Nft memory nft) = _mintNft(to); 
+      int newDyad  = _eth2dyad(msg.value);
+      if (newDyad < MIN_DYAD_DEPOSIT) { revert UnderDepositMinimum(newDyad); }
       nft.deposit  = newDyad;
       nft.isActive = true;
       idToNft[id]  = nft;
   }
 
-  // Mint new DNft to `to` with `id` id 
-  function _mintNft(
-      address to, // address(0) will make `_mint` fail
-      uint id
-  ) private returns (Nft memory) {
+  // Mint new DNft to `to`
+  function _mintNft(address to) private returns (uint, Nft memory) {
+      uint id = totalSupply;
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       totalSupply++;
-      _mint(to, id); 
+      _mint(to, id); // will revert on address(0)
       Nft memory nft; 
       _updateXp(nft, XP_MINT_REWARD);
       emit NftMinted(to, id);
-      return nft;
+      return (id, nft);
   }
 
-  // Exchange ETH for deposited DYAD
+  // Permissionlessly exchange ETH for deposited DYAD
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
@@ -240,6 +233,7 @@ contract DNft is ERC721, ReentrancyGuard {
       emit DyadRedeemed(msg.sender, from, amount);
   }
 
+  // Determine the amount of dyad to mint/burn and close the current claim window and start a new one
   function sync(uint id) external exists(id) isActive(id) {
       uint dyadTotalSupply = dyad.totalSupply();
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); }
@@ -313,7 +307,7 @@ contract DNft is ERC721, ReentrancyGuard {
       if (nft.deposit >= 0) { revert NotLiquidatable(id); } // liquidatable if deposit is negative
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
       _mint(to, id); // no need to increment totalSupply, because burn + mint
-      uint newXp   = dyad.totalSupply().mulWadDown(XP_LIQUIDATION_REWARD) / XP_NORM_FACTOR;
+      uint newXp = _calcXpReward(XP_LIQUIDATION_REWARD);
       _updateXp(nft, newXp);
       int newDyad     = _eth2dyad(msg.value);
       if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
@@ -381,6 +375,7 @@ contract DNft is ERC721, ReentrancyGuard {
     ( , price, , , ) = oracle.latestRoundData();
   }
 
+  // required by solmate's ERC721 implementation
   function tokenURI(uint256 id) exists(id) public view override returns (string memory) { 
     return string.concat("https://dyad.xyz.com/api/dnfts/", id.toString());
   }
