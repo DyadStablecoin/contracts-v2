@@ -231,7 +231,7 @@ contract DNftsTest is BaseTest, Parameters {
     vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.syncedBlock()));
     dNft.claim(id);
   }
-  function test2ClaimTwice() public {
+  function testClaimTwice() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);

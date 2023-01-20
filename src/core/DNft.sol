@@ -264,19 +264,20 @@ contract DNft is ERC721, ReentrancyGuard {
   // Claim DYAD from this sync window
   function claim(uint id) external onlyOwner(id) isActive(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
-      Nft memory nft  = idToNft[id];
+      claimed[id][syncedBlock] = true;
+      Nft memory nft = idToNft[id];
+      int  share;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        int _share   = _calcMint(nft.xp, dyadDelta);
-        nft.deposit += _share;
+        share = _calcNftMint(dyadDelta, nft.xp);
       } else {
-        (uint xp, int relativeShare) = _calcBurn(nft.xp, dyadDelta);
-        nft.deposit += relativeShare;
-        newXp       += xp;
+        uint xp;
+        (share, xp) = _calcNftBurn(dyadDelta, nft.xp);
+        newXp += xp;
       }
+      nft.deposit += share;
       _updateXp(nft, newXp);
       idToNft[id] = nft;
-      claimed[id][syncedBlock] = true;
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
@@ -285,22 +286,22 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _to
   ) external exists(_from) exists(_to) isActive(_from) isActive(_to) {
       if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
+      claimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      if (prevDyadDelta > 0) {         // ETH price went up
-        int share     = _calcMint(from.xp, prevDyadDelta);
+      if (prevDyadDelta > 0) {         
+        int share     = _calcNftMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
-      } else {                         // ETH price went down
-        (uint xp, int share) = _calcBurn(from.xp, prevDyadDelta);
+      } else {                        
+        (int share, uint xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
-      claimed[_from][prevSyncedBlock] = true;
   }
 
   // Liquidate dNFT by burning it and minting a new copy to `to`
@@ -342,9 +343,9 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate share weighted by relative xp
-  function _calcMint(
-      uint xp, 
-      int share
+  function _calcNftMint(
+      int share, 
+      uint xp
   ) private view returns (int) { // no xp accrual for minting
       uint relativeXp = xp.divWadDown(totalXp);
       if (share < 0) { relativeXp = 1e18 - relativeXp; }
@@ -352,18 +353,18 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate xp accrual and share by relative xp
-  function _calcBurn(
-      uint xp,
-      int share
-  ) private view returns (uint, int) {
+  function _calcNftBurn(
+      int share, 
+      uint xp
+  ) private view returns (int, uint) {
       uint relativeXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);
       uint oneMinusRank      = (1e18 - relativeXpToMax);
       int  multi             = oneMinusRank.divWadDown((totalSupply*1e18)-relativeXpNorm).toInt256();
-      int  allocation        = wadMul(multi, share);
-      uint xpAccrual         = allocation.abs().divWadDown(relativeXpToMax);
-      return (xpAccrual/1e18, allocation); 
+      int  relativeShare     = wadMul(multi, share);
+      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax);
+      return (relativeShare, xpAccrual/1e18); 
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
