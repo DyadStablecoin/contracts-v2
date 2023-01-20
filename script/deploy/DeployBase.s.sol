@@ -14,7 +14,7 @@ contract DeployBase is Script, Parameters {
     DNft dNft = new DNft(
       address(dyad),
       _oracle,
-      MINT_MINIMUM,
+      MIN_DYAD_DEPOSIT,
       INSIDERS
     );
 
