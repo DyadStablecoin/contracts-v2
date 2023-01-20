@@ -267,11 +267,11 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory nft  = idToNft[id];
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        int _share   = _calcMint(dyadDelta, nft.xp);
-        nft.deposit += _share;
+        int share   = _calcNftMint(dyadDelta, nft.xp);
+        nft.deposit += share;
       } else {
-        (uint xp, int relativeShare) = _calcBurn(dyadDelta, nft.xp);
-        nft.deposit += relativeShare;
+        (int share, uint xp) = _calcNftBurn(dyadDelta, nft.xp);
+        nft.deposit += share;
         newXp       += xp;
       }
       _updateXp(nft, newXp);
@@ -288,12 +288,12 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       if (prevDyadDelta > 0) {         // ETH price went up
-        int share     = _calcMint(prevDyadDelta, from.xp);
+        int share     = _calcNftMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                         // ETH price went down
-        (uint xp, int share) = _calcBurn(prevDyadDelta, from.xp);
+        (int share, uint xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
@@ -342,7 +342,7 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate share weighted by relative xp
-  function _calcMint(
+  function _calcNftMint(
       int share, 
       uint xp
   ) private view returns (int) { // no xp accrual for minting
@@ -352,18 +352,18 @@ contract DNft is ERC721, ReentrancyGuard {
   }
 
   // Calculate xp accrual and share by relative xp
-  function _calcBurn(
+  function _calcNftBurn(
       int share, 
       uint xp
-  ) private view returns (uint, int) {
+  ) private view returns (int, uint) {
       uint relativeXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);
       uint oneMinusRank      = (1e18 - relativeXpToMax);
       int  multi             = oneMinusRank.divWadDown((totalSupply*1e18)-relativeXpNorm).toInt256();
-      int  allocation        = wadMul(multi, share);
-      uint xpAccrual         = allocation.abs().divWadDown(relativeXpToMax);
-      return (xpAccrual/1e18, allocation); 
+      int  relativeShare     = wadMul(multi, share);
+      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax);
+      return (relativeShare, xpAccrual/1e18); 
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
