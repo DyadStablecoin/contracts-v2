@@ -265,15 +265,16 @@ contract DNft is ERC721, ReentrancyGuard {
   function claim(uint id) external onlyOwner(id) isActive(id) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       Nft memory nft  = idToNft[id];
+      int  share;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        int share   = _calcNftMint(dyadDelta, nft.xp);
-        nft.deposit += share;
+        share = _calcNftMint(dyadDelta, nft.xp);
       } else {
-        (int share, uint xp) = _calcNftBurn(dyadDelta, nft.xp);
-        nft.deposit += share;
-        newXp       += xp;
+        uint xp;
+        (share, xp) = _calcNftBurn(dyadDelta, nft.xp);
+        newXp += xp;
       }
+      nft.deposit += share;
       _updateXp(nft, newXp);
       idToNft[id] = nft;
       claimed[id][syncedBlock] = true;
@@ -291,13 +292,12 @@ contract DNft is ERC721, ReentrancyGuard {
         int share     = _calcNftMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
-        _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                         // ETH price went down
         (int share, uint xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _updateXp(from, xp);
-        _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
+      _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       idToNft[_from] = from;
       idToNft[_to]   = to;
       claimed[_from][prevSyncedBlock] = true;
