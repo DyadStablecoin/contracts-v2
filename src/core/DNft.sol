@@ -267,10 +267,10 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory nft  = idToNft[id];
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        int _share   = _calcMint(nft.xp, dyadDelta);
+        int _share   = _calcMint(dyadDelta, nft.xp);
         nft.deposit += _share;
       } else {
-        (uint xp, int relativeShare) = _calcBurn(nft.xp, dyadDelta);
+        (uint xp, int relativeShare) = _calcBurn(dyadDelta, nft.xp);
         nft.deposit += relativeShare;
         newXp       += xp;
       }
@@ -288,12 +288,12 @@ contract DNft is ERC721, ReentrancyGuard {
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       if (prevDyadDelta > 0) {         // ETH price went up
-        int share     = _calcMint(from.xp, prevDyadDelta);
+        int share     = _calcMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _updateXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                         // ETH price went down
-        (uint xp, int share) = _calcBurn(from.xp, prevDyadDelta);
+        (uint xp, int share) = _calcBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _updateXp(from, xp);
         _updateXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
@@ -343,8 +343,8 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Calculate share weighted by relative xp
   function _calcMint(
-      uint xp, 
-      int share
+      int share, 
+      uint xp
   ) private view returns (int) { // no xp accrual for minting
       uint relativeXp = xp.divWadDown(totalXp);
       if (share < 0) { relativeXp = 1e18 - relativeXp; }
@@ -353,8 +353,8 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Calculate xp accrual and share by relative xp
   function _calcBurn(
-      uint xp,
-      int share
+      int share, 
+      uint xp
   ) private view returns (uint, int) {
       uint relativeXpToMax   = xp.divWadDown(maxXp);
       uint relativeXpToTotal = xp.divWadDown(totalXp);
