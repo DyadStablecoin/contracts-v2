@@ -233,24 +233,23 @@ contract DNft is ERC721, ReentrancyGuard {
       emit DyadRedeemed(msg.sender, from, amount);
   }
 
-  // Determine the amount of dyad to mint/burn and close the current claim window and start a new one
+  // Determine amount of dyad to mint/burn in the next claim window
   function sync(uint id) external exists(id) isActive(id) {
-      uint dyadTotalSupply = dyad.totalSupply();
-      if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); }
+      uint dyadTotalSupply = dyad.totalSupply(); // amount to burn/mint is based only on withdrawn dyad
+      if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
-      timeOfLastSync      = block.timestamp;
       int  newEthPrice    = _getLatestEthPrice();
       int  priceChange    = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       uint priceChangeAbs = priceChange.abs();
       if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
+      timeOfLastSync   = block.timestamp;
       lastEthPrice     = newEthPrice; 
-      prevSyncedBlock  = syncedBlock;
-      syncedBlock      = block.number;
+      prevSyncedBlock  = syncedBlock;  // open new snipe window
+      syncedBlock      = block.number; // open new claim window
       prevDyadDelta    = dyadDelta;
       dyadDelta        = wadMul(dyadTotalSupply.toInt256(), priceChange);
-      uint newXp       = _calcXpReward(XP_SYNC_REWARD + priceChangeAbs);
       Nft memory nft   = idToNft[id];
-      _updateXp(nft, newXp);
+      _updateXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChangeAbs));
       idToNft[id]      = nft;
       emit Synced(id);
   }
