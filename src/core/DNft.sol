@@ -315,11 +315,13 @@ contract DNft is ERC721, ReentrancyGuard {
       return id;
   }
 
+  // Activate inactive dNft
   function activate(uint id) external onlyOwner(id) isInactive(id) {
     idToNft[id].isActive = true;
     emit Activated(id);
   }
 
+  // Deactivate active dNft
   function deactivate(uint id) external onlyOwner(id) isActive(id) {
     if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
     if (idToNft[id].deposit    <= 0) revert DepositIsNegative(id);
