@@ -228,7 +228,7 @@ contract DNft is ERC721, ReentrancyGuard {
       }
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success, ) = payable(to).call{value: eth}("");
+      (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy possible
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit DyadRedeemed(msg.sender, from, amount);
   }
