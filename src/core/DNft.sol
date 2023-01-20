@@ -233,6 +233,7 @@ contract DNft is ERC721, ReentrancyGuard {
       emit DyadRedeemed(msg.sender, from, amount);
   }
 
+  // Determine the amount of dyad to mint/burn and close the current claim window and start a new one
   function sync(uint id) external exists(id) isActive(id) {
       uint dyadTotalSupply = dyad.totalSupply();
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); }
