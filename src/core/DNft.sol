@@ -103,12 +103,16 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
+  error MissingPermission              (uint id, Permission permission);
 
   modifier exists(uint id) {
     ownerOf(id); _; // ownerOf reverts if dNft does not exist
   }
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
+  }
+  modifier isAuthorized(uint id, Permission permission) {
+    if (!hasPermission(id, msg.sender, permission)) revert MissingPermission(id, permission); _;
   }
   modifier isActive(uint id) {
     if (idToNft[id].isActive == false) revert IsInactive(id); _;
@@ -183,7 +187,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _from,
       uint _to,
       int  _amount
-  ) external onlyOwner(_from) exists(_to) isActive(_from) {
+  ) external isAuthorized(_from, Permission.MOVE) isActive(_from) exists(_to) {
       require(_amount > 0);             // needed because _amount is int
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
@@ -379,10 +383,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint256 _id,
       address _address,
       Permission _permission
-  ) external view returns (bool) {
-      if (ownerOf(_id) == _address) {
-        return true;
-      }
+  ) public view returns (bool) {
+      if (ownerOf(_id) == _address) { return true; }
       NftPermission memory _nftPermission = nftPermissions[_id][_address];
       // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
       return _nftPermission.permissions.hasPermission(_permission) && lastOwnershipChange[_id] < _nftPermission.lastUpdated;

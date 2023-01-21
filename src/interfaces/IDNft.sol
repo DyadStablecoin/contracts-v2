@@ -2,6 +2,8 @@
 pragma solidity = 0.8.17;
 
 interface IDNft {
+  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
+
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
@@ -21,6 +23,7 @@ interface IDNft {
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
+  error MissingPermission              (uint id, Permission permission);
 
   struct Nft {
     uint xp;
