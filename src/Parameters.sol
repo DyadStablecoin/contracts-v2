@@ -23,6 +23,6 @@ contract Parameters {
   // ---------------- AutoClaim ----------------
   int  FEE           = 0.01e18;
   uint FEE_COLLECTOR = 0;       // dNft id of fee collector
-  uint MAX_STAKER    = 0.01e18;
+  uint MAX_STAKER    = 20;
 }
 

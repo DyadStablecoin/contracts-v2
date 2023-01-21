@@ -4,7 +4,7 @@ pragma solidity = 0.8.17;
 import "forge-std/Script.sol";
 import {Dyad} from "../../src/core/Dyad.sol";
 import {DNft} from "../../src/core/DNft.sol";
-import {AutoClaim} from "../../src/staking/AutoClaim.sol";
+import {Claimer} from "../../src/staking/Claimer.sol";
 import {Parameters} from "../../src/Parameters.sol";
 
 contract DeployBase is Script, Parameters {
@@ -22,14 +22,14 @@ contract DeployBase is Script, Parameters {
       MIN_MINT_DYAD_DEPOSIT,
       INSIDERS
     );
-    AutoClaim autoClaim = new AutoClaim(
+    Claimer claimer = new Claimer(
       dNft, 
-      AutoClaim.Params(FEE, FEE_COLLECTOR, MAX_STAKER)
+      Claimer.Config(FEE, FEE_COLLECTOR, MAX_STAKER)
     );
 
     dyad.transferOwnership(address(dNft));
 
     vm.stopBroadcast();
-    return (address(dNft), address(dyad), address(autoClaim));
+    return (address(dNft), address(dyad), address(claimer));
   }
 }

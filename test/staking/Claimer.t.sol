@@ -11,31 +11,31 @@ contract AutoClaim is BaseTest, Parameters {
   function testStake() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.approve(address(autoClaim), id);
-    autoClaim.stake(id);
+    dNft.approve(address(claimer), id);
+    claimer.stake(id);
   }
 
   function testUnstake() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.approve(address(autoClaim), id);
-    autoClaim.stake(id);
+    dNft.approve(address(claimer), id);
+    claimer.stake(id);
     // unstake and stake again
-    autoClaim.unstake(id);
-    dNft.approve(address(autoClaim), id);
-    autoClaim.stake(id);
+    claimer.unstake(id);
+    dNft.approve(address(claimer), id);
+    claimer.stake(id);
   }
 
   function testClaimAll() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.approve(address(autoClaim), id);
-    autoClaim.stake(id);
+    dNft.approve(address(claimer), id);
+    claimer.stake(id);
 
     overwrite(address(dNft), "dyadDelta()", 100*1e18);
 
     int masterDepositBefore = dNft.idToNft(0).deposit;
-    autoClaim.claimAll();
+    claimer.claimAll();
     assertTrue(dNft.idToNft(0).deposit > masterDepositBefore);
   }
 }
