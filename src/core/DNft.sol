@@ -370,6 +370,6 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // required by solmate's ERC721 implementation
   function tokenURI(uint256 id) exists(id) public view override returns (string memory) { 
-    return string.concat("https://dyad.xyz.com/api/dnfts/", id.toString());
+    return string.concat("https://dyadstable.xyz/api/dnfts/", id.toString());
   }
 }
