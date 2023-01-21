@@ -25,18 +25,16 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
   uint public constant MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18;   // 10    bps or 0.1%
   uint public constant MIN_TIME_BETWEEN_SYNC         = 10 minutes;
+  int public immutable MIN_MINT_DYAD_DEPOSIT; // Deposit minimum to mint a new DNft
 
-  uint public constant XP_NORM_FACTOR        = 1e16;
-  uint public constant XP_MINT_REWARD        = 1_000;
-  uint public constant XP_SYNC_REWARD        = 0.0004e18; // 4 bps or 0.04%
-  uint public constant XP_LIQUIDATION_REWARD = 0.0004e18; // 4 bps or 0.04%
-  uint public constant XP_DIBS_BURN_REWARD   = 0.0003e18; // 3 bps or 0.03%
-  uint public constant XP_DIBS_MINT_REWARD   = 0.0002e18; // 2 bps or 0.02%
-  uint public constant XP_CLAIM_REWARD       = 0.0001e18; // 1 bps or 0.01%
-
-  int public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
-
-  int public immutable MIN_DYAD_DEPOSIT; // Minimum of dyad required to mint a new DNft
+  uint public constant XP_NORM_FACTOR         = 1e16;
+  uint public constant XP_MINT_REWARD         = 1_000;
+  uint public constant XP_SYNC_REWARD         = 0.0004e18; // 4 bps    or 0.04%
+  uint public constant XP_LIQUIDATION_REWARD  = 0.0004e18; // 4 bps    or 0.04%
+  uint public constant XP_DIBS_BURN_REWARD    = 0.0003e18; // 3 bps    or 0.03%
+  uint public constant XP_DIBS_MINT_REWARD    = 0.0002e18; // 2 bps    or 0.02%
+  uint public constant XP_CLAIM_REWARD        = 0.0001e18; // 1 bps    or 0.01%
+  int  public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
 
   uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
@@ -112,13 +110,13 @@ contract DNft is ERC721, ReentrancyGuard {
   constructor(
       address _dyad,
       address _oracle, 
-      int     _mintMinimum,
+      int     _minMintDyadDeposit,
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-      dyad             = Dyad(_dyad);
-      oracle           = IAggregatorV3(_oracle);
-      MIN_DYAD_DEPOSIT = _mintMinimum;
-      lastEthPrice     = _getLatestEthPrice();
+      dyad                  = Dyad(_dyad);
+      oracle                = IAggregatorV3(_oracle);
+      MIN_MINT_DYAD_DEPOSIT = _minMintDyadDeposit;
+      lastEthPrice          = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
@@ -130,7 +128,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       (uint id, Nft memory nft) = _mintNft(to); 
       int newDyad  = _eth2dyad(msg.value);
-      if (newDyad < MIN_DYAD_DEPOSIT) { revert UnderDepositMinimum(newDyad); }
+      if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert UnderDepositMinimum(newDyad); }
       nft.deposit  = newDyad;
       nft.isActive = true;
       idToNft[id]  = nft;
