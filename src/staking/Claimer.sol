@@ -23,6 +23,7 @@ contract Claimer is Owned {
   error InvalidFee        (int fee);
   error InvalidMaxClaimers(uint maxClaimers);
   error NotStakeOwner     (address sender, uint id);
+  error TooManyClaimers   ();
 
   modifier onlyStakeOwner(uint id) {
     if (owners[id] != msg.sender) revert NotStakeOwner(msg.sender, id);
@@ -42,7 +43,7 @@ contract Claimer is Owned {
 
   // Stake dNFT
   function stake(uint id) external { // will fail if dNFT does not exist
-    require(dNft.balanceOf(address(this)) < config.maxClaimers);
+    if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
     owners[id] = msg.sender;
     dNft.transferFrom(msg.sender, address(this), id);
   }
