@@ -361,8 +361,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) public view returns (bool) {
       if (ownerOf(id) == operator) { return true; }
       NftPermission memory _nftPermission = idToNftPermission[id][operator];
-      // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
-      return _nftPermission.permissions.hasPermission(permission) && lastOwnershipChange[id] < _nftPermission.lastUpdated;
+      // If there was an ownership change after the permission was last updated,
+      // then the operator doesn't have the permission
+      return _nftPermission.permissions.hasPermission(permission) &&
+        lastOwnershipChange[id] < _nftPermission.lastUpdated;
   }
 
   function hasPermissions(
@@ -371,13 +373,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Permission[] calldata permissions
   ) external view returns (bool[] memory _hasPermissions) {
       _hasPermissions = new bool[](permissions.length);
-      if (ownerOf(id) == operator) {
-        // If the address is the owner, then they have all permissions
+      if (ownerOf(id) == operator) { // if operator is owner they have all permissions
         for (uint256 i = 0; i < permissions.length; i++) {
           _hasPermissions[i] = true;
         }
-      } else {
-        // If it's not the owner, then check one by one
+      } else {                       // if not the owner then check one by one
         NftPermission memory _nftPermission = idToNftPermission[id][operator];
         if (lastOwnershipChange[id] < _nftPermission.lastUpdated) {
           for (uint256 i = 0; i < permissions.length; i++) {
