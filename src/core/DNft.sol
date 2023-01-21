@@ -407,17 +407,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       }
   }
 
-  // function _beforeTokenTransfer(
-  //   address _from,
-  //   address _to,
-  //   uint256 _id
-  // ) internal override {
-  //   if (_to == address(0)) {
-  //     // When token is being burned, we can delete this entry on the mapping
-  //     delete lastOwnershipChange[_id];
-  //   } else if (_from != address(0)) {
-  //     // If the token is being minted, then no need to write this
-  //     lastOwnershipChange[_id] = block.number;
-  //   }
-  // }
+  function _beforeTokenTransfer(
+    address _from,
+    address _to,
+    uint256 _id, 
+    uint256 _batchSize // introduced in OpenZeppelin 4.8, but not used here
+  ) internal override {
+    super._beforeTokenTransfer(_from, _to, _id, _batchSize);
+    if (_to == address(0)) {
+      // When token is being burned, we can delete this entry on the mapping
+      delete lastOwnershipChange[_id];
+    } else if (_from != address(0)) {
+      // If the token is being minted, then no need to write this
+      lastOwnershipChange[_id] = block.number;
+    }
+  }
 }
