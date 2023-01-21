@@ -25,11 +25,16 @@ contract AutoClaim is Owned {
     masterDNft = _masterDNft;
   }
 
-  function stake() external {
+  function stake(uint id) external {
     require(dNft.balanceOf(address(this)) < MAX_STAKER);
+    owners[id] = msg.sender;
+    dNft.transferFrom(msg.sender, address(this), id);
   }
 
-  function unstake(uint id) external onlyStakeOwner(id) {}
+  function unstake(uint id) external onlyStakeOwner(id) {
+    delete owners[id];
+    dNft.transferFrom(address(this), msg.sender, id);
+  }
 
   function claimAll() external {
     uint numberOfStakedNfts = dNft.balanceOf(address(this));
