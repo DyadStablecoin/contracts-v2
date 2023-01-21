@@ -13,8 +13,8 @@ contract AutoClaim is Owned {
   mapping(uint => address) public owners;
 
   struct Params {
-    uint masterDNft;
     int  fee;
+    uint feeCollector;
     uint maxStaker;
   }
 
@@ -53,7 +53,7 @@ contract AutoClaim is Owned {
       uint id   = dNft.tokenOfOwnerByIndex(address(this), i);
       int share = dNft.claim(id);
       if (share > 0) {
-        dNft.move(id, params.masterDNft, wadMul(share, params.fee));
+        dNft.move(id, params.feeCollector, wadMul(share, params.fee));
       }
     }
   }

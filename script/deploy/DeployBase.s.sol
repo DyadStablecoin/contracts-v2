@@ -24,7 +24,7 @@ contract DeployBase is Script, Parameters {
     );
     AutoClaim autoClaim = new AutoClaim(
       dNft, 
-      AutoClaim.Params(MASTER_DNFT, FEE, MAX_STAKER)
+      AutoClaim.Params(FEE, FEE_COLLECTOR, MAX_STAKER)
     );
 
     dyad.transferOwnership(address(dNft));

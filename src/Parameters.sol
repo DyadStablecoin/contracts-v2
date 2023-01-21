@@ -21,9 +21,9 @@ contract Parameters {
   address ORACLE_GOERLI  = 0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e;
 
   // ---------------- AutoClaim ----------------
-  uint MASTER_DNFT = 0;
-  int  FEE         = 0.01e18;
-  uint MAX_STAKER  = 0.01e18;
+  int  FEE           = 0.01e18;
+  uint FEE_COLLECTOR = 0;       // dNft id of fee collector
+  uint MAX_STAKER    = 0.01e18;
 
 }
 
