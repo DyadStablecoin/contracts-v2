@@ -47,13 +47,13 @@ interface IDNft {
   function XP_SYNC_REWARD() external view returns (uint);
   function maxXp()          external view returns (uint);
   function idToNft(uint id) external view returns (Nft memory);
-  function nftPermissions(uint id, address operator) external view returns (NftPermission memory);
   function dyadDelta()      external view returns (int);
   function totalXp()        external view returns (uint);
   function syncedBlock()    external view returns (uint);
   function prevSyncedBlock()external view returns (uint);
   function lastEthPrice()   external view returns (uint);
   function hasPermission(uint id, address operator, Permission) external view returns (bool);
+  function idToNftPermission(uint id, address operator) external view returns (NftPermission memory);
 
   // state changing functions
   function mint      (address to) external payable;

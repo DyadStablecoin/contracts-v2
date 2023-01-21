@@ -66,8 +66,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   mapping(uint => Nft)                               public idToNft;
-  mapping(uint => mapping(uint => bool))             public claimed;        // id => (blockNumber => claimed)
-  mapping(uint => mapping(address => NftPermission)) public nftPermissions; // id => (address => permission)
+  mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
+  mapping(uint => mapping(uint => bool))             public claimed;           // id => (blockNumber => claimed)
   mapping(uint => uint)                              public lastOwnershipChange;
 
   Dyad public dyad;
@@ -342,9 +342,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       for (uint256 i = 0; i < _permissions.length; ) {
         PermissionSet memory _permissionSet = _permissions[i];
         if (_permissionSet.permissions.length == 0) {
-          delete nftPermissions[_id][_permissionSet.operator];
+          delete idToNftPermission[_id][_permissionSet.operator];
         } else {
-          nftPermissions[_id][_permissionSet.operator] = NftPermission({
+          idToNftPermission[_id][_permissionSet.operator] = NftPermission({
             permissions: _permissionSet.permissions.toUInt8(),
             lastUpdated: _blockNumber
           });
@@ -406,7 +406,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Permission _permission
   ) public view returns (bool) {
       if (ownerOf(_id) == _address) { return true; }
-      NftPermission memory _nftPermission = nftPermissions[_id][_address];
+      NftPermission memory _nftPermission = idToNftPermission[_id][_address];
       // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
       return _nftPermission.permissions.hasPermission(_permission) && lastOwnershipChange[_id] < _nftPermission.lastUpdated;
   }
@@ -424,7 +424,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         }
       } else {
         // If it's not the owner, then check one by one
-        NftPermission memory _nftPermission = nftPermissions[_id][_address];
+        NftPermission memory _nftPermission = idToNftPermission[_id][_address];
         if (lastOwnershipChange[_id] < _nftPermission.lastUpdated) {
           for (uint256 i = 0; i < _permissions.length; i++) {
             if (_nftPermission.permissions.hasPermission(_permissions[i])) {

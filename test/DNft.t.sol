@@ -251,7 +251,7 @@ contract DNftsTest is BaseTest, Parameters {
   function testModify() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    IDNft.NftPermission memory perm = dNft.nftPermissions(id, address(1));
+    IDNft.NftPermission memory perm = dNft.idToNftPermission(id, address(1));
     console.log(perm.permissions);
 
     IDNft.Permission[] memory pp = new IDNft.Permission[](2);
@@ -264,7 +264,7 @@ contract DNftsTest is BaseTest, Parameters {
     console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
 
     dNft.modify(id, ps);
-    perm = dNft.nftPermissions(id, address(1));
+    perm = dNft.idToNftPermission(id, address(1));
     console.log(perm.permissions);
 
     console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
