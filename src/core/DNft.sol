@@ -58,6 +58,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     uint248 lastUpdated; // The block number when it was last updated
   }
 
+  struct PermissionSet {
+    address operator; // The address of the operator
+    Permission[] permissions; // The permissions given to the operator
+  }
+
   enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   mapping(uint => Nft)                               public idToNft;
@@ -68,16 +73,16 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   Dyad public dyad;
   IAggregatorV3 internal oracle;
 
-  event NftMinted          (address indexed to, uint indexed id);
-  event DyadRedeemed       (address indexed to, uint indexed id, uint amount);
-  event DyadWithdrawn      (uint indexed id, uint amount);
-  event EthExchangedForDyad(uint indexed id, int amount);
-  event DyadDepositBurned  (uint indexed id, uint amount);
-  event DyadDepositMoved   (uint indexed from, uint indexed to, int amount);
-  event Synced             (uint id);
-  event Activated          (uint id);
-  event Deactivated        (uint id);
-  event NftLiquidated      (address indexed to, uint indexed id);
+  event Minted     (address indexed to, uint indexed id);
+  event Redeemed   (address indexed to, uint indexed id, uint amount);
+  event Withdrawn  (uint indexed id, uint amount);
+  event Exchanged  (uint indexed id, int amount);
+  event Moved      (uint indexed from, uint indexed to, int amount);
+  event Synced     (uint id);
+  event Activated  (uint id);
+  event Deactivated(uint id);
+  event Liquidated (address indexed to, uint indexed id);
+  event Modified   (uint256 tokenId, PermissionSet[] permissions);
 
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
@@ -146,7 +151,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _mint(to, id); // will revert on address(0)
       Nft memory nft; 
       _addXp(nft, XP_MINT_REWARD);
-      emit NftMinted(to, id);
+      emit Minted(to, id);
       return (id, nft);
   }
 
@@ -154,7 +159,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function exchange(uint id) external exists(id) payable {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
-      emit EthExchangedForDyad(id, newDeposit);
+      emit Exchanged(id, newDeposit);
   }
 
   // Deposit DYAD 
@@ -186,7 +191,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       from.deposit         -= _amount;  // amount <= from.deposit
       }
       idToNft[_to].deposit += _amount;
-      emit DyadDepositMoved(_from, _to, _amount);
+      emit Moved(_from, _to, _amount);
   }
 
   // Withdraw DYAD from dNFT deposit
@@ -206,7 +211,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       }
       nft.withdrawal += amount; 
       dyad.mint(to, amount);
-      emit DyadWithdrawn(from, amount);
+      emit Withdrawn(from, amount);
   }
 
   // Redeem DYAD for ETH
@@ -224,7 +229,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy possible
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
-      emit DyadRedeemed(msg.sender, from, amount);
+      emit Redeemed(msg.sender, from, amount);
   }
 
   // Determine amount of dyad to mint/burn in the next claim window
@@ -306,7 +311,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       nft.deposit += newDyad; 
       idToNft[id]  = nft;     
-      emit NftLiquidated(to,  id); 
+      emit Liquidated(to,  id); 
       return id;
   }
 
@@ -423,30 +428,24 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     }
   }
 
-  struct PermissionSet {
-    // The address of the operator
-    address operator;
-    // The permissions given to the overator
-    Permission[] permissions;
-  }
-
-
-  function _setPermissions(uint256 _id, PermissionSet[] calldata _permissions) internal {
-    uint248 _blockNumber = uint248(block.number);
-    for (uint256 i = 0; i < _permissions.length; ) {
-      PermissionSet memory _permissionSet = _permissions[i];
-      if (_permissionSet.permissions.length == 0) {
-        delete nftPermissions[_id][_permissionSet.operator];
-      } else {
-        nftPermissions[_id][_permissionSet.operator] = NftPermission({
-          permissions: _permissionSet.permissions.toUInt8(),
-          lastUpdated: _blockNumber
-        });
+  // Modify permissions
+  function modify(
+      uint256 _id,
+      PermissionSet[] calldata _permissions
+  ) external onlyOwner(_id) {
+      uint248 _blockNumber = uint248(block.number);
+      for (uint256 i = 0; i < _permissions.length; ) {
+        PermissionSet memory _permissionSet = _permissions[i];
+        if (_permissionSet.permissions.length == 0) {
+          delete nftPermissions[_id][_permissionSet.operator];
+        } else {
+          nftPermissions[_id][_permissionSet.operator] = NftPermission({
+            permissions: _permissionSet.permissions.toUInt8(),
+            lastUpdated: _blockNumber
+          });
+        }
+        unchecked { i++; }
       }
-      unchecked {
-        i++;
-      }
-    }
+      emit Modified(_id, _permissions);
   }
-
 }
