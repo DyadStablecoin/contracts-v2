@@ -333,6 +333,27 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     emit Deactivated(id);
   }
 
+  // Modify permissions
+  function modify(
+      uint256 _id,
+      PermissionSet[] calldata _permissions
+  ) external onlyOwner(_id) {
+      uint248 _blockNumber = uint248(block.number);
+      for (uint256 i = 0; i < _permissions.length; ) {
+        PermissionSet memory _permissionSet = _permissions[i];
+        if (_permissionSet.permissions.length == 0) {
+          delete nftPermissions[_id][_permissionSet.operator];
+        } else {
+          nftPermissions[_id][_permissionSet.operator] = NftPermission({
+            permissions: _permissionSet.permissions.toUInt8(),
+            lastUpdated: _blockNumber
+          });
+        }
+        unchecked { i++; }
+      }
+      emit Modified(_id, _permissions);
+  }
+
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
   function _addXp(Nft memory nft, uint xp) private {
       nft.xp  += xp;
@@ -415,39 +436,16 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   function _beforeTokenTransfer(
-    address _from,
-    address _to,
-    uint256 _id, 
-    uint256 _batchSize // introduced in OpenZeppelin 4.8, but not used here
+      address _from,
+      address _to,
+      uint256 _id, 
+      uint256 _batchSize 
   ) internal override {
-    super._beforeTokenTransfer(_from, _to, _id, _batchSize);
-    if (_to == address(0)) {
-      // When token is being burned, we can delete this entry on the mapping
-      delete lastOwnershipChange[_id];
-    } else if (_from != address(0)) {
-      // If the token is being minted, then no need to write this
-      lastOwnershipChange[_id] = block.number;
-    }
-  }
-
-  // Modify permissions
-  function modify(
-      uint256 _id,
-      PermissionSet[] calldata _permissions
-  ) external onlyOwner(_id) {
-      uint248 _blockNumber = uint248(block.number);
-      for (uint256 i = 0; i < _permissions.length; ) {
-        PermissionSet memory _permissionSet = _permissions[i];
-        if (_permissionSet.permissions.length == 0) {
-          delete nftPermissions[_id][_permissionSet.operator];
-        } else {
-          nftPermissions[_id][_permissionSet.operator] = NftPermission({
-            permissions: _permissionSet.permissions.toUInt8(),
-            lastUpdated: _blockNumber
-          });
-        }
-        unchecked { i++; }
+      super._beforeTokenTransfer(_from, _to, _id, _batchSize);
+      if (_to == address(0)) {          // token is burned
+        delete lastOwnershipChange[_id]; 
+      } else if (_from != address(0)) { // token is not burned nor minted 
+        lastOwnershipChange[_id] = block.number;
       }
-      emit Modified(_id, _permissions);
   }
 }

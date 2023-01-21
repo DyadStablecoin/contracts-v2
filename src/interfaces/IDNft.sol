@@ -9,6 +9,18 @@ interface IDNft {
     Permission[] permissions; // The permissions given to the operator
   }
 
+  struct NftPermission {
+    uint8   permissions;
+    uint248 lastUpdated; // The block number when it was last updated
+  }
+
+  struct Nft {
+    uint xp;
+    int  deposit;
+    uint withdrawal;
+    bool isActive;
+  }
+
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
@@ -30,18 +42,12 @@ interface IDNft {
   error AlreadySniped                  (uint id, uint syncedBlock);
   error NotAuthorized                  (uint id, Permission permission);
 
-  struct Nft {
-    uint xp;
-    int  deposit;
-    uint withdrawal;
-    bool isActive;
-  }
-
   // view functions
   function XP_MINT_REWARD() external view returns (uint);
   function XP_SYNC_REWARD() external view returns (uint);
   function maxXp()          external view returns (uint);
   function idToNft(uint id) external view returns (Nft memory);
+  function nftPermissions(uint id, address operator) external view returns (NftPermission memory);
   function dyadDelta()      external view returns (int);
   function totalXp()        external view returns (uint);
   function syncedBlock()    external view returns (uint);

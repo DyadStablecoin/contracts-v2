@@ -246,4 +246,23 @@ contract DNftsTest is BaseTest, Parameters {
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
   }
+
+  // -------------------- modify --------------------
+  function testModify() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    IDNft.NftPermission memory perm = dNft.nftPermissions(id, address(1));
+    console.log(perm.permissions);
+
+    IDNft.Permission[] memory pp = new IDNft.Permission[](2);
+    pp[0] = IDNft.Permission.ACTIVATE;
+    pp[1] = IDNft.Permission.DEACTIVATE;
+
+    IDNft.PermissionSet[] memory ps = new IDNft.PermissionSet[](1);
+    ps[0] = IDNft.PermissionSet({ operator: address(1), permissions: pp });
+
+    dNft.modify(id, ps);
+    perm = dNft.nftPermissions(id, address(1));
+    console.log(perm.permissions);
+  }
 }
