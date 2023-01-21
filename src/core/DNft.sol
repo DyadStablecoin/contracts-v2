@@ -3,10 +3,10 @@ pragma solidity = 0.8.17;
 
 import "forge-std/console.sol";
 
-import "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import "@openzeppelin/contracts/utils/math/SignedMath.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@solmate/src/utils/ReentrancyGuard.sol";
+import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {ReentrancyGuard} from "@solmate/src/utils/ReentrancyGuard.sol";
 import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
@@ -247,7 +247,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Claim DYAD from this sync window
-  function claim(uint id) external onlyOwner(id) isActive(id) {
+  function claim(uint id) external onlyOwner(id) isActive(id) returns (int) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       claimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
@@ -263,6 +263,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.deposit += share;
       _addXp(nft, newXp);
       idToNft[id] = nft;
+      return share;
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
