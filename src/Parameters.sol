@@ -19,5 +19,10 @@ contract Parameters {
 
   address ORACLE_MAINNET = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
   address ORACLE_GOERLI  = 0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e;
+
+  // ---------------- AutoClaim ----------------
+  int  FEE           = 0.01e18;
+  uint FEE_COLLECTOR = 0;       // dNft id of fee collector
+  uint MAX_STAKER    = 0.01e18;
 }
 

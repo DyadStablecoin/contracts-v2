@@ -6,6 +6,7 @@ import "forge-std/console.sol";
 import {DeployBase} from "../script/deploy/DeployBase.s.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 import {Dyad} from "../src/core/Dyad.sol";
+import {AutoClaim} from "../src/staking/AutoClaim.sol";
 import {OracleMock} from "./OracleMock.sol";
 
 contract BaseTest is Test {
@@ -13,6 +14,7 @@ contract BaseTest is Test {
 
   IDNft      dNft;
   Dyad       dyad;
+  AutoClaim  autoClaim;
   OracleMock oracleMock;
 
   receive() external payable {}
@@ -20,9 +22,10 @@ contract BaseTest is Test {
   function setUp() public {
     oracleMock = new OracleMock();
     DeployBase deployBase = new DeployBase();
-    (address _dNfts, address _dyad) = deployBase.deploy{value: 100 ether}(address(oracleMock));
-    dNft = IDNft(_dNfts);
-    dyad = Dyad(_dyad);
+    (address _dNfts, address _dyad, address _autoClaim) = deployBase.deploy{value: 100 ether}(address(oracleMock));
+    dNft      = IDNft(_dNfts);
+    dyad      = Dyad(_dyad);
+    autoClaim = AutoClaim(_autoClaim);
     vm.warp(block.timestamp + 1 days);
   }
 
