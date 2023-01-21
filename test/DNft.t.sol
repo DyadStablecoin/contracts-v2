@@ -95,7 +95,11 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(depositToAfter   > depositToBefore);
   }
   function testCannotMoveDepositNotDNftOwner() public {
-    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, IDNft.Permission.MOVE));
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.MissingPermission.selector,
+      0,
+      IDNft.Permission.MOVE
+    ));
     dNft.move(0, 2, 10000); 
   }
   function testCannotMoveDepositExceedsDepositBalance() public {
