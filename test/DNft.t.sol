@@ -261,8 +261,14 @@ contract DNftsTest is BaseTest, Parameters {
     IDNft.PermissionSet[] memory ps = new IDNft.PermissionSet[](1);
     ps[0] = IDNft.PermissionSet({ operator: address(1), permissions: pp });
 
+    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
+
     dNft.modify(id, ps);
     perm = dNft.nftPermissions(id, address(1));
     console.log(perm.permissions);
+
+    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
+    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
+    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.MOVE));
   }
 }

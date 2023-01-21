@@ -53,6 +53,7 @@ interface IDNft {
   function syncedBlock()    external view returns (uint);
   function prevSyncedBlock()external view returns (uint);
   function lastEthPrice()   external view returns (uint);
+  function hasPermission(uint id, address operator, Permission) external view returns (bool);
 
   // state changing functions
   function mint      (address to) external payable;
