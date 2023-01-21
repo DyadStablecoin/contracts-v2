@@ -43,8 +43,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public maxXp;                  // Max XP over all dNFTs
   uint public timeOfLastSync;
 
-  mapping(uint => Nft)  public idToNft;
-  mapping(uint => mapping(uint => bool)) public claimed; // id => (blockNumber => claimed)
+  mapping(uint => Nft) public idToNft;
+  mapping(uint => mapping(uint => bool))     public claimed;     // id => (blockNumber => claimed)
+  mapping(uint => mapping(address => uint8)) public permissions; // id => (address => permission)
+
+  enum Permission {
+    ACTIVATE,
+    DEACTIVATE,
+    MOVE, 
+    WITHDRAW, 
+    REDEEM, 
+    CLAIM 
+  }
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -115,6 +125,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
         idToNft[id] = nft; 
       }
+  }
+
+  function _hasPermission(
+    uint _id,
+    Permission _permission
+  ) private view returns (bool) {
+    uint256 _bitMask = 1 << uint8(_permission);
+    _hasPermission = (permissions[msg.sender] & _bitMask) != 0;
+    return ownerOf(_id) == msg.sender || _hasPermission;
   }
 
   // Mint new DNft to `to` 
