@@ -11,6 +11,7 @@ import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
+import {PermissionMath} from "../libraries/PermissionMath.sol";
 
 contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast          for uint256;
@@ -18,6 +19,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
   using LibString         for uint256;
+  using PermissionMath    for Permission[];
+  using PermissionMath    for uint8;
 
   uint public constant MAX_SUPPLY                    = 10_000;     // Max supply of DNfts
   uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
@@ -43,9 +46,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public maxXp;                  // Max XP over all dNFTs
   uint public timeOfLastSync;
 
-  mapping(uint => Nft) public idToNft;
-  mapping(uint => mapping(uint => bool))     public claimed;     // id => (blockNumber => claimed)
-  mapping(uint => mapping(address => uint8)) public permissions; // id => (address => permission)
+
+  struct Nft {
+    uint xp;         // always inflationary
+    int  deposit;    // deposited dyad
+    uint withdrawal; // withdrawn dyad
+    bool isActive;
+  }
+
+  struct NftPermission {
+    uint8   permissions;
+    uint248 lastUpdated; // The block number when it was last updated
+  }
 
   enum Permission {
     ACTIVATE,
@@ -56,15 +68,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     CLAIM 
   }
 
+  mapping(uint => Nft)                               public idToNft;
+  mapping(uint => mapping(uint => bool))             public claimed;        // id => (blockNumber => claimed)
+  mapping(uint => mapping(address => NftPermission)) public nftPermissions; // id => (address => permission)
+  mapping(uint => uint)                              public lastOwnershipChange;
+
   Dyad public dyad;
   IAggregatorV3 internal oracle;
-
-  struct Nft {
-    uint xp;         // always inflationary
-    int  deposit;    // deposited dyad
-    uint withdrawal; // withdrawn dyad
-    bool isActive;
-  }
 
   event NftMinted          (address indexed to, uint indexed id);
   event DyadRedeemed       (address indexed to, uint indexed id, uint amount);
@@ -125,15 +135,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
         idToNft[id] = nft; 
       }
-  }
-
-  function _hasPermission(
-    uint _id,
-    Permission _permission
-  ) private view returns (bool) {
-    uint256 _bitMask = 1 << uint8(_permission);
-    _hasPermission = (permissions[msg.sender] & _bitMask) != 0;
-    return ownerOf(_id) == msg.sender || _hasPermission;
   }
 
   // Mint new DNft to `to` 
@@ -375,5 +376,42 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
     ( , price, , , ) = oracle.latestRoundData();
+  }
+
+  function hasPermission(
+      uint256 _id,
+      address _address,
+      Permission _permission
+  ) external view returns (bool) {
+      if (ownerOf(_id) == _address) {
+        return true;
+      }
+      NftPermission memory _nftPermission = nftPermissions[_id][_address];
+      // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
+      return _nftPermission.permissions.hasPermission(_permission) && lastOwnershipChange[_id] < _nftPermission.lastUpdated;
+  }
+
+  function hasPermissions(
+      uint256 _id,
+      address _address,
+      Permission[] calldata _permissions
+  ) external view returns (bool[] memory _hasPermissions) {
+      _hasPermissions = new bool[](_permissions.length);
+      if (ownerOf(_id) == _address) {
+        // If the address is the owner, then they have all permissions
+        for (uint256 i = 0; i < _permissions.length; i++) {
+          _hasPermissions[i] = true;
+        }
+      } else {
+        // If it's not the owner, then check one by one
+        NftPermission memory _nftPermission = nftPermissions[_id][_address];
+        if (lastOwnershipChange[_id] < _nftPermission.lastUpdated) {
+          for (uint256 i = 0; i < _permissions.length; i++) {
+            if (_nftPermission.permissions.hasPermission(_permissions[i])) {
+              _hasPermissions[i] = true;
+            }
+          }
+        }
+      }
   }
 }
