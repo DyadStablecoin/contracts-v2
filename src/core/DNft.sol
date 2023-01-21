@@ -53,6 +53,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     bool isActive;
   }
 
+  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
+
   struct NftPermission {
     uint8   permissions; // bitmap of permissions
     uint248 lastUpdated; // block number of last updated
@@ -63,12 +65,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     Permission[] permissions; // The permissions given to the operator
   }
 
-  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
-
   mapping(uint => Nft)                               public idToNft;
   mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
-  mapping(uint => mapping(uint => bool))             public claimed;           // id => (blockNumber => claimed)
-  mapping(uint => uint)                              public lastOwnershipChange;
+  mapping(uint => mapping(uint => bool))             public idToClaimed;       // id => (blockNumber => claimed)
+  mapping(uint => uint)                              public idToLastOwenershipChange; // id => blockNumber
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -259,8 +259,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Claim DYAD from this sync window
   function claim(uint id) external isAuthorized(id, Permission.CLAIM) isActive(id) returns (int) {
-      if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
-      claimed[id][syncedBlock] = true;
+      if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
+      idToClaimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
       int  share;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
@@ -282,8 +282,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _from,
       uint _to
   ) external exists(_from) exists(_to) isActive(_from) isActive(_to) {
-      if (claimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
-      claimed[_from][prevSyncedBlock] = true;
+      if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
+      idToClaimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
       if (prevDyadDelta > 0) {         
@@ -364,7 +364,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       // If there was an ownership change after the permission was last updated,
       // then the operator doesn't have the permission
       return _nftPermission.permissions.hasPermission(permission) &&
-        lastOwnershipChange[id] < _nftPermission.lastUpdated;
+        idToLastOwenershipChange[id] < _nftPermission.lastUpdated;
   }
 
   function hasPermissions(
@@ -379,7 +379,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         }
       } else {                       // if not the owner then check one by one
         NftPermission memory _nftPermission = idToNftPermission[id][operator];
-        if (lastOwnershipChange[id] < _nftPermission.lastUpdated) {
+        if (idToLastOwenershipChange[id] < _nftPermission.lastUpdated) {
           for (uint256 i = 0; i < permissions.length; i++) {
             if (_nftPermission.permissions.hasPermission(permissions[i])) {
               _hasPermissions[i] = true;
@@ -432,7 +432,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
-    ( , price, , , ) = oracle.latestRoundData();
+      ( , price, , , ) = oracle.latestRoundData();
   }
 
   function _beforeTokenTransfer(
@@ -443,9 +443,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) internal override {
       super._beforeTokenTransfer(_from, _to, _id, _batchSize);
       if (_to == address(0)) {          // token is burned
-        delete lastOwnershipChange[_id]; 
+        delete idToLastOwenershipChange[_id]; 
       } else if (_from != address(0)) { // token is not burned nor minted 
-        lastOwnershipChange[_id] = block.number;
+        idToLastOwenershipChange[_id] = block.number;
       }
   }
 }
