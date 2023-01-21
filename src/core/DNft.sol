@@ -46,7 +46,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public maxXp;                  // Max XP over all dNFTs
   uint public timeOfLastSync;
 
-
   struct Nft {
     uint xp;         // always inflationary
     int  deposit;    // deposited dyad
@@ -59,14 +58,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     uint248 lastUpdated; // The block number when it was last updated
   }
 
-  enum Permission {
-    ACTIVATE,
-    DEACTIVATE,
-    MOVE, 
-    WITHDRAW, 
-    REDEEM, 
-    CLAIM 
-  }
+  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   mapping(uint => Nft)                               public idToNft;
   mapping(uint => mapping(uint => bool))             public claimed;        // id => (blockNumber => claimed)
