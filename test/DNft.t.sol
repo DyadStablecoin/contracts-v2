@@ -73,7 +73,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotExchangeDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
-    vm.expectRevert('NOT_MINTED');
+    vm.expectRevert('ERC721: invalid token ID');
     dNft.exchange{value: 5 ether}(id);
   }
 

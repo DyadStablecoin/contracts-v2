@@ -5,8 +5,8 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@openzeppelin/contracts/utils/math/SignedMath.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@solmate/src/utils/ReentrancyGuard.sol";
-import "@solmate/src/tokens/ERC721.sol";
 import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
@@ -14,7 +14,7 @@ import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 
-contract DNft is ERC721, ReentrancyGuard {
+contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast          for uint256;
   using SafeCast          for int256;
   using SignedMath        for int256;
@@ -36,7 +36,6 @@ contract DNft is ERC721, ReentrancyGuard {
   uint public constant XP_CLAIM_REWARD        = 0.0001e18; // 1 bps    or 0.01%
   int  public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
 
-  uint public totalSupply;            // Number of dNfts in circulation
   int  public lastEthPrice;           // ETH price from the last sync call
   int  public dyadDelta;              // Amount of dyad to mint/burn in this sync cycle
   int  public prevDyadDelta;          // Amount of dyad to mint/burn in the previous sync cycle
@@ -132,7 +131,7 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Mint new DNft to `to`
   function _mintNft(address to) private returns (uint, Nft memory) {
-      uint id = totalSupply++;
+      uint id = totalSupply();
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); // will revert on address(0)
       Nft memory nft; 
@@ -348,7 +347,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint relativeXpToTotal = xp.divWadDown(totalXp);
       uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);
       uint oneMinusRank      = (1e18 - relativeXpToMax);
-      int  multi             = oneMinusRank.divWadDown((totalSupply*1e18)-relativeXpNorm).toInt256();
+      int  multi             = oneMinusRank.divWadDown((totalSupply()*1e18)-relativeXpNorm).toInt256();
       int  relativeShare     = wadMul(multi, share);
       uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax);
       return (relativeShare, xpAccrual/1e18); 
@@ -366,10 +365,5 @@ contract DNft is ERC721, ReentrancyGuard {
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
     ( , price, , , ) = oracle.latestRoundData();
-  }
-
-  // required by solmate's ERC721 implementation
-  function tokenURI(uint256 id) exists(id) public view override returns (string memory) { 
-    return string.concat("https://dyadstable.xyz/api/dnfts/", id.toString());
   }
 }
