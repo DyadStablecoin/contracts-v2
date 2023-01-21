@@ -167,14 +167,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _to,
       int  _amount
   ) external onlyOwner(_from) exists(_to) isActive(_from) {
-      _move(_from, _to, _amount);
-  }
-
-  function _move(
-      uint _from,
-      uint _to,
-      int  _amount
-  ) private {
       require(_amount > 0);             // needed because _amount is int
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }

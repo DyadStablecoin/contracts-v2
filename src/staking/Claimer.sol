@@ -61,8 +61,11 @@ contract Claimer is Owned {
     for (uint i = 0; i < numberOfStakedNfts; ) { 
       uint id    = dNft.tokenOfOwnerByIndex(address(this), i);
       int  share = dNft.claim(id);
-      // can not revert, because we are moving part of the deposit that was just claimed
-      if (share > 0) { dNft.move(id, config.feeCollector, wadMul(share, config.fee)); }
+      // can not revert, because we are moving share of a deposit that was just claimed
+      if (share > 0) {
+        int fee = wadMul(share, config.fee);
+        if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
+      }
       unchecked { ++i; }
     }
   }
