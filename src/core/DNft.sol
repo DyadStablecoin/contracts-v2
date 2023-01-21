@@ -103,7 +103,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
-  error MissingPermission              (uint id, Permission permission);
+  error NotAuthorized                  (uint id, Permission permission);
 
   modifier exists(uint id) {
     ownerOf(id); _; // ownerOf reverts if dNft does not exist
@@ -112,7 +112,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
   }
   modifier isAuthorized(uint id, Permission permission) {
-    if (!hasPermission(id, msg.sender, permission)) revert MissingPermission(id, permission); _;
+    if (!hasPermission(id, msg.sender, permission)) revert NotAuthorized(id, permission); _;
   }
   modifier isActive(uint id) {
     if (idToNft[id].isActive == false) revert IsInactive(id); _;
@@ -203,7 +203,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to, 
       uint amount 
-  ) external onlyOwner(from) isActive(from) {
+  ) external isAuthorized(from, Permission.WITHDRAW) isActive(from) {
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint totalWithdrawn = dyad.totalSupply() + amount;
       uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
@@ -223,7 +223,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant onlyOwner(from) isActive(from) { 
+  ) external nonReentrant isAuthorized(from, Permission.REDEEM) isActive(from) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -258,7 +258,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Claim DYAD from this sync window
-  function claim(uint id) external onlyOwner(id) isActive(id) returns (int) {
+  function claim(uint id) external isAuthorized(id, Permission.CLAIM) isActive(id) returns (int) {
       if (claimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       claimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
@@ -320,13 +320,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Activate inactive dNft
-  function activate(uint id) external onlyOwner(id) isInactive(id) {
+  function activate(uint id) external isAuthorized(id, Permission.ACTIVATE) isInactive(id) {
     idToNft[id].isActive = true;
     emit Activated(id);
   }
 
   // Deactivate active dNft
-  function deactivate(uint id) external onlyOwner(id) isActive(id) {
+  function deactivate(uint id) external isAuthorized(id, Permission.DEACTIVATE) isActive(id) {
     if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
     if (idToNft[id].deposit    <= 0) revert DepositIsNegative(id);
     idToNft[id].isActive = false;

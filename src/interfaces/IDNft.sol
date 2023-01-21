@@ -23,7 +23,7 @@ interface IDNft {
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
-  error MissingPermission              (uint id, Permission permission);
+  error NotAuthorized                  (uint id, Permission permission);
 
   struct Nft {
     uint xp;
