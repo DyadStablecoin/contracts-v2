@@ -2,20 +2,25 @@
 pragma solidity = 0.8.17;
 
 interface IDNft {
-  error ReachedMaxSupply        ();
-  error NoEthSupplied           ();
-  error DNftDoesNotExist        (uint id);
-  error NotNFTOwner             (uint id);
-  error NotLiquidatable         (uint id);
-  error PriceChangeTooSmall     (int priceChange);
-  error AddressZero             (address addr);
-  error AmountZero              (uint amount);
-  error UnderDepositMinimum     (int amount);
-  error CrTooLow                (uint cr);
-  error ExceedsDepositBalance   (int deposit);
-  error ExceedsWithdrawalBalance(uint amount);
-  error FailedEthTransfer       (address to, uint amount);
-  error AlreadyClaimed          (uint id, uint syncedBlock);
+  error ReachedMaxSupply               ();
+  error SyncTooSoon                    ();
+  error DyadTotalSupplyZero            ();
+  error DNftDoesNotExist               (uint id);
+  error NotNFTOwner                    (uint id);
+  error NotLiquidatable                (uint id);
+  error WithdrawalsNotZero             (uint id);
+  error DepositIsNegative              (uint id);
+  error IsActive                       (uint id);
+  error IsInactive                     (uint id);
+  error PriceChangeTooSmall            (int priceChange);
+  error NotEnoughToCoverDepositMinimum (int amount);
+  error NotEnoughToCoverNegativeDeposit(int amount);
+  error CrTooLow                       (uint cr);
+  error ExceedsDepositBalance          (int deposit);
+  error ExceedsWithdrawalBalance       (uint amount);
+  error FailedEthTransfer              (address to, uint amount);
+  error AlreadyClaimed                 (uint id, uint syncedBlock);
+  error AlreadySniped                  (uint id, uint syncedBlock);
 
   struct Nft {
     uint xp;

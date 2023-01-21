@@ -70,30 +70,26 @@ contract DNft is ERC721, ReentrancyGuard {
   event Deactivated        (uint id);
   event NftLiquidated      (address indexed to, uint indexed id);
 
-  error ReachedMaxSupply        ();
-  error NoEthSupplied           ();
-  error SyncTooSoon             ();
-  error DyadTotalSupplyZero     ();
-  error DNftDoesNotExist        (uint id);
-  error NotNFTOwner             (uint id);
-  error NotLiquidatable         (uint id);
-  error WithdrawalsNotZero      (uint id);
-  error DepositIsNegative       (uint id);
-  error IsActive                (uint id);
-  error IsInactive              (uint id);
-  error PriceChangeTooSmall     (int priceChange);
-  error AddressZero             (address addr);
-  error AmountZero              (uint amount);
-  error UnderDepositMinimum     (int amount);
-  error CrTooLow                (uint cr);
-  error ExceedsDepositBalance   (int deposit);
-  error ExceedsWithdrawalBalance(uint amount);
-  error FailedEthTransfer       (address to, uint amount);
-  error AlreadyClaimed          (uint id, uint syncedBlock);
+  error ReachedMaxSupply               ();
+  error SyncTooSoon                    ();
+  error DyadTotalSupplyZero            ();
+  error DNftDoesNotExist               (uint id);
+  error NotNFTOwner                    (uint id);
+  error NotLiquidatable                (uint id);
+  error WithdrawalsNotZero             (uint id);
+  error DepositIsNegative              (uint id);
+  error IsActive                       (uint id);
+  error IsInactive                     (uint id);
+  error PriceChangeTooSmall            (int priceChange);
+  error NotEnoughToCoverDepositMinimum (int amount);
+  error NotEnoughToCoverNegativeDeposit(int amount);
+  error CrTooLow                       (uint cr);
+  error ExceedsDepositBalance          (int deposit);
+  error ExceedsWithdrawalBalance       (uint amount);
+  error FailedEthTransfer              (address to, uint amount);
+  error AlreadyClaimed                 (uint id, uint syncedBlock);
+  error AlreadySniped                  (uint id, uint syncedBlock);
 
-  modifier amountNotZero(uint amount) {
-    if (amount == 0) revert AmountZero(amount); _;
-  }
   modifier exists(uint id) {
     ownerOf(id); _; // ownerOf reverts if dNft does not exist
   }
@@ -128,7 +124,7 @@ contract DNft is ERC721, ReentrancyGuard {
   function mint(address to) external payable {
       (uint id, Nft memory nft) = _mintNft(to); 
       int newDyad  = _eth2dyad(msg.value);
-      if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert UnderDepositMinimum(newDyad); }
+      if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert NotEnoughToCoverDepositMinimum(newDyad); }
       nft.deposit  = newDyad;
       nft.isActive = true;
       idToNft[id]  = nft;
@@ -136,9 +132,8 @@ contract DNft is ERC721, ReentrancyGuard {
 
   // Mint new DNft to `to`
   function _mintNft(address to) private returns (uint, Nft memory) {
-      uint id = totalSupply;
+      uint id = totalSupply++;
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
-      totalSupply++;
       _mint(to, id); // will revert on address(0)
       Nft memory nft; 
       _addXp(nft, XP_MINT_REWARD);
@@ -276,7 +271,7 @@ contract DNft is ERC721, ReentrancyGuard {
       uint _from,
       uint _to
   ) external exists(_from) exists(_to) isActive(_from) isActive(_to) {
-      if (claimed[_from][prevSyncedBlock]) { revert AlreadyClaimed(_from, prevSyncedBlock); }
+      if (claimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
       claimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
@@ -295,15 +290,15 @@ contract DNft is ERC721, ReentrancyGuard {
       idToNft[_to]   = to;
   }
 
-  // Liquidate dNft by covering its negative deposit
+  // Liquidate DNft by covering its deposit
   function liquidate(
-      uint id, 
+      uint id, // no need to check `exists(id)` => (nft.deposit >= 0) will fail
       address to 
-  ) external exists(id) payable returns (uint) {
+  ) external payable returns (uint) {
       Nft memory nft = idToNft[id];
-      if (nft.deposit >= 0) { revert NotLiquidatable(id); } 
+      if (nft.deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
-      if (newDyad < nft.deposit.abs().toInt256()) { revert UnderDepositMinimum(newDyad); }
+      if (newDyad < nft.deposit.abs().toInt256()) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
       _burn(id);     // no need to delete idToNft[id] because it will be overwritten
       _mint(to, id); // no need to increment totalSupply, because burn + mint
       _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
