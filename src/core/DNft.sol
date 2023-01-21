@@ -54,8 +54,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   struct NftPermission {
-    uint8   permissions;
-    uint248 lastUpdated; // The block number when it was last updated
+    uint8   permissions; // bitmap of permissions
+    uint248 lastUpdated; // block number of last updated
   }
 
   struct PermissionSet {
@@ -354,6 +354,41 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit Modified(_id, _permissions);
   }
 
+  function hasPermission(
+      uint256 id,
+      address operator,
+      Permission permission
+  ) public view returns (bool) {
+      if (ownerOf(id) == operator) { return true; }
+      NftPermission memory _nftPermission = idToNftPermission[id][operator];
+      // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
+      return _nftPermission.permissions.hasPermission(permission) && lastOwnershipChange[id] < _nftPermission.lastUpdated;
+  }
+
+  function hasPermissions(
+      uint256 id,
+      address operator,
+      Permission[] calldata permissions
+  ) external view returns (bool[] memory _hasPermissions) {
+      _hasPermissions = new bool[](permissions.length);
+      if (ownerOf(id) == operator) {
+        // If the address is the owner, then they have all permissions
+        for (uint256 i = 0; i < permissions.length; i++) {
+          _hasPermissions[i] = true;
+        }
+      } else {
+        // If it's not the owner, then check one by one
+        NftPermission memory _nftPermission = idToNftPermission[id][operator];
+        if (lastOwnershipChange[id] < _nftPermission.lastUpdated) {
+          for (uint256 i = 0; i < permissions.length; i++) {
+            if (_nftPermission.permissions.hasPermission(permissions[i])) {
+              _hasPermissions[i] = true;
+            }
+          }
+        }
+      }
+  }
+
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
   function _addXp(Nft memory nft, uint xp) private {
       nft.xp  += xp;
@@ -398,41 +433,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // ETH price in USD
   function _getLatestEthPrice() private view returns (int price) {
     ( , price, , , ) = oracle.latestRoundData();
-  }
-
-  function hasPermission(
-      uint256 _id,
-      address _address,
-      Permission _permission
-  ) public view returns (bool) {
-      if (ownerOf(_id) == _address) { return true; }
-      NftPermission memory _nftPermission = idToNftPermission[_id][_address];
-      // If there was an ownership change after the permission was last updated, then the address doesn't have the permission
-      return _nftPermission.permissions.hasPermission(_permission) && lastOwnershipChange[_id] < _nftPermission.lastUpdated;
-  }
-
-  function hasPermissions(
-      uint256 _id,
-      address _address,
-      Permission[] calldata _permissions
-  ) external view returns (bool[] memory _hasPermissions) {
-      _hasPermissions = new bool[](_permissions.length);
-      if (ownerOf(_id) == _address) {
-        // If the address is the owner, then they have all permissions
-        for (uint256 i = 0; i < _permissions.length; i++) {
-          _hasPermissions[i] = true;
-        }
-      } else {
-        // If it's not the owner, then check one by one
-        NftPermission memory _nftPermission = idToNftPermission[_id][_address];
-        if (lastOwnershipChange[_id] < _nftPermission.lastUpdated) {
-          for (uint256 i = 0; i < _permissions.length; i++) {
-            if (_nftPermission.permissions.hasPermission(_permissions[i])) {
-              _hasPermissions[i] = true;
-            }
-          }
-        }
-      }
   }
 
   function _beforeTokenTransfer(
