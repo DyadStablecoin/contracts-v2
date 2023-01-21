@@ -5,6 +5,7 @@ import {DNft} from "../core/DNft.sol";
 
 /// @title Permission Math library
 /// @notice Provides functions to easily convert from permissions to an int representation and viceversa
+/// @notice Copy/Pasta from here: https://github.com/Mean-Finance/dca-v2-core/blob/main/contracts/libraries/PermissionMath.sol
 library PermissionMath {
   /// @notice Takes a list of permissions and returns the int representation of the set that contains them all
   /// @param _permissions The list of permissions
