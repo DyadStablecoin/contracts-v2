@@ -8,7 +8,6 @@ import {DNft} from "../core/DNft.sol";
 
 contract AutoClaim is Owned {
   int public constant MAX_FEE = 0.1e18;    // 1000 bps or 10%
-  int public constant MIN_FEE = 0.0001e18; // 1    bps or 0.01%
 
   mapping(uint => address) public owners;
 
@@ -32,7 +31,7 @@ contract AutoClaim is Owned {
   }
 
   function setParams(Params memory _params) external onlyOwner {
-    require(_params.fee >= MIN_FEE && _params.fee <= MAX_FEE);
+    require(_params.fee <= MAX_FEE);
     params = _params;
   }
 
