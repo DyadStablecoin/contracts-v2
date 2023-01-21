@@ -4,6 +4,11 @@ pragma solidity = 0.8.17;
 interface IDNft {
   enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
+  struct PermissionSet {
+    address operator;         // The address of the operator
+    Permission[] permissions; // The permissions given to the operator
+  }
+
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
@@ -29,6 +34,7 @@ interface IDNft {
     uint xp;
     int  deposit;
     uint withdrawal;
+    bool isActive;
   }
 
   // view functions
@@ -54,6 +60,7 @@ interface IDNft {
   function snipe     (uint from, uint to) external;
   function activate  (uint id) external;
   function deactivate(uint id) external;
+  function modify    (uint id, PermissionSet[] calldata) external;
 
   function MAX_SUPPLY() external pure returns (uint);
   function MINT_MINIMUM() external pure returns (uint);

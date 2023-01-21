@@ -59,7 +59,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   struct PermissionSet {
-    address operator; // The address of the operator
+    address operator;         // The address of the operator
     Permission[] permissions; // The permissions given to the operator
   }
 
