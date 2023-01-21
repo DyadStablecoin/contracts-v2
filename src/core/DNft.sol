@@ -422,4 +422,31 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       lastOwnershipChange[_id] = block.number;
     }
   }
+
+  struct PermissionSet {
+    // The address of the operator
+    address operator;
+    // The permissions given to the overator
+    Permission[] permissions;
+  }
+
+
+  function _setPermissions(uint256 _id, PermissionSet[] calldata _permissions) internal {
+    uint248 _blockNumber = uint248(block.number);
+    for (uint256 i = 0; i < _permissions.length; ) {
+      PermissionSet memory _permissionSet = _permissions[i];
+      if (_permissionSet.permissions.length == 0) {
+        delete nftPermissions[_id][_permissionSet.operator];
+      } else {
+        nftPermissions[_id][_permissionSet.operator] = NftPermission({
+          permissions: _permissionSet.permissions.toUInt8(),
+          lastUpdated: _blockNumber
+        });
+      }
+      unchecked {
+        i++;
+      }
+    }
+  }
+
 }
