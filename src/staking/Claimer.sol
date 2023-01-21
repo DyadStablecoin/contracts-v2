@@ -6,6 +6,7 @@ import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {Owned} from "@solmate/src/auth/Owned.sol";
 import {DNft} from "../core/DNft.sol";
 
+// Stake your dNFT to automatically get `claim` called for you
 contract Claimer is Owned {
   int public constant MAX_FEE = 0.1e18; // 1000 bps or 10%
 
@@ -17,7 +18,7 @@ contract Claimer is Owned {
     uint maxClaimers;
   }
 
-  DNft public dNft;
+  DNft   public dNft;
   Config public config;
 
   error InvalidFee        (int fee);
@@ -60,6 +61,7 @@ contract Claimer is Owned {
     for (uint i = 0; i < numberOfStakedNfts; ) { 
       uint id    = dNft.tokenOfOwnerByIndex(address(this), i);
       int  share = dNft.claim(id);
+      // can not revert, because we are moving part of the deposit that was just claimed
       if (share > 0) { dNft.move(id, config.feeCollector, wadMul(share, config.fee)); }
       unchecked { ++i; }
     }
