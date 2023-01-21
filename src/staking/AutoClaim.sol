@@ -36,25 +36,27 @@ contract AutoClaim is Owned {
     params = _params;
   }
 
-  function stake(uint id) external {
+  // Stake dNFT
+  function stake(uint id) external { // will fail if dNFT does not exist
     require(dNft.balanceOf(address(this)) < params.maxStaker);
     owners[id] = msg.sender;
     dNft.transferFrom(msg.sender, address(this), id);
   }
 
+  // Unstake dNFT
   function unstake(uint id) external onlyStakeOwner(id) {
     delete owners[id];
     dNft.transferFrom(address(this), msg.sender, id);
   }
 
+  // Claim for all staked dNFTs
   function claimAll() external {
     uint numberOfStakedNfts = dNft.balanceOf(address(this));
-    for (uint i = 0; i < numberOfStakedNfts; i++) { // iterate over all staked dNfts
-      uint id   = dNft.tokenOfOwnerByIndex(address(this), i);
-      int share = dNft.claim(id);
-      if (share > 0) {
-        dNft.move(id, params.feeCollector, wadMul(share, params.fee));
-      }
+    for (uint i = 0; i < numberOfStakedNfts; ) { 
+      uint id    = dNft.tokenOfOwnerByIndex(address(this), i);
+      int  share = dNft.claim(id);
+      if (share > 0) { dNft.move(id, params.feeCollector, wadMul(share, params.fee)); }
+      unchecked { ++i; }
     }
   }
 }
