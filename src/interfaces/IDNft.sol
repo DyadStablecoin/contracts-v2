@@ -47,7 +47,7 @@ interface IDNft {
   function withdraw  (uint from, address to, uint amount) external;
   function redeem    (uint from, address to, uint amount) external;
   function sync      (uint id) external;
-  function claim     (uint id) external;
+  function claim     (uint id) external returns (int);
   function snipe     (uint from, uint to) external;
   function activate  (uint id) external;
   function deactivate(uint id) external;
