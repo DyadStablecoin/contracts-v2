@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
+enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
+
 interface IDNft {
-  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   struct PermissionSet {
     address operator;         // The address of the operator
@@ -76,7 +77,12 @@ interface IDNft {
 
   // ERC721
   function ownerOf(uint tokenId) external view returns (address);
-  function balanceOf(address owner) external view returns (int);
-  function totalSupply() external view returns (uint);
+  function balanceOf(address owner) external view returns (uint256 balance);
   function approve(address spender, uint256 id) external;
+  function transferFrom(address from, address to, uint256 id) external;
+
+  // ERC721Enumerable
+  function totalSupply() external view returns (uint256);
+  function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256);
+  function tokenByIndex(uint256 index) external view returns (uint256);
 }

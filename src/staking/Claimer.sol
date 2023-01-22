@@ -4,7 +4,7 @@ import "forge-std/console.sol";
 
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {Owned} from "@solmate/src/auth/Owned.sol";
-import {DNft} from "../core/DNft.sol";
+import {IDNft, Permission} from "../interfaces/IDNft.sol";
 
 // Stake your dNFT to automatically get `claim` called for you
 contract Claimer is Owned {
@@ -18,20 +18,22 @@ contract Claimer is Owned {
     uint maxClaimers;
   }
 
-  DNft   public dNft;
+  IDNft  public dNft;
   Config public config;
 
   error InvalidFee        (int fee);
   error InvalidMaxClaimers(uint maxClaimers);
   error NotStakeOwner     (address sender, uint id);
   error TooManyClaimers   ();
+  error ClaimPermissionRequired();
+  error MovePermissionRequired ();
 
   modifier onlyStakeOwner(uint id) {
     if (owners[id] != msg.sender) revert NotStakeOwner(msg.sender, id);
     _;
   }
 
-  constructor(DNft _dnft, Config memory _config) Owned(msg.sender) {
+  constructor(IDNft _dnft, Config memory _config) Owned(msg.sender) {
     dNft   = _dnft;
     config = _config;
   }
@@ -45,6 +47,12 @@ contract Claimer is Owned {
   // Stake dNFT
   function stake(uint id) external { // will fail if dNFT does not exist
     if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
+    Permission[] memory reqPermissions = new Permission[](2);
+    reqPermissions[0] = Permission.CLAIM;
+    reqPermissions[1] = Permission.MOVE;
+    bool[] memory permissions = dNft.hasPermissions(id, address(this), reqPermissions);
+    if (!permissions[0]) { revert ClaimPermissionRequired(); }
+    if (!permissions[1]) { revert MovePermissionRequired(); }
     owners[id] = msg.sender;
     dNft.transferFrom(msg.sender, address(this), id);
   }

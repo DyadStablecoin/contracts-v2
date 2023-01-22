@@ -4,7 +4,7 @@ pragma solidity = 0.8.17;
 import "forge-std/console.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
-import {IDNft} from "../src/interfaces/IDNft.sol";
+import {IDNft, Permission} from "../src/interfaces/IDNft.sol";
 
 contract DNftsTest is BaseTest, Parameters {
   function testInsidersAllocation() public {
@@ -98,7 +98,7 @@ contract DNftsTest is BaseTest, Parameters {
     vm.expectRevert(abi.encodeWithSelector(
       IDNft.NotAuthorized.selector,
       0,
-      IDNft.Permission.MOVE
+      Permission.MOVE
     ));
     dNft.move(0, 2, 10000); 
   }
@@ -142,7 +142,7 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotAuthorized.selector, 0, IDNft.Permission.REDEEM));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotAuthorized.selector, 0, Permission.REDEEM));
     dNft.redeem  (0, address(this), AMOUNT_TO_REDEEM);
   }
 
@@ -252,26 +252,26 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
 
-    IDNft.Permission[] memory pp = new IDNft.Permission[](2);
-    pp[0] = IDNft.Permission.ACTIVATE;
-    pp[1] = IDNft.Permission.DEACTIVATE;
+    Permission[] memory pp = new Permission[](2);
+    pp[0] = Permission.ACTIVATE;
+    pp[1] = Permission.DEACTIVATE;
 
     IDNft.PermissionSet[] memory ps = new IDNft.PermissionSet[](1);
     ps[0] = IDNft.PermissionSet({ operator: address(1), permissions: pp });
 
-    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
-    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.ACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
 
     dNft.modify(id, ps);
 
-    assertTrue (dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
-    assertTrue (dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
-    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.MOVE));
+    assertTrue (dNft.hasPermission(id, address(1), Permission.ACTIVATE));
+    assertTrue (dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.MOVE));
 
-    IDNft.Permission[] memory p = new IDNft.Permission[](3);
-    p[0] = IDNft.Permission.ACTIVATE;
-    p[1] = IDNft.Permission.DEACTIVATE;
-    p[2] = IDNft.Permission.MOVE;
+    Permission[] memory p = new Permission[](3);
+    p[0] = Permission.ACTIVATE;
+    p[1] = Permission.DEACTIVATE;
+    p[2] = Permission.MOVE;
 
     bool[] memory hp = dNft.hasPermissions(id, address(1), p);
     assertTrue (hp[0]);
