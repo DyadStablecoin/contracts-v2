@@ -4,7 +4,7 @@ pragma solidity = 0.8.17;
 import "forge-std/console.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
-import {IDNft} from "../src/interfaces/IDNft.sol";
+import {IDNft, Permission, PermissionSet} from "../src/interfaces/IDNft.sol";
 
 contract DNftsTest is BaseTest, Parameters {
   function testInsidersAllocation() public {
@@ -95,7 +95,11 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(depositToAfter   > depositToBefore);
   }
   function testCannotMoveDepositNotDNftOwner() public {
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.MissingPermission.selector,
+      0,
+      Permission.MOVE
+    ));
     dNft.move(0, 2, 10000); 
   }
   function testCannotMoveDepositExceedsDepositBalance() public {
@@ -111,7 +115,7 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- withdraw --------------------
   function testWithdraw() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
     dNft.withdraw(id, address(this), 1000*1e18);
   }
@@ -119,7 +123,7 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- deposit --------------------
   function testDeposit() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
     dyad.approve(address(dNft), 2000*1e18);
     dNft.deposit(id, 2000*1e18);
@@ -138,8 +142,8 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
-    dNft.redeem  (0, address(this), AMOUNT_TO_REDEEM);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.REDEEM));
+    dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 
   // -------------------- sync --------------------
@@ -150,7 +154,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testSync() public {
     uint id          = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
 
     assertEq(dNft.syncedBlock(), 0);           // syncedBlock
@@ -177,28 +181,28 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- claim --------------------
   function testClaimMint() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
     assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
-    assertTrue(dNft.idToNft(id).deposit == 4000*1e18); // nft.deposit
+    assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertTrue(dNft.idToNft(id).deposit == 4050090744101633393800); // nft.deposit
-    assertTrue(dNft.idToNft(id).xp == 11050);                       // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49050090744101633393800); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 11050);                       // nft.xp
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     dNft.exchange{value: 1 ether}(id);
 
     uint id2 = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
 
     _sync(id, 900*1e8);              // 10% price decrease
 
@@ -224,7 +228,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotClaimTwice() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
@@ -233,7 +237,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testClaimTwice() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
@@ -241,5 +245,37 @@ contract DNftsTest is BaseTest, Parameters {
     vm.warp(block.timestamp + 1 days);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
+  }
+
+  // -------------------- grant --------------------
+  function testGrant() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+
+    Permission[] memory pp = new Permission[](2);
+    pp[0] = Permission.ACTIVATE;
+    pp[1] = Permission.DEACTIVATE;
+
+    PermissionSet[] memory ps = new PermissionSet[](1);
+    ps[0] = PermissionSet({ operator: address(1), permissions: pp });
+
+    assertFalse(dNft.hasPermission(id, address(1), Permission.ACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
+
+    dNft.grant(id, ps);
+
+    assertTrue (dNft.hasPermission(id, address(1), Permission.ACTIVATE));
+    assertTrue (dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.MOVE));
+
+    Permission[] memory p = new Permission[](3);
+    p[0] = Permission.ACTIVATE;
+    p[1] = Permission.DEACTIVATE;
+    p[2] = Permission.MOVE;
+
+    bool[] memory hp = dNft.hasPermissions(id, address(1), p);
+    assertTrue (hp[0]);
+    assertTrue (hp[1]);
+    assertFalse(hp[2]);
   }
 }
