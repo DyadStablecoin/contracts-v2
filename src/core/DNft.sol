@@ -336,11 +336,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Modify permissions
   function modify(
       uint256 _id,
-      PermissionSet[] calldata _permissions
+      PermissionSet[] calldata _permissionSets
   ) external onlyOwner(_id) {
       uint248 _blockNumber = uint248(block.number);
-      for (uint256 i = 0; i < _permissions.length; ) {
-        PermissionSet memory _permissionSet = _permissions[i];
+      for (uint256 i = 0; i < _permissionSets.length; ) {
+        PermissionSet memory _permissionSet = _permissionSets[i];
         if (_permissionSet.permissions.length == 0) {
           delete idToNftPermission[_id][_permissionSet.operator];
         } else {
@@ -351,7 +351,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         }
         unchecked { i++; }
       }
-      emit Modified(_id, _permissions);
+      emit Modified(_id, _permissionSets);
   }
 
   function hasPermission(
