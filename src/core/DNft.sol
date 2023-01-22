@@ -206,9 +206,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address to, 
       uint amount 
   ) external isAuthorized(from, Permission.WITHDRAW) isActive(from) {
-      uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
-      uint totalWithdrawn = dyad.totalSupply() + amount;
-      uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
+      uint collatVault = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
+      uint collatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
       Nft storage nft = idToNft[from];
       uint averageTVL = collatVault / totalSupply();
