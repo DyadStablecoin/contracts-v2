@@ -87,7 +87,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
-  error ExceedsAverageTVL              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -95,6 +94,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error DepositIsNegative              (uint id);
   error IsActive                       (uint id);
   error IsInactive                     (uint id);
+  error ExceedsAverageTVL              (uint averageTVL);
   error PriceChangeTooSmall            (int priceChange);
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
@@ -175,8 +175,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
-      nft.withdrawal -= amount; // amount <= nft.withdrawal
-      }
+      nft.withdrawal -= amount; } // amount <= nft.withdrawal
       nft.deposit    += amount.toInt256();
       bool success = dyad.transferFrom(msg.sender, address(this), amount);
       require(success);
@@ -193,8 +192,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
       unchecked {
-      from.deposit         -= _amount;  // amount <= from.deposit
-      }
+      from.deposit         -= _amount; } // amount <= from.deposit
       idToNft[_to].deposit += _amount;
       emit Moved(_from, _to, _amount);
   }
@@ -210,11 +208,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
       Nft storage nft = idToNft[from];
       uint averageTVL = collatVault / totalSupply();
-      if (nft.withdrawal + amount > averageTVL) { revert ExceedsAverageTVL(); }
+      if (nft.withdrawal + amount > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
       if (amount.toInt256() > nft.deposit)      { revert ExceedsDepositBalance(nft.deposit); }
       unchecked {
-      nft.deposit    -= amount.toInt256(); // amount <= nft.deposit
-      }
+      nft.deposit    -= amount.toInt256(); } // amount <= nft.deposit
       nft.withdrawal += amount; 
       dyad.mint(to, amount);
       emit Withdrawn(from, amount);
