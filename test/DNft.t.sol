@@ -154,7 +154,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testSync() public {
     uint id          = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
 
     assertEq(dNft.syncedBlock(), 0);           // syncedBlock
@@ -181,28 +181,28 @@ contract DNftsTest is BaseTest, Parameters {
   // -------------------- claim --------------------
   function testClaimMint() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
     assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
-    assertTrue(dNft.idToNft(id).deposit == 4000*1e18); // nft.deposit
+    assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertTrue(dNft.idToNft(id).deposit == 4050090744101633393800); // nft.deposit
-    assertTrue(dNft.idToNft(id).xp == 11050);                       // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49050090744101633393800); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 11050);                       // nft.xp
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     dNft.exchange{value: 1 ether}(id);
 
     uint id2 = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
 
     _sync(id, 900*1e8);              // 10% price decrease
 
@@ -237,7 +237,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testClaimTwice() public {
     uint id = dNft.totalSupply();
-    dNft.mint{value: 5 ether}(address(this));
+    dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
