@@ -96,7 +96,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotMoveDepositNotDNftOwner() public {
     vm.expectRevert(abi.encodeWithSelector(
-      IDNft.NotAuthorized.selector,
+      IDNft.MissingPermission.selector,
       0,
       Permission.MOVE
     ));
@@ -142,8 +142,8 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotAuthorized.selector, 0, Permission.REDEEM));
-    dNft.redeem  (0, address(this), AMOUNT_TO_REDEEM);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.REDEEM));
+    dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 
   // -------------------- sync --------------------

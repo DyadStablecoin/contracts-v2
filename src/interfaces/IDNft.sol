@@ -25,6 +25,7 @@ interface IDNft {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
+  error ExceedsAverageTVL              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -41,7 +42,7 @@ interface IDNft {
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
-  error NotAuthorized                  (uint id, Permission permission);
+  error MissingPermission              (uint id, Permission permission);
 
   // view functions
   function XP_MINT_REWARD() external view returns (uint);
