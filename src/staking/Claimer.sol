@@ -18,7 +18,7 @@ contract Claimer is Owned {
   struct Config {
     int  fee;
     uint feeCollector; // dNFT that gets the fee
-    uint maxClaimers;
+    uint maxClaimers;  // maximum number of dNfts that can be claimed for
   }
 
   IDNft  public dNft;
@@ -49,25 +49,27 @@ contract Claimer is Owned {
     return (permissions[0] && permissions[1]);
   }
 
-  //
+  // add DNft to claim list
   function add(uint id) external { // will fail if dNFT does not exist
     if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
     if (!hasPermission(id)) revert MissingPermissions();
     dNfts.add(id);
   }
 
-  // 
+  // remove DNft from claim list
   function remove(uint id) external {
     if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
     dNfts.remove(id);
   }
 
-  //
+  // claim for all DNfts
   function claimAll() external {
     uint[] memory ids = dNfts.values();
     for (uint i = 0; i < ids.length; ) {
-      uint id    = ids[i];
-      try dNft.claim(id) returns (int share) {
+      uint id = ids[i];
+      // will fail if this contract does not have the required permissions
+      try dNft.claim(id) returns (int share) { 
+        // a fee is only collected if dyad is added to the dNft deposit
         if (share > 0) {
           int fee = wadMul(share, config.fee);
           if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
