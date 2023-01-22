@@ -222,7 +222,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) { 
+  ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) 
+    returns (uint) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -233,6 +234,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy possible
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit Redeemed(msg.sender, from, amount);
+      return eth;
   }
 
   // Determine amount of dyad to mint/burn in the next claim window

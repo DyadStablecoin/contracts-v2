@@ -64,7 +64,7 @@ interface IDNft {
   function deposit   (uint id, uint amount) external;
   function move      (uint from, uint to, int amount) external;
   function withdraw  (uint from, address to, uint amount) external;
-  function redeem    (uint from, address to, uint amount) external;
+  function redeem    (uint from, address to, uint amount) external returns (uint);
   function sync      (uint id) external;
   function claim     (uint id) external returns (int);
   function snipe     (uint from, uint to) external;

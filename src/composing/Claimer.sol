@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
-import "forge-std/console.sol";
 
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {Owned} from "@solmate/src/auth/Owned.sol";
@@ -30,6 +29,11 @@ contract Claimer is Owned {
   error MissingPermissions();
   error NotNFTOwner       (uint id);
 
+  modifier onlyNftOwner(uint id) {
+    require(dNft.ownerOf(id) == msg.sender);
+    _;
+  }
+
   constructor(IDNft _dnft, Config memory _config) Owned(msg.sender) {
     dNft   = _dnft;
     config = _config;
@@ -50,15 +54,14 @@ contract Claimer is Owned {
   }
 
   // add DNft to claim list
-  function add(uint id) external { // will fail if dNFT does not exist
+  function add(uint id) external onlyNftOwner(id) { 
     if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
     if (!hasPermission(id)) revert MissingPermissions();
     dNfts.add(id);
   }
 
   // remove DNft from claim list
-  function remove(uint id) external {
-    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
+  function remove(uint id) external onlyNftOwner(id) {
     dNfts.remove(id);
   }
 
