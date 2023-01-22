@@ -3,13 +3,12 @@ pragma solidity = 0.8.17;
 
 enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
+struct PermissionSet {
+  address operator;         // The address of the operator
+  Permission[] permissions; // The permissions given to the operator
+}
+
 interface IDNft {
-
-  struct PermissionSet {
-    address operator;         // The address of the operator
-    Permission[] permissions; // The permissions given to the operator
-  }
-
   struct NftPermission {
     uint8   permissions;
     uint248 lastUpdated; // The block number when it was last updated

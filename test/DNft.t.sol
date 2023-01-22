@@ -4,7 +4,7 @@ pragma solidity = 0.8.17;
 import "forge-std/console.sol";
 import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
-import {IDNft, Permission} from "../src/interfaces/IDNft.sol";
+import {IDNft, Permission, PermissionSet} from "../src/interfaces/IDNft.sol";
 
 contract DNftsTest is BaseTest, Parameters {
   function testInsidersAllocation() public {
@@ -256,8 +256,8 @@ contract DNftsTest is BaseTest, Parameters {
     pp[0] = Permission.ACTIVATE;
     pp[1] = Permission.DEACTIVATE;
 
-    IDNft.PermissionSet[] memory ps = new IDNft.PermissionSet[](1);
-    ps[0] = IDNft.PermissionSet({ operator: address(1), permissions: pp });
+    PermissionSet[] memory ps = new PermissionSet[](1);
+    ps[0] = PermissionSet({ operator: address(1), permissions: pp });
 
     assertFalse(dNft.hasPermission(id, address(1), Permission.ACTIVATE));
     assertFalse(dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
