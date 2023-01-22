@@ -23,9 +23,12 @@ library PermissionMath {
   /// @param _representation The int representation
   /// @param _permission The permission to check for
   /// @return _hasPermission Whether the representation contains the given permission
-  function hasPermission(uint8 _representation, DNft.Permission _permission) internal pure returns (bool _hasPermission) {
-    uint256 _bitMask = 1 << uint8(_permission);
-    _hasPermission = (_representation & _bitMask) != 0;
+  function hasPermission(
+      uint8 _representation, 
+      DNft.Permission _permission
+  ) internal pure returns (bool _hasPermission) {
+      uint256 _bitMask = 1 << uint8(_permission);
+      _hasPermission = (_representation & _bitMask) != 0;
   }
 }
 
