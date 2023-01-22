@@ -345,7 +345,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
           delete idToNftPermission[_id][_permissionSet.operator];
         } else {
           idToNftPermission[_id][_permissionSet.operator] = NftPermission({
-            permissions: _permissionSet.permissions.toUInt8(),
+            permissions: _permissionSet.permissions._toUInt8(),
             lastUpdated: _blockNumber
           });
         }
@@ -363,7 +363,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       NftPermission memory _nftPermission = idToNftPermission[id][operator];
       // If there was an ownership change after the permission was last updated,
       // then the operator doesn't have the permission
-      return _nftPermission.permissions.hasPermission(permission) &&
+      return _nftPermission.permissions._hasPermission(permission) &&
         idToNft[id].lastOwnershipChange < _nftPermission.lastUpdated;
   }
 
@@ -381,7 +381,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         NftPermission memory _nftPermission = idToNftPermission[id][operator];
         if (idToNft[id].lastOwnershipChange < _nftPermission.lastUpdated) {
           for (uint256 i = 0; i < permissions.length; i++) {
-            if (_nftPermission.permissions.hasPermission(permissions[i])) {
+            if (_nftPermission.permissions._hasPermission(permissions[i])) {
               _hasPermissions[i] = true;
             }
           }
