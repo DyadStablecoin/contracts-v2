@@ -334,7 +334,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Modify permissions
-  function modify(
+  function grant(
       uint256 _id,
       PermissionSet[] calldata _permissionSets
   ) external onlyOwner(_id) {

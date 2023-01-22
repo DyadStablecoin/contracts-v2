@@ -16,7 +16,7 @@ contract AutoClaim is BaseTest, Parameters {
     PermissionSet[] memory ps = new PermissionSet[](1);
     ps[0] = PermissionSet(address(claimer), pp);
 
-    dNft.modify(id, ps);
+    dNft.grant(id, ps);
   }
 
   function testStake() public {

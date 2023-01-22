@@ -247,8 +247,8 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.claim(id);
   }
 
-  // -------------------- modify --------------------
-  function testModify() public {
+  // -------------------- grant --------------------
+  function testGrant() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
 
@@ -262,7 +262,7 @@ contract DNftsTest is BaseTest, Parameters {
     assertFalse(dNft.hasPermission(id, address(1), Permission.ACTIVATE));
     assertFalse(dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
 
-    dNft.modify(id, ps);
+    dNft.grant(id, ps);
 
     assertTrue (dNft.hasPermission(id, address(1), Permission.ACTIVATE));
     assertTrue (dNft.hasPermission(id, address(1), Permission.DEACTIVATE));

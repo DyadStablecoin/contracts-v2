@@ -69,7 +69,7 @@ interface IDNft {
   function snipe     (uint from, uint to) external;
   function activate  (uint id) external;
   function deactivate(uint id) external;
-  function modify    (uint id, PermissionSet[] calldata) external;
+  function grant     (uint id, PermissionSet[] calldata) external;
 
   function MAX_SUPPLY() external pure returns (uint);
   function MINT_MINIMUM() external pure returns (uint);
