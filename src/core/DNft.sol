@@ -68,7 +68,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   mapping(uint => Nft)                               public idToNft;
   mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
   mapping(uint => mapping(uint => bool))             public idToClaimed;       // id => (blockNumber => claimed)
-  mapping(uint => uint)                              public idToLastOwenershipChange; // id => blockNumber
+  mapping(uint => uint)                              public idToLastOwnershipChange; // id => blockNumber
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -364,7 +364,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       // If there was an ownership change after the permission was last updated,
       // then the operator doesn't have the permission
       return _nftPermission.permissions.hasPermission(permission) &&
-        idToLastOwenershipChange[id] < _nftPermission.lastUpdated;
+        idToLastOwnershipChange[id] < _nftPermission.lastUpdated;
   }
 
   function hasPermissions(
@@ -379,7 +379,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         }
       } else {                       // if not the owner then check one by one
         NftPermission memory _nftPermission = idToNftPermission[id][operator];
-        if (idToLastOwenershipChange[id] < _nftPermission.lastUpdated) {
+        if (idToLastOwnershipChange[id] < _nftPermission.lastUpdated) {
           for (uint256 i = 0; i < permissions.length; i++) {
             if (_nftPermission.permissions.hasPermission(permissions[i])) {
               _hasPermissions[i] = true;
@@ -443,9 +443,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) internal override {
       super._beforeTokenTransfer(_from, _to, _id, _batchSize);
       if (_to == address(0)) {          // token is burned
-        delete idToLastOwenershipChange[_id]; 
+        delete idToLastOwnershipChange[_id]; 
       } else if (_from != address(0)) { // token is not burned nor minted 
-        idToLastOwenershipChange[_id] = block.number;
+        idToLastOwnershipChange[_id] = block.number;
       }
   }
 }
