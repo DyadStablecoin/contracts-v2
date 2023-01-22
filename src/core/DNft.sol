@@ -63,8 +63,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   struct PermissionSet {
-    address      operator;    // The address of the operator
-    Permission[] permissions; // The permissions given to the operator
+    address      operator;    
+    Permission[] permissions; // permissions given to the operator
   }
 
   mapping(uint => Nft)                               public idToNft;
