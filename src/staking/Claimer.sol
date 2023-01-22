@@ -13,7 +13,6 @@ contract Claimer is Owned {
 
   int public constant MAX_FEE = 0.1e18; // 1000 bps or 10%
 
-  mapping(uint => address) public owners;
   EnumerableSet.UintSet private dNfts;
 
   struct Config {
@@ -27,15 +26,9 @@ contract Claimer is Owned {
 
   error InvalidFee        (int fee);
   error InvalidMaxClaimers(uint maxClaimers);
-  error NotStakeOwner     (address sender, uint id);
   error TooManyClaimers   ();
   error MissingPermissions();
   error NotNFTOwner       (uint id);
-
-  modifier onlyStakeOwner(uint id) {
-    if (owners[id] != msg.sender) revert NotStakeOwner(msg.sender, id);
-    _;
-  }
 
   constructor(IDNft _dnft, Config memory _config) Owned(msg.sender) {
     dNft   = _dnft;
@@ -56,29 +49,31 @@ contract Claimer is Owned {
     return (permissions[0] && permissions[1]);
   }
 
-  // Stake dNFT
+  //
   function add(uint id) external { // will fail if dNFT does not exist
     if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
     if (!hasPermission(id)) revert MissingPermissions();
     dNfts.add(id);
   }
 
-  // Unstake dNFT
+  // 
   function remove(uint id) external {
-    if (dNft.ownerOf(id) != address(this)) revert NotNFTOwner(id);
+    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
     dNfts.remove(id);
   }
 
-  // Claim for all staked dNFTs
+  //
   function claimAll() external {
-    uint numberOfStakedNfts = dNft.balanceOf(address(this)); // save gas
-    for (uint i = 0; i < numberOfStakedNfts; ) { 
-      uint id    = dNft.tokenOfOwnerByIndex(address(this), i);
-      int  share = dNft.claim(id);
-      // can not revert, because we are moving share of a deposit that was just claimed
-      if (share > 0) {
-        int fee = wadMul(share, config.fee);
-        if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
+    uint[] memory ids = dNfts.values();
+    for (uint i = 0; i < ids.length; ) {
+      uint id    = ids[i];
+      try dNft.claim(id) returns (int share) {
+        if (share > 0) {
+          int fee = wadMul(share, config.fee);
+          if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
+        }
+      } catch {
+        dNfts.remove(id);
       }
       unchecked { ++i; }
     }
