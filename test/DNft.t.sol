@@ -252,7 +252,6 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     IDNft.NftPermission memory perm = dNft.idToNftPermission(id, address(1));
-    console.log(perm.permissions);
 
     IDNft.Permission[] memory pp = new IDNft.Permission[](2);
     pp[0] = IDNft.Permission.ACTIVATE;
@@ -261,14 +260,13 @@ contract DNftsTest is BaseTest, Parameters {
     IDNft.PermissionSet[] memory ps = new IDNft.PermissionSet[](1);
     ps[0] = IDNft.PermissionSet({ operator: address(1), permissions: pp });
 
-    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
 
     dNft.modify(id, ps);
-    perm = dNft.idToNftPermission(id, address(1));
-    console.log(perm.permissions);
 
-    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
-    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
-    console.log(dNft.hasPermission(id, address(1), IDNft.Permission.MOVE));
+    assertTrue (dNft.hasPermission(id, address(1), IDNft.Permission.ACTIVATE));
+    assertTrue (dNft.hasPermission(id, address(1), IDNft.Permission.DEACTIVATE));
+    assertFalse(dNft.hasPermission(id, address(1), IDNft.Permission.MOVE));
   }
 }
