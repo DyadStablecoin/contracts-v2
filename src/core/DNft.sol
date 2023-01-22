@@ -57,14 +57,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
 
-  struct NftPermission {
-    uint8   permissions; // bitmap of permissions
-    uint248 lastUpdated; // block number of last updated
-  }
-
   struct PermissionSet {
     address      operator;    
     Permission[] permissions; // permissions given to the operator
+  }
+
+  struct NftPermission {
+    uint8   permissions; // bitmap of permissions
+    uint248 lastUpdated; // block number of last updated
   }
 
   mapping(uint => Nft)                               public idToNft;
