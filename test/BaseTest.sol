@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 import {DeployBase} from "../script/deploy/DeployBase.s.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 import {Dyad} from "../src/core/Dyad.sol";
-import {Claimer} from "../src/staking/Claimer.sol";
+import {Claimer} from "../src/composing/Claimer.sol";
 import {OracleMock} from "./OracleMock.sol";
 
 contract BaseTest is Test {

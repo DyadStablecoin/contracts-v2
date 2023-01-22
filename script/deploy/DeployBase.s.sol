@@ -5,7 +5,7 @@ import "forge-std/Script.sol";
 import {Dyad} from "../../src/core/Dyad.sol";
 import {DNft} from "../../src/core/DNft.sol";
 import {IDNft} from "../../src/interfaces/IDNft.sol";
-import {Claimer} from "../../src/staking/Claimer.sol";
+import {Claimer} from "../../src/composing/Claimer.sol";
 import {Parameters} from "../../src/Parameters.sol";
 
 contract DeployBase is Script, Parameters {
