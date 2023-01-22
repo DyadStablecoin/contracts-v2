@@ -54,6 +54,7 @@ interface IDNft {
   function prevSyncedBlock()external view returns (uint);
   function lastEthPrice()   external view returns (uint);
   function hasPermission(uint id, address operator, Permission) external view returns (bool);
+  function hasPermissions(uint id, address operator, Permission[] calldata) external view returns (bool[] calldata);
   function idToNftPermission(uint id, address operator) external view returns (NftPermission memory);
 
   // state changing functions
