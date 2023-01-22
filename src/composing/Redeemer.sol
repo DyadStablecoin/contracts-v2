@@ -16,8 +16,12 @@ contract Redeemer {
   mapping(uint => Position) public  idToPosition;
   mapping(uint => uint)     private _idToFees;
 
+  error NotNFTOwner           (uint id);
+  error RedemptionLimitReached();
+  error MissingPermission     ();
+
   modifier onlyOwner(uint id) {
-    require(dNft.ownerOf(id) == msg.sender);
+    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
     _;
   }
 
@@ -30,7 +34,7 @@ contract Redeemer {
   }
 
   function add(uint id, Position calldata position) external onlyOwner(id) {
-    require(dNft.hasPermission(id, address(this), Permission.REDEEM));
+    if (!dNft.hasPermission(id, address(this), Permission.REDEEM)) revert MissingPermission();
     idToPosition[id] = position;
   }
 
@@ -41,7 +45,7 @@ contract Redeemer {
   function redeem(uint id, uint amount, address to) external {
     Position  memory position = idToPosition[id];
     IDNft.Nft memory nft     = dNft.idToNft(id);
-    require(nft.withdrawal - amount > position.redemptionLimit);
+    if (nft.withdrawal - amount < position.redemptionLimit) revert RedemptionLimitReached();
     uint eth = dNft.redeem(id, address(this), amount);
     uint fee = eth.mulWadDown(position.fee);
     _idToFees[id] += fee;

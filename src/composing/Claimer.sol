@@ -30,7 +30,7 @@ contract Claimer is Owned {
   error NotNFTOwner       (uint id);
 
   modifier onlyNftOwner(uint id) {
-    require(dNft.ownerOf(id) == msg.sender);
+    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
     _;
   }
 
