@@ -442,10 +442,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint256 _batchSize 
   ) internal override {
       super._beforeTokenTransfer(_from, _to, _id, _batchSize);
-      if (_to == address(0)) {          // token is burned
-        delete idToNft[_id].lastOwnershipChange; 
-      } else if (_from != address(0)) { // token is not burned nor minted 
-        idToNft[_id].lastOwnershipChange = block.number;
-      }
+      idToNft[_id].lastOwnershipChange = block.number;
   }
 }

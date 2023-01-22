@@ -19,6 +19,7 @@ interface IDNft {
     int  deposit;
     uint withdrawal;
     bool isActive;
+    uint lastOwnershipChange; 
   }
 
   error ReachedMaxSupply               ();
