@@ -10,7 +10,6 @@ contract Redeemer {
   struct Position {
     uint fee;
     uint redemptionLimit;
-    address feeRecipient;
   }
 
   IDNft public dNft;
@@ -49,9 +48,8 @@ contract Redeemer {
     payable(to).transfer(eth - fee);
   }
 
-  function claim(uint id) external onlyOwner(id) {
-    Position memory position = idToPosition[id];
+  function claim(uint id, address to) external onlyOwner(id) {
     _idToFees[id] = 0;
-    payable(position.feeRecipient).transfer(_idToFees[id]);
+    payable(to).transfer(_idToFees[id]);
   }
 }
