@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
+import "forge-std/console.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -210,12 +211,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
       Nft storage nft = idToNft[from];
-
-      uint newWithdrawn = nft.withdrawal + amount;
-      uint averageTVL   = dyad.balanceOf(address(this)) / totalSupply();
-      if (newWithdrawn > averageTVL) { revert ExceedsAverageTVL(); }
-
-      if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
+      uint averageTVL = collatVault / totalSupply();
+      if (nft.withdrawal + amount > averageTVL) { revert ExceedsAverageTVL(); }
+      if (amount.toInt256() > nft.deposit)      { revert ExceedsDepositBalance(nft.deposit); }
       unchecked {
       nft.deposit    -= amount.toInt256(); // amount <= nft.deposit
       }
