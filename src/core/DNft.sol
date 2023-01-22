@@ -87,6 +87,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
+  error ExceedsAverageTVL              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -209,6 +210,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint collatRatio    = collatVault.divWadDown(totalWithdrawn);
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
       Nft storage nft = idToNft[from];
+
+      uint newWithdrawn = nft.withdrawal + amount;
+      uint averageTVL   = dyad.balanceOf(address(this)) / totalSupply();
+      if (newWithdrawn > averageTVL) { revert ExceedsAverageTVL(); }
+
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       unchecked {
       nft.deposit    -= amount.toInt256(); // amount <= nft.deposit
