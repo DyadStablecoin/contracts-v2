@@ -18,8 +18,8 @@ interface IDNft {
     uint xp;
     int  deposit;
     uint withdrawal;
-    bool isActive;
     uint lastOwnershipChange; 
+    bool isActive;
   }
 
   error ReachedMaxSupply               ();
@@ -106,6 +106,7 @@ interface IDNft {
   /**
    * @notice Move `amount` `from` one dNFT deposit `to` another dNFT deposit
    * @dev Will revert:
+   *      - `amount` is not greater than zero
    *      - If `msg.sender` is not the owner of the `from` dNFT AND does not have the
    *        `MOVE` permission for the `from` dNFT
    *      - dNFT is inactive
@@ -113,7 +114,6 @@ interface IDNft {
    * @dev Emits:
    *      - Moved
    * @dev For Auditors:
-   *      - To save gas it does not check if `amount` is 0 
    *      - To save gas it does not check if `from` == `to`
    * @param from Id of the dNFT to move the deposit from
    * @param to Id of the dNFT to move the deposit to
@@ -128,7 +128,8 @@ interface IDNft {
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `WITHDRAW` permission
    *      - dNFT is inactive
-   *      - If deposit call for `from` happened in the same block
+   *      - If deposit call for `from` happened in the same block to prevent 
+   *        flash-loan attacks
    *      - If `amount` to withdraw is larger than the dNFT deposit
    *      - If Collateralization Ratio is is less than the min collaterization 
    *        ratio after the withdrawal

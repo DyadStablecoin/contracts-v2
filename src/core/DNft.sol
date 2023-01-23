@@ -50,8 +50,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     uint xp;         // always inflationary
     int  deposit;    // deposited dyad
     uint withdrawal; // withdrawn dyad
-    bool isActive;
     uint lastOwnershipChange; // block number of the last ownership change
+    bool isActive;
   }
 
   enum Permission { ACTIVATE, DEACTIVATE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
@@ -214,16 +214,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external withPermission(from, Permission.WITHDRAW) isActive(from) returns (uint) {
       if (_idToBlockOfLastDeposit[from] == block.number) { 
         revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
-      Nft storage nft = idToNft[from];
+      Nft memory nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
-      uint collatVault = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
-      uint collatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
-      if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
-      uint averageTVL = collatVault / totalSupply();
-      if (nft.withdrawal + amount > averageTVL)    { revert ExceedsAverageTVL(averageTVL); }
+      uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
+      uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
+      if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(newCollatRatio); }
+      uint averageTVL    = collatVault / totalSupply();
+      uint newWithdrawal = nft.withdrawal + amount;
+      if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
       unchecked {
       nft.deposit    -= amount.toInt256(); } // amount <= nft.deposit
-      nft.withdrawal += amount; 
+      nft.withdrawal  = newWithdrawal; 
+      idToNft[from]   = nft;
       dyad.mint(to, amount);
       emit Withdrawn(from, amount);
       return amount;
@@ -236,11 +238,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint amount
   ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) 
     returns (uint) { 
-      Nft storage nft = idToNft[from];
+      Nft memory nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
-      nft.withdrawal -= amount; // amount <= nft.withdrawal
-      }
+      nft.withdrawal -= amount; } // amount <= nft.withdrawal
+      idToNft[from]   = nft;
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy possible
