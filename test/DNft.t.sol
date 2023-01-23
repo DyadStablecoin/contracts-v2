@@ -248,7 +248,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
 
   // -------------------- liquidate --------------------
-  function testLiquidate() public {
+  function makeDepositNegative() public returns (uint) {
     // make the deposit of id2 negative so it becomes liquidatable
     uint id = dNft.mint{value: 85 ether}(address(this));
     oracleMock.setPrice(10000*1e8);
@@ -258,18 +258,28 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.claim(id2);
 
     oracleMock.setPrice(5000*1e8);
+    return id2;
+  }
 
-    address oldOwner = dNft.ownerOf(id2);
-    dNft.liquidate{value: 2 ether}(id2, address(1));
-    address newOwner = dNft.ownerOf(id2);
+  function testLiquidate() public {
+    uint id = makeDepositNegative();
+
+    address oldOwner = dNft.ownerOf(id);
+    dNft.liquidate{value: 2 ether}(id, address(1));
+    address newOwner = dNft.ownerOf(id);
 
     assertTrue(oldOwner != newOwner);
-    assertTrue(dNft.idToNft(id2).deposit > 0);
+    assertTrue(dNft.idToNft(id).deposit > 0);
   }
   function testCannotLiquidateIfDepositIsNotNegative() public {
     uint id = dNft.mint{value: 85 ether}(address(this));
     vm.expectRevert(abi.encodeWithSelector(IDNft.NotLiquidatable.selector, id));
     dNft.liquidate{value: 2 ether}(id, address(1));
+  }
+  function testCannotLiquidateNotEnoughToCoverNegativeDeposit() public {
+    uint id = makeDepositNegative();
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotEnoughToCoverNegativeDeposit.selector, 0x6f05b59d3b20000));
+    dNft.liquidate{value: 0.0001 ether}(id, address(1));
   }
 
   // -------------------- grant --------------------
