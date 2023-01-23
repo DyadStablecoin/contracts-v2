@@ -87,22 +87,41 @@ interface IDNft {
   function exchange(uint id) external payable returns (int);
 
   /**
-   * @notice Deposit `amount` of DYAD into dNFT
+   * @notice Deposit `amount` of DYAD back into dNFT
    * @dev Will revert:
-   *      - If `msg.sender` is not the owner of the dNFT and does not have the
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `DEPOSIT` permission
    *      - dNFT is inactive
+   *      - `amount` to deposit exceeds the dNFT withdrawals
    * @dev Emits:
-   *      - Exchanged
+   *      - Deposited
    * @dev For Auditors:
-   *      - Permissionless by design
-   *      - To save gas it does not check if `msg.value` is zero 
+   *      - To save gas it does not check if `amount` is zero 
    * @param id Id of the dNFT that gets the deposited DYAD
+   * @param amount Amount of DYAD to deposit
    * @return amount Amount of DYAD deposited
    */
   function deposit(uint id, uint amount) external returns (uint);
 
-  function move      (uint from, uint to, int amount) external;
+  /**
+   * @notice Move `amount` `from` one dNFT deposit `to` another dNFT deposit
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the `from` dNFT AND does not have the
+   *        `MOVE` permission for the `from` dNFT
+   *      - dNFT is inactive
+   *      - `amount` to move exceeds the `from` dNFT deposit 
+   * @dev Emits:
+   *      - Moved
+   * @dev For Auditors:
+   *      - To save gas it does not check if `amount` is 0 
+   *      - To save gas it does not check if `from` == `to`
+   * @param from Id of the dNFT to move the deposit from
+   * @param to Id of the dNFT to move the deposit to
+   * @param amount Amount of DYAD to move
+   * @return amount Amount of DYAD moved
+   */
+  function move(uint from, uint to, int amount) external returns (int);
+
   function withdraw  (uint from, address to, uint amount) external;
   function redeem    (uint from, address to, uint amount) external returns (uint);
   function sync      (uint id) external;
