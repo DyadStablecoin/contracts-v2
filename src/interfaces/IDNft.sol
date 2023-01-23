@@ -128,12 +128,13 @@ interface IDNft {
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `WITHDRAW` permission
    *      - dNFT is inactive
-   *      - If DYAD was deposited into `from` in the same block to prevent 
-   *        flash-loan attacks
+   *      - If DYAD was deposited into the dNFt in the same block. Needed to
+   *        prevent flash-loan attacks
    *      - If `amount` to withdraw is larger than the dNFT deposit
    *      - If Collateralization Ratio is is less than the min collaterization 
    *        ratio after the withdrawal
-   *      - If the `amount` to withdraw is larger than the average TVL per dNFT
+   *      - If dNFT withdrawal is larger than the average TVL after the 
+   *        withdrawal
    * @dev Emits:
    *      - Withdrawn
    * @dev For Auditors:
@@ -144,13 +145,25 @@ interface IDNft {
    * @param amount Amount of DYAD to withdraw
    * @return amount Amount withdrawn
    */
-  function withdraw  (uint from, address to, uint amount) external returns (uint);
+  function withdraw(uint from, address to, uint amount) external returns (uint);
 
   function redeem    (uint from, address to, uint amount) external returns (uint);
   function sync      (uint id) external;
   function claim     (uint id) external returns (int);
   function snipe     (uint from, uint to) external;
-  function activate  (uint id) external;
+
+  /**
+   * @notice Activate dNFT
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
+   *        `ACTIVATE` permission
+   *      - dNFT is active already
+   * @dev Emits:
+   *      - Activated
+   * @param id Id of the dNFT to activate
+   */
+  function activate(uint id) external;
+
   function deactivate(uint id) external;
   function grant     (uint id, PermissionSet[] calldata) external;
 
