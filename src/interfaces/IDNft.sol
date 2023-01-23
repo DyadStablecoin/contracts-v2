@@ -128,7 +128,7 @@ interface IDNft {
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `WITHDRAW` permission
    *      - dNFT is inactive
-   *      - If deposit call for `from` happened in the same block to prevent 
+   *      - If DYAD was deposited into `from` in the same block to prevent 
    *        flash-loan attacks
    *      - If `amount` to withdraw is larger than the dNFT deposit
    *      - If Collateralization Ratio is is less than the min collaterization 
@@ -145,6 +145,7 @@ interface IDNft {
    * @return amount Amount withdrawn
    */
   function withdraw  (uint from, address to, uint amount) external returns (uint);
+
   function redeem    (uint from, address to, uint amount) external returns (uint);
   function sync      (uint id) external;
   function claim     (uint id) external returns (int);
