@@ -58,9 +58,32 @@ interface IDNft {
   function hasPermissions(uint id, address operator, Permission[] calldata) external view returns (bool[] calldata);
   function idToNftPermission(uint id, address operator) external view returns (NftPermission memory);
 
-  // state changing functions
-  function mint      (address to) external payable;
-  function exchange  (uint id) external payable;
+  /**
+   * @notice Mint a new dNFT
+   * @dev Will revert:
+   *      - If `msg.value` is not enough to cover the deposit minimum
+   *      - If the max supply of dNFTs has been reached
+   *      - If `to` is the zero address
+   * @dev Emits:
+   *      - Minted
+   *      - DyadMinted
+   * @param to The address to mint the dNFT to
+   * @return id Id of the new dNFT
+   */
+  function mint(address to) external payable returns (uint id);
+
+  /**
+   * @notice Mint and deposit new DYAD into dNFT
+   * @dev Will revert:
+   *      - If dNFT is not owned by `msg.sender`
+   *      - If `amount` minted is 0
+   * @dev Emits:
+   *      - DyadMinted
+   * @param id Id of the dNFT
+   * @return amount Amount minted
+   */
+  function exchange(uint id) external payable;
+
   function deposit   (uint id, uint amount) external;
   function move      (uint from, uint to, int amount) external;
   function withdraw  (uint from, address to, uint amount) external;

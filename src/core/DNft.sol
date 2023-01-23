@@ -42,7 +42,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   int  public prevDyadDelta;          // Amount of dyad to mint/burn in the previous sync cycle
   uint public syncedBlock;            // Start of the current sync cycle
   uint public prevSyncedBlock;        // Start of the previous sync cycle
-  uint public totalXp;                // Sum of all dNfts Xp
+  uint public totalXp;                // Sum of all dNFTs Xp
   uint public maxXp;                  // Max XP over all dNFTs
   uint public timeOfLastSync;
 
@@ -107,7 +107,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error MissingPermission              (uint id, Permission permission);
 
   modifier exists(uint id) {
-    ownerOf(id); _; // ownerOf reverts if dNft does not exist
+    ownerOf(id); _; // ownerOf reverts if dNFT does not exist
   }
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
@@ -140,13 +140,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Mint new DNft to `to` 
-  function mint(address to) external payable {
-      (uint id, Nft memory nft) = _mintNft(to); 
+  function mint(address to) external payable returns (uint) {
       int newDyad  = _eth2dyad(msg.value);
       if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert NotEnoughToCoverDepositMinimum(newDyad); }
+      (uint id, Nft memory nft) = _mintNft(to); 
       nft.deposit  = newDyad;
       nft.isActive = true;
       idToNft[id]  = nft;
+      return id;
   }
 
   // Mint new DNft to `to`
@@ -320,13 +321,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return id;
   }
 
-  // Activate inactive dNft
+  // Activate inactive dNFT
   function activate(uint id) external withPermission(id, Permission.ACTIVATE) isInactive(id) {
     idToNft[id].isActive = true;
     emit Activated(id);
   }
 
-  // Deactivate active dNft
+  // Deactivate active dNFT
   function deactivate(uint id) external withPermission(id, Permission.DEACTIVATE) isActive(id) {
     if (idToNft[id].withdrawal != 0) revert WithdrawalsNotZero(id);
     if (idToNft[id].deposit    <= 0) revert DepositIsNegative(id);
