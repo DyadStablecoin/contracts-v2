@@ -249,7 +249,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Determine amount of dyad to mint/burn in the next claim window
-  function sync(uint id) external exists(id) isActive(id) {
+  function sync(uint id) external isActive(id) {
       uint dyadTotalSupply = dyad.totalSupply(); // amount to burn/mint is based only on withdrawn dyad
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }

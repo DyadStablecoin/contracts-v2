@@ -168,7 +168,21 @@ interface IDNft {
    */
   function redeem(uint from, address to, uint amount) external returns (uint);
 
-  function sync      (uint id) external;
+  /**
+   * @notice Determine amount of dyad to mint/burn in the next claim window
+   * @dev Will revert:
+   *      - If dNFT with `id` is not active
+   *      - If the total supply of dyad is 0
+   *      - If the total supply of dyad is 0
+   *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
+   *      - The price between the last sync and now is too small as determined by `MIN_PRICE_CHANGE_BETWEEN_SYNC`
+   * @dev Emits:
+   *      - Synced
+   * @dev For Auditors:
+   *      - No need to check if the dNFT exists because a dNFT that does not exist is inactive
+   * @param id Id of the dNFT that gets a boost
+   */
+  function sync(uint id) external;
   function claim     (uint id) external returns (int);
   function snipe     (uint from, uint to) external;
 
