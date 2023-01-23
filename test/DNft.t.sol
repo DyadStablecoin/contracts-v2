@@ -266,6 +266,11 @@ contract DNftsTest is BaseTest, Parameters {
     assertTrue(oldOwner != newOwner);
     assertTrue(dNft.idToNft(id2).deposit > 0);
   }
+  function testCannotLiquidateIfDepositIsNotNegative() public {
+    uint id = dNft.mint{value: 85 ether}(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotLiquidatable.selector, id));
+    dNft.liquidate{value: 2 ether}(id, address(1));
+  }
 
   // -------------------- grant --------------------
   function testGrant() public {
