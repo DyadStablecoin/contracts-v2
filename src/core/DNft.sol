@@ -54,7 +54,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     uint lastOwnershipChange; // block number of the last ownership change
   }
 
-  enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
+  enum Permission { ACTIVATE, DEACTIVATE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   struct PermissionSet {
     address      operator;    
@@ -74,6 +74,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   IAggregatorV3 internal oracle;
 
   event Minted     (address indexed to, uint indexed id);
+  event Deposited  (uint indexed id, uint amount);
   event Redeemed   (address indexed to, uint indexed id, uint amount);
   event Withdrawn  (uint indexed id, uint amount);
   event Exchanged  (uint indexed id, int amount);
@@ -162,17 +163,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Permissionlessly exchange ETH for deposited DYAD
-  function exchange(uint id) external exists(id) payable {
+  function exchange(uint id) external exists(id) payable returns (int) {
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
       emit Exchanged(id, newDeposit);
+      return newDeposit;
   }
 
   // Deposit DYAD 
   function deposit(
       uint id,
       uint amount
-  ) external exists(id) isActive(id) { 
+  ) external withPermission(id, Permission.DEPOSIT) isActive(id) returns (uint) { 
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -181,6 +183,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       bool success = dyad.transferFrom(msg.sender, address(this), amount);
       require(success);
       dyad.burn(address(this), amount);
+      emit Deposited(id, amount);
+      return amount;
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
@@ -188,7 +192,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _from,
       uint _to,
       int  _amount
-  ) external withPermission(_from, Permission.MOVE) isActive(_from) exists(_to) {
+  ) external withPermission(_from, Permission.MOVE) isActive(_from) {
       require(_amount > 0);             // needed because _amount is int
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }

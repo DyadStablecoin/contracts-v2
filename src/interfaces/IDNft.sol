@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
-enum Permission { ACTIVATE, DEACTIVATE, MOVE, WITHDRAW, REDEEM, CLAIM }
+enum Permission { ACTIVATE, DEACTIVATE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
 
 struct PermissionSet {
   address operator;         // The address of the operator
@@ -73,18 +73,35 @@ interface IDNft {
   function mint(address to) external payable returns (uint id);
 
   /**
-   * @notice Mint and deposit new DYAD into dNFT
+   * @notice Exchange ETH for deposited DYAD
    * @dev Will revert:
-   *      - If dNFT is not owned by `msg.sender`
-   *      - If `amount` minted is 0
+   *      - If dNFT does not exist
    * @dev Emits:
-   *      - DyadMinted
-   * @param id Id of the dNFT
-   * @return amount Amount minted
+   *      - Exchanged
+   * @dev For Auditors:
+   *      - Permissionless by design
+   *      - To save gas it does not check if `msg.value` is zero 
+   * @param id Id of the dNFT that gets the deposited DYAD
+   * @return amount Amount of DYAD deposited
    */
-  function exchange(uint id) external payable;
+  function exchange(uint id) external payable returns (int);
 
-  function deposit   (uint id, uint amount) external;
+  /**
+   * @notice Deposit `amount` of DYAD into dNFT
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT and does not have the
+   *        `DEPOSIT` permission
+   *      - dNFT is inactive
+   * @dev Emits:
+   *      - Exchanged
+   * @dev For Auditors:
+   *      - Permissionless by design
+   *      - To save gas it does not check if `msg.value` is zero 
+   * @param id Id of the dNFT that gets the deposited DYAD
+   * @return amount Amount of DYAD deposited
+   */
+  function deposit(uint id, uint amount) external returns (uint);
+
   function move      (uint from, uint to, int amount) external;
   function withdraw  (uint from, address to, uint amount) external;
   function redeem    (uint from, address to, uint amount) external returns (uint);
