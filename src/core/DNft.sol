@@ -325,7 +325,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function liquidate(
       uint id, // no need to check `exists(id)` => (nft.deposit >= 0) will fail
       address to 
-  ) external payable returns (uint) {
+  ) external payable {
       Nft memory nft = idToNft[id];
       if (nft.deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
@@ -336,7 +336,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.deposit += newDyad; 
       idToNft[id]  = nft;     
       emit Liquidated(to,  id); 
-      return id;
   }
 
   // Activate inactive dNFT
