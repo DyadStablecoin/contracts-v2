@@ -122,7 +122,28 @@ interface IDNft {
    */
   function move(uint from, uint to, int amount) external returns (int);
 
-  function withdraw  (uint from, address to, uint amount) external;
+  /**
+   * @notice Withdraw `amount` of DYAD from dNFT
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
+   *        `WITHDRAW` permission
+   *      - dNFT is inactive
+   *      - If deposit call for `from` happened in the same block
+   *      - If `amount` to withdraw is larger than the dNFT deposit
+   *      - If Collateralization Ratio is is less than the min collaterization 
+   *        ratio after the withdrawal
+   *      - If the `amount` to withdraw is larger than the average TVL per dNFT
+   * @dev Emits:
+   *      - Withdrawn
+   * @dev For Auditors:
+   *      - To save gas it does not check if `amount` is 0 
+   *      - To save gas it does not check if `from` == `to`
+   * @param from Id of the dNFT to withdraw from
+   * @param to Address to send the DYAD to
+   * @param amount Amount of DYAD to withdraw
+   * @return amount Amount withdrawn
+   */
+  function withdraw  (uint from, address to, uint amount) external returns (uint);
   function redeem    (uint from, address to, uint amount) external returns (uint);
   function sync      (uint id) external;
   function claim     (uint id) external returns (int);

@@ -69,6 +69,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   mapping(uint => Nft)                               public idToNft;
   mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
   mapping(uint => mapping(uint => bool))             public idToClaimed;       // id => (blockNumber => claimed)
+  mapping(uint => uint)                              public _idToBlockOfLastDeposit; // id => (blockNumber)
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -106,6 +107,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
+  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   modifier exists(uint id) {
     ownerOf(id); _; // ownerOf reverts if dNFT does not exist
@@ -175,6 +177,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint amount
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) returns (uint) { 
+      _idToBlockOfLastDeposit[id] = block.number;
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
@@ -208,19 +211,22 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to, 
       uint amount 
-  ) external withPermission(from, Permission.WITHDRAW) isActive(from) {
+  ) external withPermission(from, Permission.WITHDRAW) isActive(from) returns (uint) {
+      if (_idToBlockOfLastDeposit[from] == block.number) { 
+        revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
+      Nft storage nft = idToNft[from];
+      if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       uint collatVault = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint collatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
       if (collatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(collatRatio); }
-      Nft storage nft = idToNft[from];
       uint averageTVL = collatVault / totalSupply();
-      if (nft.withdrawal + amount > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
-      if (amount.toInt256() > nft.deposit)      { revert ExceedsDepositBalance(nft.deposit); }
+      if (nft.withdrawal + amount > averageTVL)    { revert ExceedsAverageTVL(averageTVL); }
       unchecked {
       nft.deposit    -= amount.toInt256(); } // amount <= nft.deposit
       nft.withdrawal += amount; 
       dyad.mint(to, amount);
       emit Withdrawn(from, amount);
+      return amount;
   }
 
   // Redeem DYAD for ETH
