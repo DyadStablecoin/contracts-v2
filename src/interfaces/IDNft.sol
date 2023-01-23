@@ -164,6 +164,18 @@ interface IDNft {
    */
   function activate(uint id) external;
 
+  /**
+   * @notice Deactivate dNFT
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
+   *        `DEACTIVATE` permission
+   *      - dNFT is inactive already
+   *      - dNFT withdrawal is larger than 0
+   *      - dNFT deposit is negative
+   * @dev Emits:
+   *      - Deactivated
+   * @param id Id of the dNFT to deactivate
+   */
   function deactivate(uint id) external;
   function grant     (uint id, PermissionSet[] calldata) external;
 
