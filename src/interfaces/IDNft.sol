@@ -213,6 +213,17 @@ interface IDNft {
    */
   function snipe(uint from, uint to) external returns (int);
 
+  /**
+   * @notice Liquidate dNFT by covering its deposit
+   * @dev Will revert:
+   *      - If dNFT deposit is negative
+   *      - If ETH sent is not enough to cover the negative dNFT deposit
+   * @dev Emits:
+   *      - Liquidated
+   * @param id Id of the dNFT to liquidate
+   * @param to Address to send the dNFT to
+   * @return id Id of the dNFT that got liquidated
+   */
   function liquidate(uint id, address to) external returns (uint);
 
   /**
