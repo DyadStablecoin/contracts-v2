@@ -223,7 +223,7 @@ interface IDNft {
    * @param id Id of the dNFT to liquidate
    * @param to Address to send the dNFT to
    */
-  function liquidate(uint id, address to) external;
+  function liquidate(uint id, address to) external payable;
 
   /**
    * @notice Activate dNFT

@@ -247,6 +247,26 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.claim(id);
   }
 
+  // -------------------- liquidate --------------------
+  function testLiquidate() public {
+    // make the deposit of id2 negative so it becomes liquidatable
+    uint id = dNft.mint{value: 85 ether}(address(this));
+    oracleMock.setPrice(10000*1e8);
+    dNft.withdraw(id, address(this), 70000*1e18);
+    uint id2 = dNft.mint{value: 0.5 ether}(address(this));
+    _sync(id, 100);
+    dNft.claim(id2);
+
+    oracleMock.setPrice(5000*1e8);
+
+    address oldOwner = dNft.ownerOf(id2);
+    dNft.liquidate{value: 2 ether}(id2, address(1));
+    address newOwner = dNft.ownerOf(id2);
+
+    assertTrue(oldOwner != newOwner);
+    assertTrue(dNft.idToNft(id2).deposit > 0);
+  }
+
   // -------------------- grant --------------------
   function testGrant() public {
     uint id = dNft.totalSupply();
