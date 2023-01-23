@@ -214,7 +214,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external withPermission(from, Permission.WITHDRAW) isActive(from) returns (uint) {
       if (_idToBlockOfLastDeposit[from] == block.number) { 
         revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
-      Nft memory nft = idToNft[from];
+      Nft storage nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
@@ -225,7 +225,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       unchecked {
       nft.deposit    -= amount.toInt256(); } // amount <= nft.deposit
       nft.withdrawal  = newWithdrawal; 
-      idToNft[from]   = nft;
       dyad.mint(to, amount);
       emit Withdrawn(from, amount);
       return amount;
@@ -238,7 +237,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint amount
   ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) 
     returns (uint) { 
-      Nft memory nft = idToNft[from];
+      Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
