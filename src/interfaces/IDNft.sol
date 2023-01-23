@@ -45,6 +45,8 @@ interface IDNft {
   error MissingPermission              (uint id, Permission permission);
 
   // view functions
+  function MAX_SUPPLY()     external view returns (uint);
+  function MINT_MINIMUM()   external view returns (uint);
   function XP_MINT_REWARD() external view returns (uint);
   function XP_SYNC_REWARD() external view returns (uint);
   function maxXp()          external view returns (uint);
@@ -147,7 +149,25 @@ interface IDNft {
    */
   function withdraw(uint from, address to, uint amount) external returns (uint);
 
-  function redeem    (uint from, address to, uint amount) external returns (uint);
+  /**
+   * @notice Redeem `amount` of DYAD for ETH
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
+   *        `REDEEM` permission
+   *      - If `amount` is 0
+   * @dev Emits:
+   *      - DyadRedeemed
+   * @dev For Auditors:
+   *      - To save gas it does not check if `amount` is 0 
+   *      - There is a re-entrancy risk while transfering the ETH, that is why the 
+   *        `nonReentrant` modifier is used
+   * @param from Id of the dNFT to redeem from
+   * @param to Address to send the ETH to
+   * @param amount Amount of DYAD to redeem
+   * @return eth Amount of ETH redeemed for DYAD
+   */
+  function redeem(uint from, address to, uint amount) external returns (uint);
+
   function sync      (uint id) external;
   function claim     (uint id) external returns (int);
   function snipe     (uint from, uint to) external;
@@ -177,10 +197,20 @@ interface IDNft {
    * @param id Id of the dNFT to deactivate
    */
   function deactivate(uint id) external;
-  function grant     (uint id, PermissionSet[] calldata) external;
 
-  function MAX_SUPPLY() external pure returns (uint);
-  function MINT_MINIMUM() external pure returns (uint);
+  /**
+   * @notice Grant and/or revoke permissions
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT  
+   * @dev Emits:
+   *      - Modified
+   * @dev To remove all permissions for a specific operator pass in an empty Permission array
+   *      for that PermissionSet
+   * @param id Id of the dNFT's permissions to modify
+   * @param permissionSets Permissions to grant and revoke fro specific operators
+   */
+  function grant(uint id, PermissionSet[] calldata permissionSets) external;
+
 
   // ERC721
   function ownerOf(uint tokenId) external view returns (address);

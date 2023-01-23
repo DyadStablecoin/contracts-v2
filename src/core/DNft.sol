@@ -235,16 +235,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) 
-    returns (uint) { 
+  ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) returns (uint) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
       unchecked {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
-      idToNft[from]   = nft;
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy possible
+      (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy vector
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit Redeemed(msg.sender, from, amount);
       return eth;
@@ -347,7 +345,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     emit Deactivated(id);
   }
 
-  // Modify permissions
+  // Grant and revoke permissions
   function grant(
       uint256 _id,
       PermissionSet[] calldata _permissionSets
