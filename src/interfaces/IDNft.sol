@@ -181,10 +181,39 @@ interface IDNft {
    * @dev For Auditors:
    *      - No need to check if the dNFT exists because a dNFT that does not exist is inactive
    * @param id Id of the dNFT that gets a boost
+   * @return dyadDelta Amount of dyad to mint/burn
    */
-  function sync(uint id) external;
-  function claim     (uint id) external returns (int);
-  function snipe     (uint from, uint to) external;
+  function sync(uint id) external returns (int);
+
+  /**
+   * @notice Claim DYAD from the current sync window
+   * @dev Will revert:
+   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
+   *        `CLAIM` permission
+   *      - If dNFT is inactive
+   *      - If `claim` was already called for that dNFT in this sync window
+   * @dev Emits:
+   *      - Claimed
+   * @param id Id of the dNFT that gets claimed for
+   * @return share Amount of DYAD claimed
+   */
+  function claim(uint id) external returns (int);
+
+  /**
+   * @notice Snipe DYAD from previouse sync window to get a bonus
+   * @dev Will revert:
+   *      - If `from` dNFT is inactive
+   *      - If `to` dNFT is inactive
+   *      - If `snipe` was already called for that dNFT in this sync window
+   * @dev Emits:
+   *      - Sniped
+   * @param from Id of the dNFT that gets sniped
+   * @param to Id of the dNFT that gets the snipe reward
+   * @return share Amount of DYAD sniped
+   */
+  function snipe(uint from, uint to) external returns (int);
+
+  function liquidate(uint id, address to) external returns (uint);
 
   /**
    * @notice Activate dNFT

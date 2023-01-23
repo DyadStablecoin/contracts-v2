@@ -81,6 +81,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Exchanged  (uint indexed id, int amount);
   event Moved      (uint indexed from, uint indexed to, int amount);
   event Synced     (uint id);
+  event Claimed    (uint indexed id, int share);
+  event Sniped     (uint indexed from, uint indexed to, int share);
   event Activated  (uint id);
   event Deactivated(uint id);
   event Liquidated (address indexed to, uint indexed id);
@@ -249,7 +251,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Determine amount of dyad to mint/burn in the next claim window
-  function sync(uint id) external isActive(id) {
+  function sync(uint id) external isActive(id) returns (int) {
       uint dyadTotalSupply = dyad.totalSupply(); // amount to burn/mint is based only on withdrawn dyad
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
@@ -267,9 +269,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChangeAbs));
       idToNft[id]      = nft;
       emit Synced(id);
+      return dyadDelta;
   }
 
-  // Claim DYAD from this sync window
+  // Claim DYAD from the current sync window
   function claim(uint id) external withPermission(id, Permission.CLAIM) isActive(id) returns (int) {
       if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       idToClaimed[id][syncedBlock] = true;
@@ -286,6 +289,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.deposit += share;
       _addXp(nft, newXp);
       idToNft[id] = nft;
+      emit Claimed(id, share);
       return share;
   }
 
@@ -293,24 +297,28 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function snipe(
       uint _from,
       uint _to
-  ) external exists(_from) exists(_to) isActive(_from) isActive(_to) {
+  ) external isActive(_from) isActive(_to) returns (int) {
       if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
       idToClaimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
+      int share;
       if (prevDyadDelta > 0) {         
-        int share     = _calcNftMint(prevDyadDelta, from.xp);
+        share         = _calcNftMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
         _addXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
       } else {                        
-        (int share, uint xp) = _calcNftBurn(prevDyadDelta, from.xp);
+        uint xp;  
+        (share, xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _addXp(from, xp);
         _addXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
+      emit Sniped(_from, _to, share);
+      return share;
   }
 
   // Liquidate DNft by covering its deposit
