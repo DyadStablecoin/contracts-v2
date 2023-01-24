@@ -154,13 +154,16 @@ interface IDNft {
    * @dev Will revert:
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `REDEEM` permission
-   *      - If `amount` is 0
+   *      - If dNFT is inactive
+   *      - If DYAD to redeem is larger than the dNFT withdrawal
+   *      - If the ETH transfer fails
    * @dev Emits:
    *      - DyadRedeemed
    * @dev For Auditors:
    *      - To save gas it does not check if `amount` is 0 
    *      - There is a re-entrancy risk while transfering the ETH, that is why the 
-   *        `nonReentrant` modifier is used
+   *        `nonReentrant` modifier is used and all state changes are done before
+   *         the ETH transfer
    * @param from Id of the dNFT to redeem from
    * @param to Address to send the ETH to
    * @param amount Amount of DYAD to redeem

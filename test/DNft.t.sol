@@ -135,7 +135,10 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
+    uint oldBalance = address(this).balance;
     dNft.redeem  (id, address(this), AMOUNT_TO_REDEEM);
+    uint newBalance = address(this).balance;
+    assertTrue(newBalance > oldBalance);
   }
   function testCannotRedeemNotDNftOwner() public {
     uint AMOUNT_TO_REDEEM = 10000;
