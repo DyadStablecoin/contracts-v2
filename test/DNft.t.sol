@@ -73,7 +73,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotExchangeDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
-    vm.expectRevert(abi.encodeWithSelector(IDNft.DNftDoesNotExist.selector, id));
+    vm.expectRevert("ERC721: invalid token ID");
     dNft.exchange{value: 5 ether}(id);
   }
 
