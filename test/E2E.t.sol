@@ -67,6 +67,8 @@ contract E2ETest is BaseTest {
     overwriteNft(0, 2161.00, uint(dNft.idToNft(0).deposit), dNft.idToNft(0).withdrawal);
     overwrite(address(dNft), "totalXp()", 45394);
     overwrite(address(dNft), "maxXp()", 8048);
+    overwrite(address(dNft), "totalSupply()", 10);
+
     dNft.claim(0);
     assertEq(dNft.idToNft(0).deposit/1e18, -807);
   }

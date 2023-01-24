@@ -139,7 +139,7 @@ contract DNftsTest is BaseTest {
   }
   function testWithdrawCannotWithdrawExceedsAverageTVL() public {
     uint id = dNft.mint{value: 5 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x18a415da9fc248ba2e));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x1696695dbd1cc2aaaa));
     dNft.withdraw(id, address(this), 2000*1e18);
   }
 
@@ -215,14 +215,14 @@ contract DNftsTest is BaseTest {
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
-    assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
+    assertTrue(dNft.idToNft(id).xp == 11040);           // nft.xp
     assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49050090744101633393800); // nft.deposit
-    assertEq(dNft.idToNft(id).xp, 11050);                       // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49047916666666666666600); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 11050);                        // nft.xp
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();

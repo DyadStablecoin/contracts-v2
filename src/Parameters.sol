@@ -35,7 +35,7 @@ contract Parameters {
   uint MAINNET_MAX_SUPPLY                    = 10_000;
   uint MAINNET_MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18; // 10 bps
   uint MAINNET_MIN_TIME_BETWEEN_SYNC         = 10 minutes;
-  int  MAINNET_MIN_MINT_DYAD_DEPOSIT         = 5000e18;
+  int  MAINNET_MIN_MINT_DYAD_DEPOSIT         = 5000e18; // 5k
 
   // ---------------- AutoClaim ----------------
   int  FEE           = 0.01e18;
