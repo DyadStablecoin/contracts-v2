@@ -73,7 +73,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testCannotExchangeDNftDoesNotExist() public {
     uint id = dNft.totalSupply();
-    vm.expectRevert('ERC721: invalid token ID');
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DNftDoesNotExist.selector, id));
     dNft.exchange{value: 5 ether}(id);
   }
 
@@ -135,7 +135,13 @@ contract DNftsTest is BaseTest, Parameters {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
+    uint oldTotalSupply = dyad.totalSupply();
+    uint oldBalance = address(this).balance;
     dNft.redeem  (id, address(this), AMOUNT_TO_REDEEM);
+    uint newTotalSupply = dyad.totalSupply();
+    uint newBalance = address(this).balance;
+    assertTrue(newTotalSupply < oldTotalSupply);
+    assertTrue(newBalance > oldBalance);
   }
   function testCannotRedeemNotDNftOwner() public {
     uint AMOUNT_TO_REDEEM = 10000;

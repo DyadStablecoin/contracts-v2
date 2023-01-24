@@ -154,13 +154,21 @@ interface IDNft {
    * @dev Will revert:
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `REDEEM` permission
-   *      - If `amount` is 0
+   *      - If dNFT is inactive
+   *      - If DYAD to redeem is larger than the dNFT withdrawal
+   *      - If the ETH transfer fails
    * @dev Emits:
-   *      - DyadRedeemed
+   *      - Redeemed(address indexed to, uint indexed id, uint amount)
    * @dev For Auditors:
    *      - To save gas it does not check if `amount` is 0 
    *      - There is a re-entrancy risk while transfering the ETH, that is why the 
-   *        `nonReentrant` modifier is used
+   *        `nonReentrant` modifier is used and all state changes are done before
+   *         the ETH transfer
+   *      - We do not restrict the amount of gas that can be consumed by the ETH
+   *        transfer. This is intentional, as the user calling this function can
+   *        always decide who should get the funds. The called contract can consume
+   *        all gas in two ways: 1) through computation 2) through the bytes return
+   *        value. There is no economic incetive to do so so it is not an issue.
    * @param from Id of the dNFT to redeem from
    * @param to Address to send the ETH to
    * @param amount Amount of DYAD to redeem
@@ -225,10 +233,8 @@ interface IDNft {
    *        can not have a negative deposit
    *      - We can calculate the absolute deposit value by multiplying with -1 because it
    *        is always negative
-   *      - The `_burn` + `_mint` pattern allows the contract to transfer the dNFT
-   *        to a new owner without being approved for it
    *      - No need to delete `idToNft`, because its data is kept as it is or overwritten
-   *      - All permissions for this dNFT are reset because `_mint` calls `_beforeTokenTransfer`
+   *      - All permissions for this dNFT are reset because `_transfer` calls `_beforeTokenTransfer`
    *        which updates the `lastOwnershipChange`
    * @param id Id of the dNFT to liquidate
    * @param to Address to send the dNFT to

@@ -112,7 +112,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   modifier exists(uint id) {
-    ownerOf(id); _; // ownerOf reverts if dNFT does not exist
+    if (!_exists(id)) revert DNftDoesNotExist(id); _; 
   }
   modifier onlyOwner(uint id) {
     if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
@@ -332,8 +332,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       nft.deposit += newDyad; 
       idToNft[id]  = nft;     
-      _burn(id);
-      _mint(to, id); 
+      _transfer(ownerOf(id), to, id);
       emit Liquidated(to,  id); 
   }
 
@@ -379,9 +378,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) public view returns (bool) {
       if (ownerOf(id) == operator) { return true; }
       NftPermission memory _nftPermission = idToNftPermission[id][operator];
-      // If there was an ownership change after the permission was last updated,
-      // then the operator doesn't have the permission
       return _nftPermission.permissions._hasPermission(permission) &&
+        // If there was an ownership change after the permission was last updated,
+        // then the operator doesn't have the permission
         idToNft[id].lastOwnershipChange < _nftPermission.lastUpdated;
   }
 
@@ -460,7 +459,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint256 _batchSize 
   ) internal override {
       super._beforeTokenTransfer(_from, _to, _id, _batchSize);
-      // no need to set when burning
-      if (_to != address(0)) { idToNft[_id].lastOwnershipChange = block.number; }
+      idToNft[_id].lastOwnershipChange = block.number;
   }
 }
