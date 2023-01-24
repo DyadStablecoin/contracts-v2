@@ -551,7 +551,7 @@
   "pending": [],
   "path": "/home/shafu/dyad/contracts-v2/broadcast/Deploy.Goerli.s.sol/5/run-latest.json",
   "returns": {},
-  "timestamp": 1674600905,
+  "timestamp": 1674600878,
   "chain": 5,
   "multi": false,
   "commit": "b60e25a"
