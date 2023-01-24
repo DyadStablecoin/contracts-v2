@@ -119,6 +119,29 @@ contract DNftsTest is BaseTest, Parameters {
     dNft.withdraw(id, address(this), 2000*1e18);
     dNft.withdraw(id, address(this), 1000*1e18);
   }
+  function testWithdrawCannotDepositAndWithdrawInSameBlock() public {
+    uint id = dNft.mint{value: 50 ether}(address(this));
+    dNft.exchange{value: 1 ether}(id);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.CannotDepositAndWithdrawInSameBlock.selector, block.number));
+    dNft.withdraw(id, address(this), 2000*1e18);
+  }
+  function testWithdrawCannotWithdrawMoreThanDeposit() public {
+    uint id = dNft.mint{value: 50 ether}(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDepositBalance.selector, dNft.idToNft(id).deposit));
+    dNft.withdraw(id, address(this), 50000000 ether);
+  }
+  function testWithdrawCannotWithdrawCrTooLow() public {
+    uint id = dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 400*1e18);
+    oracleMock.setPrice(0.00000001 ether);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.CrTooLow.selector, 625000000000000000));
+    dNft.withdraw(id, address(this), 400*1e18);
+  }
+  function testWithdrawCannotWithdrawExceedsAverageTVL() public {
+    uint id = dNft.mint{value: 5 ether}(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x18a415da9fc248ba2e));
+    dNft.withdraw(id, address(this), 2000*1e18);
+  }
 
   // -------------------- deposit --------------------
   function testDeposit() public {

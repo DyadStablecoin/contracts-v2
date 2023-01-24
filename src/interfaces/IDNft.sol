@@ -25,7 +25,7 @@ interface IDNft {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
-  error ExceedsAverageTVL              ();
+  error ExceedsAverageTVL              (uint averageTVL);
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -43,6 +43,7 @@ interface IDNft {
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
+  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);
