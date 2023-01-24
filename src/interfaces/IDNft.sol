@@ -214,12 +214,22 @@ interface IDNft {
   function snipe(uint from, uint to) external returns (int);
 
   /**
-   * @notice Liquidate dNFT by covering its deposit
+   * @notice Liquidate dNFT by covering its deposit and transfering it to a new owner
    * @dev Will revert:
-   *      - If dNFT deposit is negative
+   *      - If dNFT deposit is not negative
    *      - If ETH sent is not enough to cover the negative dNFT deposit
    * @dev Emits:
    *      - Liquidated
+   * @dev For Auditors:
+   *      - No need to check if the dNFT exists because a dNFT that does not exist
+   *        can not have a negative deposit
+   *      - We can calculate the absolute deposit value by multiplying with -1 because it
+   *        is always negative
+   *      - The `_burn` + `_mint` pattern allows the contract to transfer the dNFT
+   *        to a new owner without being approved for it
+   *      - No need to delete `idToNft`, because its data is kept as it is or overwritten
+   *      - All permissions for this dNFT are reset because `_mint` calls `_beforeTokenTransfer`
+   *        which updates the `lastOwnershipChange`
    * @param id Id of the dNFT to liquidate
    * @param to Address to send the dNFT to
    */

@@ -251,6 +251,7 @@ contract DNftsTest is BaseTest, Parameters {
   function makeDepositNegative() public returns (uint) {
     // make the deposit of id2 negative so it becomes liquidatable
     uint id = dNft.mint{value: 85 ether}(address(this));
+    dNft.withdraw(id, address(this), 100);
     oracleMock.setPrice(10000*1e8);
     dNft.withdraw(id, address(this), 70000*1e18);
     uint id2 = dNft.mint{value: 0.5 ether}(address(this));
@@ -264,10 +265,18 @@ contract DNftsTest is BaseTest, Parameters {
   function testLiquidate() public {
     uint id = makeDepositNegative();
 
+    assertTrue(dNft.idToNft(id).deposit < 0);
+
+    uint oldWithdrawal = dNft.idToNft(id).withdrawal;
+    uint oldXp       = dNft.idToNft(id).xp;
     address oldOwner = dNft.ownerOf(id);
     dNft.liquidate{value: 2 ether}(id, address(1));
+    uint newWithdrawal = dNft.idToNft(id).withdrawal;
+    uint newXp       = dNft.idToNft(id).xp;
     address newOwner = dNft.ownerOf(id);
 
+    assertTrue(newWithdrawal == oldWithdrawal);
+    assertTrue(newXp > oldXp);
     assertTrue(oldOwner != newOwner);
     assertTrue(dNft.idToNft(id).deposit > 0);
   }

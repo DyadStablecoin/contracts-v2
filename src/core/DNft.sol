@@ -323,18 +323,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Liquidate DNft by covering its deposit
   function liquidate(
-      uint id, // no need to check `exists(id)` => (nft.deposit >= 0) will fail
+      uint id, 
       address to 
   ) external payable {
       Nft memory nft = idToNft[id];
-      if (nft.deposit >= 0) { revert NotLiquidatable(id); }
+      int _deposit   = nft.deposit; // save gas
+      if (_deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
-      if (newDyad < nft.deposit.abs().toInt256()) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
-      _burn(id);     // no need to delete idToNft[id] because it will be overwritten
-      _mint(to, id); // no need to increment totalSupply, because burn + mint
+      if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
       _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       nft.deposit += newDyad; 
       idToNft[id]  = nft;     
+      _burn(id);
+      _mint(to, id); 
       emit Liquidated(to,  id); 
   }
 
