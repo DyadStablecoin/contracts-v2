@@ -54,7 +54,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     bool isActive;
   }
 
-  enum Permission { ACTIVATE, DEACTIVATE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
+  enum Permission { ACTIVATE, DEACTIVATE, EXCHANGE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   struct PermissionSet {
     address      operator;    
@@ -77,7 +77,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Minted     (address indexed to, uint indexed id);
   event Deposited  (uint indexed id, uint amount);
   event Redeemed   (address indexed to, uint indexed id, uint amount);
-  event Withdrawn  (uint indexed id, uint amount);
+  event Withdrawn  (uint indexed from, address indexed to, uint amount);
   event Exchanged  (uint indexed id, int amount);
   event Moved      (uint indexed from, uint indexed to, int amount);
   event Synced     (uint id);
@@ -164,8 +164,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return (id, nft);
   }
 
-  // Permissionlessly exchange ETH for deposited DYAD
-  function exchange(uint id) external exists(id) payable returns (int) {
+  // Exchange ETH for DYAD deposit
+  function exchange(uint id) external withPermission(id, Permission.EXCHANGE) isActive(id) payable returns (int) {
+      _idToBlockOfLastDeposit[id] = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
       emit Exchanged(id, newDeposit);
@@ -226,7 +227,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.deposit    -= amount.toInt256(); } // amount <= nft.deposit
       nft.withdrawal  = newWithdrawal; 
       dyad.mint(to, amount);
-      emit Withdrawn(from, amount);
+      emit Withdrawn(from, to, amount);
       return amount;
   }
 
