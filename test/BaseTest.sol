@@ -29,7 +29,7 @@ contract BaseTest is Test, Parameters {
       MAINNET_MIN_PRICE_CHANGE_BETWEEN_SYNC,
       MAINNET_MIN_TIME_BETWEEN_SYNC,
       MAINNET_MIN_MINT_DYAD_DEPOSIT,
-      MAINNET_INSIDERS
+      GOERLI_INSIDERS
     );
     dNft    = IDNft(_dNfts);
     dyad    = Dyad(_dyad);
