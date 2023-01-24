@@ -164,6 +164,11 @@ interface IDNft {
    *      - There is a re-entrancy risk while transfering the ETH, that is why the 
    *        `nonReentrant` modifier is used and all state changes are done before
    *         the ETH transfer
+   *      - We do not restrict the amount of gas that can be consumed by the ETH
+   *        transfer. This is intentional, as the user calling this function can
+   *        always decide who should get the funds. The called contract can consume
+   *        all gas in two ways: 1) through computation 2) through the bytes return
+   *        value. There is no economic incetive to do so so it is not an issue.
    * @param from Id of the dNFT to redeem from
    * @param to Address to send the ETH to
    * @param amount Amount of DYAD to redeem
