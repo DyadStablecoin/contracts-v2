@@ -25,3 +25,7 @@ ftt:
 	$(test) -vvv  --fork-url $(RPC) $(fork-block-number)
 fttt:
 	$(test) -vvvv --fork-url $(RPC)	$(fork-block-number)
+
+# deploy on goerli
+gdeploy:
+	forge script script/deploy/Deploy.Goerli.s.sol --rpc-url $(GOERLI_RPC) --sender $(PUBLIC_KEY) --broadcast --verify -i 1 -vvvv

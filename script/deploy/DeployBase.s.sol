@@ -9,7 +9,14 @@ import {Claimer} from "../../src/composing/Claimer.sol";
 import {Parameters} from "../../src/Parameters.sol";
 
 contract DeployBase is Script, Parameters {
-  function deploy(address _oracle) public payable returns (
+  function deploy(
+    address _oracle, 
+    uint    _maxSupply,
+    uint    _minPriceChangeBetweenSync,
+    uint    _minTimeBetweenSync,
+    int     _minMintDyadDeposit, 
+    address[] memory _insiders
+  ) public payable returns (
     address,
     address,
     address
@@ -17,7 +24,15 @@ contract DeployBase is Script, Parameters {
     vm.startBroadcast();
 
     Dyad dyad = new Dyad();
-    DNft dNft = new DNft(address(dyad), _oracle, INSIDERS);
+    DNft dNft = new DNft(
+      address(dyad),
+      _oracle,
+      _maxSupply,
+      _minPriceChangeBetweenSync,
+      _minTimeBetweenSync,
+      _minMintDyadDeposit, 
+      _insiders
+    );
     Claimer claimer = new Claimer(
       IDNft(address(dNft)), 
       Claimer.Config(FEE, FEE_COLLECTOR, MAX_STAKER)

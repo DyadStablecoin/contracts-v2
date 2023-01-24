@@ -6,17 +6,17 @@ import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
 import {IDNft, Permission, PermissionSet} from "../src/interfaces/IDNft.sol";
 
-contract DNftsTest is BaseTest, Parameters {
+contract DNftsTest is BaseTest {
   function testInsidersAllocation() public {
-    assertEq(dNft.totalSupply(), INSIDERS.length);
+    assertEq(dNft.totalSupply(), GOERLI_INSIDERS.length);
 
-    assertEq(dNft.balanceOf(INSIDERS[0]), 1);
-    assertEq(dNft.balanceOf(INSIDERS[1]), 1);
-    assertEq(dNft.balanceOf(INSIDERS[2]), 1);
+    assertEq(dNft.balanceOf(GOERLI_INSIDERS[0]), 1);
+    assertEq(dNft.balanceOf(GOERLI_INSIDERS[1]), 1);
+    assertEq(dNft.balanceOf(GOERLI_INSIDERS[2]), 1);
 
-    assertEq(dNft.ownerOf(0), INSIDERS[0]);
-    assertEq(dNft.ownerOf(1), INSIDERS[1]);
-    assertEq(dNft.ownerOf(2), INSIDERS[2]);
+    assertEq(dNft.ownerOf(0), GOERLI_INSIDERS[0]);
+    assertEq(dNft.ownerOf(1), GOERLI_INSIDERS[1]);
+    assertEq(dNft.ownerOf(2), GOERLI_INSIDERS[2]);
 
     assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
   }
@@ -27,14 +27,14 @@ contract DNftsTest is BaseTest, Parameters {
     assertEq(dNft.idToNft(2).deposit, 0);
 
     // sanity check: dnft that does not exist has no deposit
-    assertEq(dNft.idToNft(INSIDERS.length).deposit, 0);
+    assertEq(dNft.idToNft(GOERLI_INSIDERS.length).deposit, 0);
   }
 
   // -------------------- mint --------------------
   function testMintNft() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    assertEq(dNft.totalSupply(), INSIDERS.length + 1);
+    assertEq(dNft.totalSupply(), GOERLI_INSIDERS.length + 1);
     assertEq(dNft.idToNft(id).xp, dNft.XP_MINT_REWARD());
     assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.lastEthPrice());
     assertEq(dNft.idToNft(id).withdrawal, 0);
@@ -139,7 +139,7 @@ contract DNftsTest is BaseTest, Parameters {
   }
   function testWithdrawCannotWithdrawExceedsAverageTVL() public {
     uint id = dNft.mint{value: 5 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x18a415da9fc248ba2e));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x1696695dbd1cc2aaaa));
     dNft.withdraw(id, address(this), 2000*1e18);
   }
 
@@ -215,14 +215,14 @@ contract DNftsTest is BaseTest, Parameters {
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
-    assertTrue(dNft.idToNft(id).xp == 11040);          // nft.xp
+    assertTrue(dNft.idToNft(id).xp == 11040);           // nft.xp
     assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49050090744101633393800); // nft.deposit
-    assertEq(dNft.idToNft(id).xp, 11050);                       // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49047916666666666666600); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 11050);                        // nft.xp
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
