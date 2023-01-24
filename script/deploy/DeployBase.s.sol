@@ -17,12 +17,7 @@ contract DeployBase is Script, Parameters {
     vm.startBroadcast();
 
     Dyad dyad = new Dyad();
-    DNft dNft = new DNft(
-      address(dyad),
-      _oracle,
-      MIN_MINT_DYAD_DEPOSIT,
-      INSIDERS
-    );
+    DNft dNft = new DNft(address(dyad), _oracle, INSIDERS);
     Claimer claimer = new Claimer(
       IDNft(address(dNft)), 
       Claimer.Config(FEE, FEE_COLLECTOR, MAX_STAKER)
