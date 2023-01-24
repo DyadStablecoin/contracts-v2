@@ -22,11 +22,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using PermissionMath    for Permission[];
   using PermissionMath    for uint8;
 
-  uint public constant MAX_SUPPLY                    = 10_000;     // Max supply of DNfts
-  uint public constant MIN_COLLATERIZATION_RATIO     = 1.50e18;    // 15000 bps or 150%
-  uint public constant MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18;   // 10    bps or 0.1%
-  uint public constant MIN_TIME_BETWEEN_SYNC         = 10 minutes; 
-  int  public constant MIN_MINT_DYAD_DEPOSIT         = 5000e18;    // 5000k
+  uint public immutable MAX_SUPPLY;                    // Max supply of DNfts
+  uint public immutable MIN_PRICE_CHANGE_BETWEEN_SYNC; // 10    bps or 0.1%
+  uint public immutable MIN_TIME_BETWEEN_SYNC;         
+  int  public immutable MIN_MINT_DYAD_DEPOSIT;         // 1 DYAD
+  uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
 
   uint public constant XP_NORM_FACTOR         = 1e16;
   uint public constant XP_MINT_REWARD         = 1_000;
@@ -130,11 +130,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   constructor(
       address _dyad,
       address _oracle, 
+      uint    _maxSupply,
+      uint    _minPriceChangeBetweenSync,
+      uint    _minTimeBetweenSync,
+      int     _minMintDyadDeposit, 
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-      dyad                  = Dyad(_dyad);
-      oracle                = IAggregatorV3(_oracle);
-      lastEthPrice          = _getLatestEthPrice();
+      dyad                          = Dyad(_dyad);
+      oracle                        = IAggregatorV3(_oracle);
+      MAX_SUPPLY                    = _maxSupply;
+      MIN_PRICE_CHANGE_BETWEEN_SYNC = _minPriceChangeBetweenSync;
+      MIN_TIME_BETWEEN_SYNC         = _minTimeBetweenSync;
+      MIN_MINT_DYAD_DEPOSIT         = _minMintDyadDeposit;
+      lastEthPrice                  = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit

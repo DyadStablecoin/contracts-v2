@@ -6,7 +6,7 @@ import {BaseTest} from "./BaseTest.sol";
 import {Parameters} from "../src/Parameters.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 
-contract E2ETest is BaseTest, Parameters {
+contract E2ETest is BaseTest {
   function setNfts() internal {
     overwriteNft(0, 2161, 146 *1e18, 3920 );
     overwriteNft(1, 7588, 4616*1e18, 7496 );

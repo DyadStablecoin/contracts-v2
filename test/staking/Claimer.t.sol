@@ -3,10 +3,9 @@ pragma solidity = 0.8.17;
 
 import "forge-std/console.sol";
 import {BaseTest} from "../BaseTest.sol";
-import {Parameters} from "../../src/Parameters.sol";
 import {IDNft, Permission, PermissionSet} from "../../src/interfaces/IDNft.sol";
 
-contract ClaimerTest is BaseTest, Parameters {
+contract ClaimerTest is BaseTest {
 
   function _givePermission(uint id) internal {
     Permission[] memory pp = new Permission[](2);

@@ -8,8 +8,9 @@ import {IDNft} from "../src/interfaces/IDNft.sol";
 import {Dyad} from "../src/core/Dyad.sol";
 import {Claimer} from "../src/composing/Claimer.sol";
 import {OracleMock} from "./OracleMock.sol";
+import {Parameters} from "../src/Parameters.sol";
 
-contract BaseTest is Test {
+contract BaseTest is Test, Parameters {
   using stdStorage for StdStorage;
 
   IDNft      dNft;
@@ -22,7 +23,14 @@ contract BaseTest is Test {
   function setUp() public {
     oracleMock = new OracleMock();
     DeployBase deployBase = new DeployBase();
-    (address _dNfts, address _dyad, address _claimer) = deployBase.deploy{value: 100 ether}(address(oracleMock));
+    (address _dNfts, address _dyad, address _claimer) = deployBase.deploy(
+      address(oracleMock),
+      MAINNET_MAX_SUPPLY,
+      MAINNET_MIN_PRICE_CHANGE_BETWEEN_SYNC,
+      MAINNET_MIN_TIME_BETWEEN_SYNC,
+      MAINNET_MIN_MINT_DYAD_DEPOSIT,
+      MAINNET_INSIDERS
+    );
     dNft    = IDNft(_dNfts);
     dyad    = Dyad(_dyad);
     claimer = Claimer(_claimer);
