@@ -28,14 +28,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   int  public immutable MIN_MINT_DYAD_DEPOSIT;         // 1 DYAD
   uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
 
-  uint public constant XP_NORM_FACTOR         = 1e16;
-  uint public constant XP_MINT_REWARD         = 1_000;
-  uint public constant XP_SYNC_REWARD         = 0.0004e18; // 4 bps    or 0.04%
-  uint public constant XP_LIQUIDATION_REWARD  = 0.0004e18; // 4 bps    or 0.04%
-  uint public constant XP_DIBS_BURN_REWARD    = 0.0003e18; // 3 bps    or 0.03%
-  uint public constant XP_DIBS_MINT_REWARD    = 0.0002e18; // 2 bps    or 0.02%
-  uint public constant XP_CLAIM_REWARD        = 0.0001e18; // 1 bps    or 0.01%
-  int  public constant DIBS_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
+  uint public constant XP_NORM_FACTOR          = 1e16;
+  uint public constant XP_MINT_REWARD          = 1_000;
+  uint public constant XP_SYNC_REWARD          = 0.0004e18; // 4 bps    or 0.04%
+  uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps    or 0.04%
+  uint public constant XP_SNIPE_BURN_REWARD    = 0.0003e18; // 3 bps    or 0.03%
+  uint public constant XP_SNIPE_MINT_REWARD    = 0.0002e18; // 2 bps    or 0.02%
+  uint public constant XP_CLAIM_REWARD         = 0.0001e18; // 1 bps    or 0.01%
+  int  public constant SNIPE_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
 
   int  public lastEthPrice;           // ETH price from the last sync call
   int  public dyadDelta;              // Amount of dyad to mint/burn in this sync cycle
@@ -309,15 +309,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share;
       if (prevDyadDelta > 0) {         
         share         = _calcNftMint(prevDyadDelta, from.xp);
-        from.deposit += wadMul(share, 1e18 - DIBS_MINT_SHARE_REWARD); 
-        to.deposit   += wadMul(share, DIBS_MINT_SHARE_REWARD); 
-        _addXp(to, _calcXpReward(XP_DIBS_MINT_REWARD));
+        from.deposit += wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD); 
+        to.deposit   += wadMul(share, SNIPE_MINT_SHARE_REWARD); 
+        _addXp(to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
         _addXp(from, xp);
-        _addXp(to, _calcXpReward(XP_DIBS_BURN_REWARD));
+        _addXp(to, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
