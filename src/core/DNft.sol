@@ -185,7 +185,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function deposit(
       uint id,
       uint amount
-  ) external withPermission(id, Permission.DEPOSIT) isActive(id) returns (uint) { 
+  ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
       _idToBlockOfLastDeposit[id] = block.number;
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
@@ -196,7 +196,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       require(success);
       dyad.burn(address(this), amount);
       emit Deposited(id, amount);
-      return amount;
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
@@ -204,15 +203,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint _from,
       uint _to,
       int  _amount
-  ) external withPermission(_from, Permission.MOVE) returns (int) {
-      require(_amount > 0);             // needed because _amount is int
+  ) external withPermission(_from, Permission.MOVE) {
+      require(_amount > 0);              // needed because _amount is int
       Nft storage from = idToNft[_from];
       if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
       unchecked {
       from.deposit         -= _amount; } // amount <= from.deposit
       idToNft[_to].deposit += _amount;
       emit Moved(_from, _to, _amount);
-      return _amount;
   }
 
   // Withdraw DYAD from dNFT deposit
@@ -220,7 +218,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to, 
       uint amount 
-  ) external withPermission(from, Permission.WITHDRAW) isActive(from) returns (uint) {
+  ) external withPermission(from, Permission.WITHDRAW) isActive(from) {
       if (_idToBlockOfLastDeposit[from] == block.number) { 
         revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
       Nft storage nft = idToNft[from];
@@ -236,7 +234,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.withdrawal  = newWithdrawal; 
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
-      return amount;
   }
 
   // Redeem DYAD for ETH

@@ -103,9 +103,8 @@ interface IDNft {
    *      - To save gas it does not check if `amount` is zero 
    * @param id Id of the dNFT that gets the deposited DYAD
    * @param amount Amount of DYAD to deposit
-   * @return amount Amount of DYAD deposited
    */
-  function deposit(uint id, uint amount) external returns (uint);
+  function deposit(uint id, uint amount) external;
 
   /**
    * @notice Move `amount` `from` one dNFT deposit `to` another dNFT deposit
@@ -124,9 +123,8 @@ interface IDNft {
    * @param from Id of the dNFT to move the deposit from
    * @param to Id of the dNFT to move the deposit to
    * @param amount Amount of DYAD to move
-   * @return amount Amount of DYAD moved
    */
-  function move(uint from, uint to, int amount) external returns (int);
+  function move(uint from, uint to, int amount) external;
 
   /**
    * @notice Withdraw `amount` of DYAD from dNFT
@@ -151,9 +149,8 @@ interface IDNft {
    * @param from Id of the dNFT to withdraw from
    * @param to Address to send the DYAD to
    * @param amount Amount of DYAD to withdraw
-   * @return amount Amount withdrawn
    */
-  function withdraw(uint from, address to, uint amount) external returns (uint);
+  function withdraw(uint from, address to, uint amount) external;
 
   /**
    * @notice Redeem `amount` of DYAD for ETH
@@ -183,7 +180,7 @@ interface IDNft {
   function redeem(uint from, address to, uint amount) external returns (uint);
 
   /**
-   * @notice Determine amount of dyad to mint/burn in the next claim window
+   * @notice Determine amount of claimable DYAD 
    * @dev Will revert:
    *      - If dNFT with `id` is not active
    *      - If the total supply of dyad is 0
@@ -194,7 +191,7 @@ interface IDNft {
    * @dev For Auditors:
    *      - No need to check if the dNFT exists because a dNFT that does not exist is inactive
    * @param id Id of the dNFT that gets a boost
-   * @return dyadDelta Amount of dyad to mint/burn
+   * @return dyadDelta Amount of claimable DYAD
    */
   function sync(uint id) external returns (int);
 
