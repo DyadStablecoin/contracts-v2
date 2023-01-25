@@ -18,6 +18,8 @@ interface IClaimer {
   error TooManyClaimers   ();
   error MissingPermissions();
   error NotNFTOwner       (uint id);
+  error IdAlreadyInSet    (uint id);
+  error IdNotInSet        (uint id);
 
   /**
    * @notice Set the config
@@ -34,6 +36,7 @@ interface IClaimer {
    * @notice Add dNFT to set of Claimers
    * @dev Will revert:
    *      - If it is not called by the owner of the dNFT
+   *      - If the dNFT is already in the set of Claimers
    *      - If the max number of claimers is reached
    *      - If the dNFT is missing the required permissions
    * @dev Emits:
@@ -46,6 +49,7 @@ interface IClaimer {
    * @notice Remove dNFT from set of Claimers
    * @dev Will revert:
    *      - If it is not called by the owner of the dNFT
+   *      - If the dNFT is not in the set of Claimers
    * @dev Emits:
    *      - Removed(uint id)
    * @param id The id of the dNFT to remove

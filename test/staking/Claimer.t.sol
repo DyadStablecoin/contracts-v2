@@ -19,13 +19,13 @@ contract ClaimerTest is BaseTest {
     dNft.grant(id, ps);
   }
 
-  // -------------------- mint --------------------
+  // -------------------- add --------------------
   function testAdd() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-
     _givePermission(id);
     claimer.add(id);
+    assertTrue(claimer.contains(id));
   }
   function testCannotAddIsNotdNFTOwner() public {
     vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
@@ -47,6 +47,13 @@ contract ClaimerTest is BaseTest {
     vm.expectRevert(abi.encodeWithSelector(IClaimer.MissingPermissions.selector));
     claimer.add(id);
   }
+  function testCannotAdddNFTTwice() public {
+    uint id = dNft.mint{value: 5 ether}(address(this));
+    _givePermission(id);
+    claimer.add(id);
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdAlreadyInSet.selector, id));
+    claimer.add(id);
+  }
 
   // -------------------- remove --------------------
   function testRemove() public {
@@ -56,7 +63,9 @@ contract ClaimerTest is BaseTest {
     claimer.add(id);
     // remove and add again
     claimer.remove(id);
+    assertTrue(!claimer.contains(id));
     claimer.add(id);
+    assertTrue(claimer.contains(id));
   }
   function testCannotRemoveIsNotdNFTOwner() public {
     uint id = dNft.mint{value: 5 ether}(address(1));
@@ -66,6 +75,11 @@ contract ClaimerTest is BaseTest {
     claimer.add(id);
 
     vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, id));
+    claimer.remove(id);
+  }
+  function testCannotRemovedNFTNotInSetOfClaimers() public {
+    uint id = dNft.mint{value: 5 ether}(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdNotInSet.selector, id));
     claimer.remove(id);
   }
 

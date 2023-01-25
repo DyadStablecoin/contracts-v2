@@ -37,8 +37,8 @@ contract Claimer is IClaimer, Owned {
   // add DNft to set of Claimers
   function add(uint id) external onlyNftOwner(id) { 
     if (claimers.length() >= config.maxClaimers) revert TooManyClaimers();
-    if (!_hasPermissions(id)) revert MissingPermissions();
-    claimers.add(id);
+    if (!_hasPermissions(id))                    revert MissingPermissions();
+    if (!claimers.add(id))                       revert IdAlreadyInSet(id);
     emit Added(id);
   }
 
@@ -48,7 +48,7 @@ contract Claimer is IClaimer, Owned {
   }
 
   function _remove(uint id) internal {
-    claimers.remove(id);
+    if (!claimers.remove(id)) revert IdNotInSet(id);
     emit Removed(id);
   }
 
