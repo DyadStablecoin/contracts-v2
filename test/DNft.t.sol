@@ -148,7 +148,6 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
-    dyad.approve(address(dNft), 2000*1e18);
     dNft.deposit(id, 2000*1e18);
   }
 

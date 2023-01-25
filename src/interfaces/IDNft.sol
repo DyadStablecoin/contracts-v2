@@ -97,6 +97,7 @@ interface IDNft {
    *        `DEPOSIT` permission
    *      - dNFT is inactive
    *      - `amount` to deposit exceeds the dNFT withdrawals
+   *      - if `msg.sender` does not have a DYAD balance of at least `amount`
    * @dev Emits:
    *      - Deposited
    * @dev For Auditors:
