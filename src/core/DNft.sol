@@ -31,10 +31,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public constant XP_NORM_FACTOR          = 1e16;
   uint public constant XP_MINT_REWARD          = 1_000;
   uint public constant XP_SYNC_REWARD          = 0.0004e18; // 4 bps    or 0.04%
-  uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps    or 0.04%
+  uint public constant XP_CLAIM_REWARD         = 0.0001e18; // 1 bps    or 0.01%
   uint public constant XP_SNIPE_BURN_REWARD    = 0.0003e18; // 3 bps    or 0.03%
   uint public constant XP_SNIPE_MINT_REWARD    = 0.0002e18; // 2 bps    or 0.02%
-  uint public constant XP_CLAIM_REWARD         = 0.0001e18; // 1 bps    or 0.01%
+  uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps    or 0.04%
   int  public constant SNIPE_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
 
   int  public lastEthPrice;           // ETH price from the last sync call
