@@ -37,7 +37,7 @@ interface IClaimer {
    * @dev Will revert:
    *      - If it is not called by the owner of the dNFT
    *      - If the max number of claimers is reached
-   *      - If the dNFT does not have the required permissions
+   *      - If the dNFT is missing the required permissions
    * @dev Emits:
    *      - Added(uint id)
    * @param id The id of the dNFT to add
