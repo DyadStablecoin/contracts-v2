@@ -188,11 +188,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
-      idToLastDeposit[id]  = block.number;
+      idToLastDeposit[id] = block.number;
       dyad.burn(msg.sender, amount);
       unchecked {
-      nft.withdrawal      -= amount; } // amount <= nft.withdrawal
-      nft.deposit         += amount.toInt256();
+      nft.withdrawal -= amount; } // amount <= nft.withdrawal
+      nft.deposit    += amount.toInt256();
       emit Deposited(id, amount);
   }
 
