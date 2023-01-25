@@ -7,7 +7,7 @@ import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet
 import {IDNft, Permission} from "../interfaces/IDNft.sol";
 import {IClaimer} from "../interfaces/IClaimer.sol";
 
-// Stake your dNFT to automatically get `claim` called for you
+// Automatically calls `claim` for all dNFTs in the set of Claimers
 contract Claimer is IClaimer, Owned {
   using EnumerableSet for EnumerableSet.UintSet;
 
