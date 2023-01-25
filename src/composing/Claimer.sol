@@ -13,7 +13,7 @@ contract Claimer is IClaimer, Owned {
 
   int public constant MAX_FEE = 0.1e18; // 1000 bps or 10%
 
-  EnumerableSet.UintSet private claimers;
+  EnumerableSet.UintSet private claimers; // set of dNFT ids that `claim` is going to be called for
 
   IDNft  public dNft;
   Config public config;
@@ -29,24 +29,15 @@ contract Claimer is IClaimer, Owned {
   }
 
   function setConfig(Config memory _config) external onlyOwner {
-    if (_config.fee         <= MAX_FEE)            revert InvalidFee(_config.fee);
-    if (_config.maxClaimers <= config.maxClaimers) revert InvalidMaxClaimers(_config.maxClaimers);
+    if (_config.fee <= MAX_FEE) revert InvalidFee(_config.fee);
     config = _config;
     emit ConfigSet(_config);
-  }
-
-  function hasPermissions(uint id) public view returns (bool) {
-    Permission[] memory reqPermissions = new Permission[](2);
-    reqPermissions[0] = Permission.CLAIM;
-    reqPermissions[1] = Permission.MOVE;
-    bool[] memory permissions = dNft.hasPermissions(id, address(this), reqPermissions);
-    return (permissions[0] && permissions[1]);
   }
 
   // add DNft to set of Claimers
   function add(uint id) external onlyNftOwner(id) { 
     if (claimers.length() >= config.maxClaimers) revert TooManyClaimers();
-    if (!hasPermissions(id)) revert MissingPermissions();
+    if (!_hasPermissions(id)) revert MissingPermissions();
     claimers.add(id);
     emit Added(id);
   }
@@ -67,7 +58,7 @@ contract Claimer is IClaimer, Owned {
     for (uint i = 0; i < ids.length; ) {
       uint id = ids[i];
       try dNft.claim(id) returns (int share) { 
-        // a fee is only collected if dyad is added to the dNft deposit
+        // a fee is only collected if dyad is added to the dNFT deposit
         if (share > 0) {
           int fee = wadMul(share, config.fee);
           if (fee > 0) { 
@@ -78,5 +69,18 @@ contract Claimer is IClaimer, Owned {
       unchecked { ++i; }
     }
     emit ClaimedAll();
+  }
+
+  //Check if the dNFT id is in the set of Claimers
+  function contains(uint id) external view returns (bool) {
+    return claimers.contains(id);
+  }
+
+  function _hasPermissions(uint id) internal view returns (bool) {
+    Permission[] memory reqPermissions = new Permission[](2);
+    reqPermissions[0] = Permission.CLAIM;
+    reqPermissions[1] = Permission.MOVE;
+    bool[] memory permissions = dNft.hasPermissions(id, address(this), reqPermissions);
+    return (permissions[0] && permissions[1]);
   }
 }

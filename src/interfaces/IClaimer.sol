@@ -15,7 +15,6 @@ interface IClaimer {
   event ClaimedAll();
 
   error InvalidFee        (int fee);
-  error InvalidMaxClaimers(uint maxClaimers);
   error TooManyClaimers   ();
   error MissingPermissions();
   error NotNFTOwner       (uint id);
@@ -25,7 +24,6 @@ interface IClaimer {
    * @dev Will revert:
    *      - If it is not called by the owner
    *      - If the new fee is higher than the max fee as specified by `MAX_FEE`
-   *      - If the new max claimers is lower than the current max claimers
    * @dev Emits:
    *      - ConfigSet(Config config)
    * @param config The new config that will replace the current config
@@ -59,7 +57,14 @@ interface IClaimer {
    * @dev Emits:
    *      - ClaimedAll()
    * @dev Note: The dNFT will be removed from the set of claimers if the `claim`
-   *      or `move` function reverts
+   *      or `move` function reverts for it
    */
   function claimAll() external;
+
+  /**
+   * @notice Check if the dNFT id is in the set of Claimers
+   * @param id The id of the dNFT to check for
+   * @return True if the dNFT is in the set of Claimers, false otherwise
+   */
+  function contains(uint id) external returns (bool);
 }
