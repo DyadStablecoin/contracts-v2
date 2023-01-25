@@ -185,7 +185,6 @@ interface IDNft {
    * @dev Will revert:
    *      - If dNFT with `id` is not active
    *      - If the total supply of dyad is 0
-   *      - If the total supply of dyad is 0
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
    *      - The price between the last sync and now is too small as determined by `MIN_PRICE_CHANGE_BETWEEN_SYNC`
    * @dev Emits:
