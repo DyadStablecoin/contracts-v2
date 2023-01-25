@@ -246,7 +246,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy vector
+      (bool success,) = payable(to).call{value: eth}(""); // re-entrancy vector
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit Redeemed(msg.sender, from, amount);
       return eth;
