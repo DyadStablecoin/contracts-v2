@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
-enum Permission { ACTIVATE, DEACTIVATE, EXCHANGE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
+enum Permission { ACTIVATE, DEACTIVATE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
 
 struct PermissionSet {
   address operator;         // The address of the operator
@@ -25,7 +25,7 @@ interface IDNft {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
-  error ExceedsAverageTVL              (uint averageTVL);
+  error ExceedsAverageTVL              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -43,7 +43,6 @@ interface IDNft {
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
-  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);
@@ -76,14 +75,13 @@ interface IDNft {
   function mint(address to) external payable returns (uint id);
 
   /**
-   * @notice Exchange ETH for DYAD deposit
+   * @notice Exchange ETH for deposited DYAD
    * @dev Will revert:
-   *      - If `msg.sender` is not the owner of the dNFT AND does not have the
-   *        `EXCHANGE` permission
-   *      - dNFT is inactive
+   *      - If dNFT does not exist
    * @dev Emits:
    *      - Exchanged
    * @dev For Auditors:
+   *      - Permissionless by design
    *      - To save gas it does not check if `msg.value` is zero 
    * @param id Id of the dNFT that gets the deposited DYAD
    * @return amount Amount of DYAD deposited
@@ -140,12 +138,10 @@ interface IDNft {
    *      - If dNFT withdrawal is larger than the average TVL after the 
    *        withdrawal
    * @dev Emits:
-   *      - Withdrawn(uint indexed from, address indexed to, uint amount)
+   *      - Withdrawn
    * @dev For Auditors:
    *      - To save gas it does not check if `amount` is 0 
    *      - To save gas it does not check if `from` == `to`
-   *      - To prevent flash-loan attacks, (`exchange` or `deposit`) and `withdraw` can not be
-   *        called for the same dNFT in the same block
    * @param from Id of the dNFT to withdraw from
    * @param to Address to send the DYAD to
    * @param amount Amount of DYAD to withdraw
@@ -184,7 +180,6 @@ interface IDNft {
    * @notice Determine amount of dyad to mint/burn in the next claim window
    * @dev Will revert:
    *      - If dNFT with `id` is not active
-   *      - If the total supply of dyad is 0
    *      - If the total supply of dyad is 0
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
    *      - The price between the last sync and now is too small as determined by `MIN_PRICE_CHANGE_BETWEEN_SYNC`
