@@ -5,29 +5,18 @@ import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {Owned} from "@solmate/src/auth/Owned.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {IDNft, Permission} from "../interfaces/IDNft.sol";
+import {IClaimer} from "../interfaces/IClaimer.sol";
 
 // Stake your dNFT to automatically get `claim` called for you
-contract Claimer is Owned {
+contract Claimer is IClaimer, Owned {
   using EnumerableSet for EnumerableSet.UintSet;
 
   int public constant MAX_FEE = 0.1e18; // 1000 bps or 10%
 
   EnumerableSet.UintSet private dNfts;
 
-  struct Config {
-    int  fee;
-    uint feeCollector; // dNFT that gets the fee
-    uint maxClaimers;  // maximum number of dNfts that can be claimed for
-  }
-
   IDNft  public dNft;
   Config public config;
-
-  error InvalidFee        (int fee);
-  error InvalidMaxClaimers(uint maxClaimers);
-  error TooManyClaimers   ();
-  error MissingPermissions();
-  error NotNFTOwner       (uint id);
 
   modifier onlyNftOwner(uint id) {
     if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
@@ -40,9 +29,10 @@ contract Claimer is Owned {
   }
 
   function setConfig(Config memory _config) external onlyOwner {
-    if (_config.fee <= MAX_FEE) revert InvalidFee(_config.fee);
+    if (_config.fee         <= MAX_FEE)            revert InvalidFee(_config.fee);
     if (_config.maxClaimers <= config.maxClaimers) revert InvalidMaxClaimers(_config.maxClaimers);
     config = _config;
+    emit ConfigSet(_config);
   }
 
   function hasPermission(uint id) public view returns (bool) {
@@ -58,11 +48,17 @@ contract Claimer is Owned {
     if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
     if (!hasPermission(id)) revert MissingPermissions();
     dNfts.add(id);
+    emit Added(id);
   }
 
   // remove DNft from claim list
   function remove(uint id) external onlyNftOwner(id) {
+    _remove(id);
+  }
+
+  function _remove(uint id) internal {
     dNfts.remove(id);
+    emit Removed(id);
   }
 
   // claim for all DNfts
@@ -78,9 +74,10 @@ contract Claimer is Owned {
           if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
         }
       } catch {
-        dNfts.remove(id);
+        _remove(id);
       }
       unchecked { ++i; }
     }
+    emit ClaimedAll();
   }
 }
