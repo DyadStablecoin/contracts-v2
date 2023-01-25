@@ -36,7 +36,7 @@ contract DeployBase is Script, Parameters {
     );
     Claimer claimer = new Claimer(
       IDNft(address(dNft)), 
-      IClaimer.Config(FEE, FEE_COLLECTOR, MAX_STAKER)
+      IClaimer.Config(FEE, FEE_COLLECTOR, MAX_NUMBER_OF_CLAIMERS)
     );
 
     dyad.transferOwnership(address(dNft));

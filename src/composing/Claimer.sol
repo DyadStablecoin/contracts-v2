@@ -13,7 +13,7 @@ contract Claimer is IClaimer, Owned {
 
   int public constant MAX_FEE = 0.1e18; // 1000 bps or 10%
 
-  EnumerableSet.UintSet private dNfts;
+  EnumerableSet.UintSet private claimers;
 
   IDNft  public dNft;
   Config public config;
@@ -35,7 +35,7 @@ contract Claimer is IClaimer, Owned {
     emit ConfigSet(_config);
   }
 
-  function hasPermission(uint id) public view returns (bool) {
+  function hasPermissions(uint id) public view returns (bool) {
     Permission[] memory reqPermissions = new Permission[](2);
     reqPermissions[0] = Permission.CLAIM;
     reqPermissions[1] = Permission.MOVE;
@@ -43,39 +43,38 @@ contract Claimer is IClaimer, Owned {
     return (permissions[0] && permissions[1]);
   }
 
-  // add DNft to claim list
+  // add DNft to set of Claimers
   function add(uint id) external onlyNftOwner(id) { 
-    if (dNft.balanceOf(address(this)) >= config.maxClaimers) revert TooManyClaimers();
-    if (!hasPermission(id)) revert MissingPermissions();
-    dNfts.add(id);
+    if (claimers.length() >= config.maxClaimers) revert TooManyClaimers();
+    if (!hasPermissions(id)) revert MissingPermissions();
+    claimers.add(id);
     emit Added(id);
   }
 
-  // remove DNft from claim list
+  // remove DNft from set of Claimers
   function remove(uint id) external onlyNftOwner(id) {
     _remove(id);
   }
 
   function _remove(uint id) internal {
-    dNfts.remove(id);
+    claimers.remove(id);
     emit Removed(id);
   }
 
-  // claim for all DNfts
+  // Claim for all dNFTs in the Claimers set
   function claimAll() external {
-    uint[] memory ids = dNfts.values();
+    uint[] memory ids = claimers.values();
     for (uint i = 0; i < ids.length; ) {
       uint id = ids[i];
-      // will fail if this contract does not have the required permissions
       try dNft.claim(id) returns (int share) { 
         // a fee is only collected if dyad is added to the dNft deposit
         if (share > 0) {
           int fee = wadMul(share, config.fee);
-          if (fee > 0) { dNft.move(id, config.feeCollector, fee); }
+          if (fee > 0) { 
+            try dNft.move(id, config.feeCollector, fee) {} catch { _remove(id); }
+          }
         }
-      } catch {
-        _remove(id);
-      }
+      } catch { _remove(id); }
       unchecked { ++i; }
     }
     emit ClaimedAll();

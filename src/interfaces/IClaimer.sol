@@ -10,8 +10,8 @@ interface IClaimer {
   }
 
   event ConfigSet (Config _config);
-  event Added     (uint id);
-  event Removed   (uint id);
+  event Added     (uint indexed id);
+  event Removed   (uint indexed id);
   event ClaimedAll();
 
   error InvalidFee        (int fee);
@@ -33,7 +33,7 @@ interface IClaimer {
   function setConfig(Config memory config) external;
 
   /**
-   * @notice Add dNFT to the claim list
+   * @notice Add dNFT to set of Claimers
    * @dev Will revert:
    *      - If it is not called by the owner of the dNFT
    *      - If the max number of claimers is reached
@@ -45,21 +45,21 @@ interface IClaimer {
   function add(uint id) external;
 
   /**
-   * @notice Remove dNFT from the claim list
+   * @notice Remove dNFT from set of Claimers
    * @dev Will revert:
    *      - If it is not called by the owner of the dNFT
    * @dev Emits:
    *      - Removed(uint id)
-   * @param id The id of the dNFT to add
+   * @param id The id of the dNFT to remove
    */
   function remove(uint id) external;
 
   /**
-   * @notice Call claim for all dNFTs on the claim list
+   * @notice Claim for all dNFTs in the Claimers set
    * @dev Emits:
    *      - ClaimedAll()
-   * @dev Note: If calling the claim function for a dNFT fails for 
-   *      any reason, it will be removed from the claim list
+   * @dev Note: The dNFT will be removed from the set of claimers if the `claim`
+   *      or `move` function reverts
    */
   function claimAll() external;
 }

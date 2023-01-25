@@ -4,6 +4,7 @@ pragma solidity = 0.8.17;
 import "forge-std/console.sol";
 import {BaseTest} from "../BaseTest.sol";
 import {IDNft, Permission, PermissionSet} from "../../src/interfaces/IDNft.sol";
+import {IClaimer} from "../../src/interfaces/IClaimer.sol";
 
 contract ClaimerTest is BaseTest {
 
@@ -18,6 +19,7 @@ contract ClaimerTest is BaseTest {
     dNft.grant(id, ps);
   }
 
+  // -------------------- mint --------------------
   function testAdd() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
@@ -25,18 +27,49 @@ contract ClaimerTest is BaseTest {
     _givePermission(id);
     claimer.add(id);
   }
+  function testCannotAddIsNotdNFTOwner() public {
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
+    claimer.add(0);
+  }
+  function testCannotAddMaxNumberOfClaimersReached() public {
+    for (uint i = 0; i < MAX_NUMBER_OF_CLAIMERS; i++) {
+      uint id = dNft.mint{value: 5 ether}(address(this));
+      _givePermission(id);
+      claimer.add(id);
+    }
+    uint id2 = dNft.mint{value: 5 ether}(address(this));
+    _givePermission(id2);
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.TooManyClaimers.selector));
+    claimer.add(id2);
+  }
+  function testCannotAddMissingPermission() public {
+    uint id = dNft.mint{value: 5 ether}(address(this));
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.MissingPermissions.selector));
+    claimer.add(id);
+  }
 
+  // -------------------- remove --------------------
   function testRemove() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
-    dNft.approve(address(claimer), id);
     _givePermission(id);
     claimer.add(id);
     // remove and add again
     claimer.remove(id);
     claimer.add(id);
   }
+  function testCannotRemoveIsNotdNFTOwner() public {
+    uint id = dNft.mint{value: 5 ether}(address(1));
+    vm.prank(address(1));
+    _givePermission(id);
+    vm.prank(address(1));
+    claimer.add(id);
 
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, id));
+    claimer.remove(id);
+  }
+
+  // -------------------- claimAll --------------------
   function testClaimAll() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
