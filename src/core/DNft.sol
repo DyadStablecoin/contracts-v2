@@ -174,9 +174,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Exchange ETH for DYAD deposit
   function exchange(uint id) external withPermission(id, Permission.EXCHANGE) isActive(id) payable returns (int) {
+      idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
-      idToLastDeposit[id] = block.number;
       emit Exchanged(id, newDeposit);
       return newDeposit;
   }
@@ -188,11 +188,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
+      idToLastDeposit[id]  = block.number;
       dyad.burn(msg.sender, amount);
       unchecked {
       nft.withdrawal      -= amount; } // amount <= nft.withdrawal
       nft.deposit         += amount.toInt256();
-      idToLastDeposit[id] = block.number;
       emit Deposited(id, amount);
   }
 
