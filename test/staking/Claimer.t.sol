@@ -84,7 +84,7 @@ contract ClaimerTest is BaseTest {
   }
 
   // -------------------- claimAll --------------------
-  function testClaimAll() public {
+  function testClaimAllMint() public {
     // so we have something to claim
     overwrite(address(dNft), "dyadDelta()", 100*1e18);
 
@@ -94,11 +94,14 @@ contract ClaimerTest is BaseTest {
       claimer.add(id);
     }
 
+    (, uint feeCollector,) = claimer.config();
+
+    int feesBefore = dNft.idToNft(feeCollector).deposit;
     int masterDepositBefore0  = dNft.idToNft(0).deposit;
     int masterDepositBefore30 = dNft.idToNft(30).deposit;
     claimer.claimAll();
+    assertTrue(feesBefore < dNft.idToNft(feeCollector).deposit);
     assertTrue(dNft.idToNft(0).deposit  > masterDepositBefore0);
     assertTrue(dNft.idToNft(30).deposit > masterDepositBefore30);
   }
 }
-
