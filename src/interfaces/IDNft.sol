@@ -113,11 +113,13 @@ interface IDNft {
    *      - `amount` is not greater than zero
    *      - If `msg.sender` is not the owner of the `from` dNFT AND does not have the
    *        `MOVE` permission for the `from` dNFT
-   *      - dNFT is inactive
    *      - `amount` to move exceeds the `from` dNFT deposit 
    * @dev Emits:
-   *      - Moved
+   *      - Moved(uint indexed from, uint indexed to, int amount)
    * @dev For Auditors:
+   *      - `amount` is int not uint because it saves us a lot of gas in doing
+   *        the int to uint conversion. But thats means we have to put in the 
+   *        `require(_amount > 0)` check.
    *      - To save gas it does not check if `from` == `to`
    * @param from Id of the dNFT to move the deposit from
    * @param to Id of the dNFT to move the deposit to
