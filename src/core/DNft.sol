@@ -433,9 +433,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share, 
       Nft memory nft
   ) private view returns (int) { // no xp accrual for minting
-      uint relativeXp = nft.xp.divWadDown(totalXp);
-      if (share < 0) { relativeXp = 1e18 - relativeXp; }
-      int relativeDeposit = wadDiv(nft.deposit, totalDeposit);
+      if (nft.deposit <= 0) revert DepositIsNegative(nft.id);
+      uint relativeXp      = nft.xp.divWadDown(totalXp);
+      int  relativeDeposit = wadDiv(nft.deposit, totalDeposit);
       int multi = (relativeXp.toInt256() + relativeDeposit) / 2;
       return wadMul(share, multi);
   }
