@@ -70,7 +70,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   mapping(uint => Nft)                               public idToNft;
   mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
   mapping(uint => mapping(uint => bool))             public idToClaimed;       // id => (blockNumber => claimed)
-  mapping(uint => uint)                              public _idToBlockOfLastDeposit; // id => (blockNumber)
+  mapping(uint => uint)                              public idToLastDeposit; // id => (blockNumber)
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
@@ -176,7 +176,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Exchange ETH for DYAD deposit
   function exchange(uint id) external withPermission(id, Permission.EXCHANGE) isActive(id) payable returns (int) {
-      _idToBlockOfLastDeposit[id] = block.number;
+      idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
       emit Exchanged(id, newDeposit);
@@ -188,17 +188,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint amount
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
-      _idToBlockOfLastDeposit[id] = block.number;
       Nft storage nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
+      idToLastDeposit[id] = block.number;
+      dyad.burn(msg.sender, amount);
       unchecked {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
       int _amount   = amount.toInt256();
       nft.deposit  += _amount;
       totalDeposit += _amount;
-      bool success = dyad.transferFrom(msg.sender, address(this), amount);
-      require(success);
-      dyad.burn(address(this), amount);
       emit Deposited(id, amount);
   }
 
@@ -223,7 +221,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address to, 
       uint amount 
   ) external withPermission(from, Permission.WITHDRAW) isActive(from) {
-      if (_idToBlockOfLastDeposit[from] == block.number) { 
+      if (idToLastDeposit[from] == block.number) { 
         revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
       Nft storage nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
@@ -254,7 +252,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success, ) = payable(to).call{value: eth}(""); // re-entrancy vector
+      (bool success,) = payable(to).call{value: eth}(""); // re-entrancy vector
       if (!success) { revert FailedEthTransfer(msg.sender, eth); }
       emit Redeemed(msg.sender, from, amount);
       return eth;

@@ -148,7 +148,16 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
-    dyad.approve(address(dNft), 2000*1e18);
+    dNft.deposit(id, 2000*1e18);
+  }
+  function testCannotDepositMissingPermission() public {
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.DEPOSIT));
+    dNft.deposit(0, 2000*1e18);
+  }
+  function testCannotDepositNftIsInactive() public {
+    uint id = dNft.mint{value: 50 ether}(address(this));
+    dNft.deactivate(id);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, id));
     dNft.deposit(id, 2000*1e18);
   }
 
