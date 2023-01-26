@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
-import "forge-std/console.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -322,7 +321,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         _addXp(to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
-        (share, xp) = _calcNftBurn(prevDyadDelta, from);
+        (share, xp)   = _calcNftBurn(prevDyadDelta, from);
         from.deposit += share;      
         _addXp(from, xp);
         _addXp(to, _calcXpReward(XP_SNIPE_BURN_REWARD));
