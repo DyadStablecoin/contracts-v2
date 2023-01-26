@@ -221,7 +221,7 @@ contract DNftsTest is BaseTest {
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49047916666666666666600); // nft.deposit
+    assertEq(dNft.idToNft(id).deposit, 49069328703703703703600); // nft.deposit
     assertEq(dNft.idToNft(id).xp, 11050);                        // nft.xp
   }
   function testClaimBurn() public {
@@ -281,10 +281,11 @@ contract DNftsTest is BaseTest {
     // make the deposit of id2 negative so it becomes liquidatable
     uint id = dNft.mint{value: 85 ether}(address(this));
     dNft.withdraw(id, address(this), 100);
-    oracleMock.setPrice(10000*1e8);
-    dNft.withdraw(id, address(this), 70000*1e18);
+    oracleMock.setPrice(100000*1e8);
+    dNft.withdraw(id, address(this), 80000*1e18);
     uint id2 = dNft.mint{value: 0.5 ether}(address(this));
     _sync(id, 100);
+    overwriteNft(id2, dNft.idToNft(id2).xp, 100, 100);
     dNft.claim(id2);
 
     oracleMock.setPrice(5000*1e8);
