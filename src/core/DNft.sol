@@ -290,7 +290,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int  share;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        share = _calcNftMint(dyadDelta, nft.xp);
+        share = _calcNftMint(dyadDelta, nft);
       } else {
         uint xp;
         (share, xp) = _calcNftBurn(dyadDelta, nft.xp);
@@ -315,7 +315,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Nft memory to   = idToNft[_to];
       int share;
       if (prevDyadDelta > 0) {         
-        share         = _calcNftMint(prevDyadDelta, from.xp);
+        share         = _calcNftMint(prevDyadDelta, from);
         from.deposit += wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, SNIPE_MINT_SHARE_REWARD); 
         _addXp(to, _calcXpReward(XP_SNIPE_MINT_REWARD));
@@ -431,11 +431,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Calculate share weighted by relative xp
   function _calcNftMint(
       int share, 
-      uint xp
+      Nft memory nft
   ) private view returns (int) { // no xp accrual for minting
-      uint relativeXp = xp.divWadDown(totalXp);
+      uint relativeXp = nft.xp.divWadDown(totalXp);
       if (share < 0) { relativeXp = 1e18 - relativeXp; }
-      return wadMul(share, relativeXp.toInt256());
+      int relativeDeposit = wadDiv(nft.deposit, totalDeposit);
+      int multi = (relativeXp.toInt256() + relativeDeposit) / 2;
+      return wadMul(share, multi);
   }
 
   // Calculate xp accrual and share by relative xp
