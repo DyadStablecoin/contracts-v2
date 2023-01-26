@@ -74,19 +74,20 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   Dyad public dyad;
   IAggregatorV3 internal oracle;
 
-  event Minted     (address indexed to, uint indexed id);
-  event Deposited  (uint indexed id, uint amount);
-  event Redeemed   (address indexed to, uint indexed id, uint amount);
-  event Withdrawn  (uint indexed from, address indexed to, uint amount);
-  event Exchanged  (uint indexed id, int amount);
-  event Moved      (uint indexed from, uint indexed to, int amount);
-  event Synced     (uint id);
-  event Claimed    (uint indexed id, int share);
-  event Sniped     (uint indexed from, uint indexed to, int share);
-  event Activated  (uint id);
-  event Deactivated(uint id);
-  event Liquidated (address indexed to, uint indexed id);
-  event Modified   (uint256 tokenId, PermissionSet[] permissions);
+  event Minted      (address indexed to, uint indexed id);
+  event Deposited   (uint indexed id, uint amount);
+  event Redeemed    (address indexed to, uint indexed id, uint amount);
+  event Withdrawn   (uint indexed from, address indexed to, uint amount);
+  event Exchanged   (uint indexed id, int amount);
+  event Moved       (uint indexed from, uint indexed to, int amount);
+  event Synced      (uint id);
+  event Claimed     (uint indexed id, int share);
+  event Sniped      (uint indexed from, uint indexed to, int share);
+  event Activated   (uint id);
+  event Deactivated (uint id);
+  event Liquidated  (address indexed to, uint indexed id);
+  event Modified    (uint256 tokenId, PermissionSet[] permissions);
+  event XpIncreased (uint indexed id, uint totalXp);
 
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
@@ -167,7 +168,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); // will revert on address(0)
       Nft memory nft; 
-      _addXp(nft, XP_MINT_REWARD);
+      _addXp(nft, id, XP_MINT_REWARD);
       emit Minted(to, id);
       return (id, nft);
   }
@@ -270,7 +271,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       prevDyadDelta    = dyadDelta;
       dyadDelta        = wadMul(dyadTotalSupply.toInt256(), priceChange);
       Nft memory nft   = idToNft[id];
-      _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChangeAbs));
+      _addXp(nft, id, _calcXpReward(XP_SYNC_REWARD + priceChangeAbs));
       idToNft[id]      = nft;
       emit Synced(id);
       return dyadDelta;
@@ -291,7 +292,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         newXp += xp;
       }
       nft.deposit += share;
-      _addXp(nft, newXp);
+      _addXp(nft, id, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -311,13 +312,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         share         = _calcNftMint(prevDyadDelta, from.xp);
         from.deposit += wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, SNIPE_MINT_SHARE_REWARD); 
-        _addXp(to, _calcXpReward(XP_SNIPE_MINT_REWARD));
+        _addXp(to, _to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, from.xp);
         from.deposit += share;      
-        _addXp(from, xp);
-        _addXp(to, _calcXpReward(XP_SNIPE_BURN_REWARD));
+        _addXp(from, _from, xp);
+        _addXp(to, _to, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
@@ -335,7 +336,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (_deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
-      _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
+      _addXp(nft, id, _calcXpReward(XP_LIQUIDATION_REWARD));
       nft.deposit += newDyad; 
       idToNft[id]  = nft;     
       _transfer(ownerOf(id), to, id);
@@ -413,10 +414,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
-  function _addXp(Nft memory nft, uint xp) private {
+  function _addXp(Nft memory nft, uint id, uint xp) private {
       nft.xp  += xp;
       if (nft.xp > maxXp) { maxXp = nft.xp; }
       totalXp += xp;
+      emit XpIncreased(id, totalXp);
   }
 
   // Calculate share weighted by relative xp

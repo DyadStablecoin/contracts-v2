@@ -1,17 +1,17 @@
 {
   "abi": [],
   "bytecode": {
-    "object": "0x60566037600b82828239805160001a607314602a57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220349e1e7871e99acc7053d93d9f6bda169e93d98fdd5a7dc00d51c5f99284e81364736f6c63430008110033",
+    "object": "0x60566037600b82828239805160001a607314602a57634e487b7160e01b600052600060045260246000fd5b30600052607381538281f3fe73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212202be9e3d22f1c7ef549ab5a472dbd2ab9841d9959e025e82ba68f5eb63fc7812b64736f6c63430008110033",
     "sourceMap": "366:1073:45:-:0;;;;;;;;;;;;;;;-1:-1:-1;;;366:1073:45;;;;;;;;;;;;;;;;;",
     "linkReferences": {}
   },
   "deployedBytecode": {
-    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea2646970667358221220349e1e7871e99acc7053d93d9f6bda169e93d98fdd5a7dc00d51c5f99284e81364736f6c63430008110033",
+    "object": "0x73000000000000000000000000000000000000000030146080604052600080fdfea26469706673582212202be9e3d22f1c7ef549ab5a472dbd2ab9841d9959e025e82ba68f5eb63fc7812b64736f6c63430008110033",
     "sourceMap": "366:1073:45:-:0;;;;;;;;",
     "linkReferences": {}
   },
   "methodIdentifiers": {},
-  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"Permission Math library\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Provides functions to easily convert from permissions to an int representation and viceversaCopy/Pasta from here: https://github.com/Mean-Finance/dca-v2-core/blob/main/contracts/libraries/PermissionMath.sol\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/libraries/PermissionMath.sol\":\"PermissionMath\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":@solmate/=lib/solmate/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":solmate/=lib/solmate/src/\"]},\"sources\":{\"lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol\":{\"keccak256\":\"0xd89f3585b211fc9e3408384a4c4efdc3a93b2f877a3821046fa01c219d35be1b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://5ea15ef7c8980240ccd46df13809d163f749bc0a01d8bced1875660d4872da1c\",\"dweb:/ipfs/QmbDfAT9VeCSG4cnPd6tjDMp8ED85dLHbWyMyv7wbmL4CH\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol\":{\"keccak256\":\"0xab28a56179c1db258c9bf5235b382698cb650debecb51b23d12be9e241374b68\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://daae589a9d6fa7e55f99f86c0a16796ca490f243fb3693632c3711c0646c1d56\",\"dweb:/ipfs/QmR3zpd7wNw3rcUdekwiv6FYHJqksuTCXLVioTxu6Fbxk3\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol\":{\"keccak256\":\"0xa82b58eca1ee256be466e536706850163d2ec7821945abd6b4778cfb3bee37da\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6e75cf83beb757b8855791088546b8337e9d4684e169400c20d44a515353b708\",\"dweb:/ipfs/QmYvPafLfoquiDMEj7CKHtvbgHu7TJNPSVPSCjrtjV8HjV\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol\":{\"keccak256\":\"0xa8796bd16014cefb8c26449413981a49c510f92a98d6828494f5fd046223ced3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://63a5e0bb5a7d182e0d0eef87033f78115eab791de3626a929bc98c157087880a\",\"dweb:/ipfs/QmetkXAu2CJKS4qrZtEQPU8okAPwUwa6HL4XYwk8vrYMk8\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol\":{\"keccak256\":\"0xd1556954440b31c97a142c6ba07d5cade45f96fafd52091d33a14ebe365aecbf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://26fef835622b46a5ba08b3ef6b46a22e94b5f285d0f0fb66b703bd30217d2c34\",\"dweb:/ipfs/QmZ548qdwfL1qF7aXz3xh1GCdTiST81kGGuKRqVUfYmPZR\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol\":{\"keccak256\":\"0x75b829ff2f26c14355d1cba20e16fe7b29ca58eb5fef665ede48bc0f9c6c74b9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a0a107160525724f9e1bbbab031defc2f298296dd9e331f16a6f7130cec32146\",\"dweb:/ipfs/QmemujxSd7gX8A9M8UwmNbz4Ms3U9FG9QfudUgxwvTmPWf\"]},\"lib/openzeppelin-contracts/contracts/utils/Address.sol\":{\"keccak256\":\"0xf96f969e24029d43d0df89e59d365f277021dac62b48e1c1e3ebe0acdd7f1ca1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ec772b45a624be516f1c81970caa8a2e144301e9d0921cbc1a2789fef39a1269\",\"dweb:/ipfs/QmNyjwxCrGhQMyzLD93oUobJXVe9ceJvRvfXwbEtuxPiEj\"]},\"lib/openzeppelin-contracts/contracts/utils/Context.sol\":{\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6df0ddf21ce9f58271bdfaa85cde98b200ef242a05a3f85c2bc10a8294800a92\",\"dweb:/ipfs/QmRK2Y5Yc6BK7tGKkgsgn3aJEQGi5aakeSPZvS65PV8Xp3\"]},\"lib/openzeppelin-contracts/contracts/utils/Strings.sol\":{\"keccak256\":\"0xa4d1d62251f8574deb032a35fc948386a9b4de74b812d4f545a1ac120486b48a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8c969013129ba9e651a20735ef659fef6d8a1139ea3607bd4b26ddea2d645634\",\"dweb:/ipfs/QmVhVa6LGuzAcB8qgDtVHRkucn4ihj5UZr8xBLcJkP6ucb\"]},\"lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol\":{\"keccak256\":\"0xd10975de010d89fd1c78dc5e8a9a7e7f496198085c151648f20cba166b32582b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fb0048dee081f6fffa5f74afc3fb328483c2a30504e94a0ddd2a5114d731ec4d\",\"dweb:/ipfs/QmZptt1nmYoA5SgjwnSgWqgUSDgm4q52Yos3xhnMv3MV43\"]},\"lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol\":{\"keccak256\":\"0x447a5f3ddc18419d41ff92b3773fb86471b1db25773e07f877f548918a185bf1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://be161e54f24e5c6fae81a12db1a8ae87bc5ae1b0ddc805d82a1440a68455088f\",\"dweb:/ipfs/QmP7C3CHdY9urF4dEMb9wmsp1wMxHF6nhA2yQE5SKiPAdy\"]},\"lib/openzeppelin-contracts/contracts/utils/math/Math.sol\":{\"keccak256\":\"0xa1e8e83cd0087785df04ac79fb395d9f3684caeaf973d9e2c71caef723a3a5d6\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://33bbf48cc069be677705037ba7520c22b1b622c23b33e1a71495f2d36549d40b\",\"dweb:/ipfs/Qmct36zWXv3j7LZB83uwbg7TXwnZSN1fqHNDZ93GG98bGz\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol\":{\"keccak256\":\"0x52a8cfb0f5239d11b457dcdd1b326992ef672714ca8da71a157255bddd13f3ad\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://495145362c7ff1c9ca88c58bbbbcb412e3c2004406647412394486552ff6c278\",\"dweb:/ipfs/QmNNCeng6d5eRPDn6tkWSQhjE39XWfQEfjA63rRwHmr1iH\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7\",\"dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6\"]},\"lib/solmate/src/auth/Owned.sol\":{\"keccak256\":\"0xfedb27d14c508342c33eb067c9a02eabcdb0f9dcf93b04ded1001f580d12d0ea\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://1ff52bbee698b9cf9e4574615e6550be0887ccf355f6571e23d6f25b332e79b4\",\"dweb:/ipfs/QmVorA2apojVRStzS7h8aFccR3Uv32G6HVtBtFHZrE7YXx\"]},\"lib/solmate/src/tokens/ERC20.sol\":{\"keccak256\":\"0xcdfd8db76b2a3415620e4d18cc5545f3d50de792dbf2c3dd5adb40cbe6f94b10\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://57b3ab70cde374af1cf2c9888636e8de6cf660f087b1c9abd805e9271e19fa35\",\"dweb:/ipfs/QmNrLDBAHYFjpjSd12jerm1AdBkDqEYUUaXgnT854BUZ97\"]},\"lib/solmate/src/utils/FixedPointMathLib.sol\":{\"keccak256\":\"0x1b62af9baf5b8e991ed7531bc87f45550ba9d61e8dbff5caf237ccaf3a3fd843\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://b7b38b977c5305b18ceefbeed4c9ceaaaefa419b520de62de6604ea661f8c0a9\",\"dweb:/ipfs/QmecMRzgfMyDVa2pvBqMMDLYBappaj7Aa3qcMoQYEQrhWi\"]},\"lib/solmate/src/utils/LibString.sol\":{\"keccak256\":\"0x5129243d01d1ff65ee34aed11660bf13f01964f481664c96676877df70f32909\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://cf4ad509b77f5225faacd793953d6cab8a73667f9891fdfffb145168616bafeb\",\"dweb:/ipfs/QmfM7F1dXEDYruPaHXBXGC4cuWUizt1PBR628RNptEhbCd\"]},\"lib/solmate/src/utils/ReentrancyGuard.sol\":{\"keccak256\":\"0xb282dd78aa7375d6b200b9a5d8dd214b2e5df1004f8217a4b4c2b07f0c5bfd01\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://5fca62eb8d3dbd2b3b7e4bb051f6da16f4d0ff9cee61c39cebb80f031f6a8800\",\"dweb:/ipfs/QmbrsXPK91iBFwHKwJs2HLRud2KzMoBDRiWYMUtyV5H57j\"]},\"lib/solmate/src/utils/SignedWadMath.sol\":{\"keccak256\":\"0x43afbe799f745a6095e03fc2d5e3981c9c5bf65a900e916d5b286084a29bf036\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://51652beb270c0f990d3b880e922abb124c429e73afd09dc40d54cb273ba9383a\",\"dweb:/ipfs/QmUtX4R7jmdwjVoFCBAAXaW8KdTRCmwdKyjbUqDfHiQisT\"]},\"src/core/DNft.sol\":{\"keccak256\":\"0x7d442b45f13b2aaaf2117463fbc6e9b309b6873bb1dbd9df803451aaad4db2cb\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://5e0436bcc4350633b6e82fa1b6c4a2933b4ccfc837202267b57cd1e3b6bdb450\",\"dweb:/ipfs/QmQ46sUXYrSk7Qp1PqMZgkDBJtEoJm1FLMhN6FWUGemZhS\"]},\"src/core/Dyad.sol\":{\"keccak256\":\"0x2ad7c3ccd0bbfb119754c0ba459bc42193664ce0fbecf40cd8225f8b7b380936\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://4b0ad62eeee09d9d9fa26f42ce95cd847beaa64d4a5b8b7d2eb31c3bf82d0dfe\",\"dweb:/ipfs/QmPNct7www3p5s1Rz1oFNZVLkShkoZz18ypuQyzW7QhK4d\"]},\"src/interfaces/AggregatorV3Interface.sol\":{\"keccak256\":\"0x81a73c1e2e76a9c6771a1d2e17088864898b30e0a994214f33f425d2702a5ff5\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e2c614d0470a7477b890d812b83c986555b3f965574ad568c3a9af1e428186a8\",\"dweb:/ipfs/QmQwN1t47REy5JniJiFi55dpydCvK9vNRUgzauvkNbwiUL\"]},\"src/libraries/PermissionMath.sol\":{\"keccak256\":\"0x0be3338ba4e2c2633910dfb7c1edd52709b50aa0fcfdb4303de8b8971c5fd7f9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://979f253974606139ea39cb3a7ed998d72a1ab4a7ba8947dbe4146937e8c21ce4\",\"dweb:/ipfs/QmX1c7pf2nTMidhfouG8Jb3t1Ebxwbuef2ykh3FbTy7Nxv\"]}},\"version\":1}",
+  "rawMetadata": "{\"compiler\":{\"version\":\"0.8.17+commit.8df45f5f\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"title\":\"Permission Math library\",\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"notice\":\"Provides functions to easily convert from permissions to an int representation and viceversaCopy/Pasta from here: https://github.com/Mean-Finance/dca-v2-core/blob/main/contracts/libraries/PermissionMath.sol\",\"version\":1}},\"settings\":{\"compilationTarget\":{\"src/libraries/PermissionMath.sol\":\"PermissionMath\"},\"evmVersion\":\"london\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[\":@openzeppelin/=lib/openzeppelin-contracts/\",\":@solmate/=lib/solmate/\",\":ds-test/=lib/forge-std/lib/ds-test/src/\",\":forge-std/=lib/forge-std/src/\",\":solmate/=lib/solmate/src/\"]},\"sources\":{\"lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol\":{\"keccak256\":\"0xd89f3585b211fc9e3408384a4c4efdc3a93b2f877a3821046fa01c219d35be1b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://5ea15ef7c8980240ccd46df13809d163f749bc0a01d8bced1875660d4872da1c\",\"dweb:/ipfs/QmbDfAT9VeCSG4cnPd6tjDMp8ED85dLHbWyMyv7wbmL4CH\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol\":{\"keccak256\":\"0xab28a56179c1db258c9bf5235b382698cb650debecb51b23d12be9e241374b68\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://daae589a9d6fa7e55f99f86c0a16796ca490f243fb3693632c3711c0646c1d56\",\"dweb:/ipfs/QmR3zpd7wNw3rcUdekwiv6FYHJqksuTCXLVioTxu6Fbxk3\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol\":{\"keccak256\":\"0xa82b58eca1ee256be466e536706850163d2ec7821945abd6b4778cfb3bee37da\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6e75cf83beb757b8855791088546b8337e9d4684e169400c20d44a515353b708\",\"dweb:/ipfs/QmYvPafLfoquiDMEj7CKHtvbgHu7TJNPSVPSCjrtjV8HjV\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol\":{\"keccak256\":\"0xa8796bd16014cefb8c26449413981a49c510f92a98d6828494f5fd046223ced3\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://63a5e0bb5a7d182e0d0eef87033f78115eab791de3626a929bc98c157087880a\",\"dweb:/ipfs/QmetkXAu2CJKS4qrZtEQPU8okAPwUwa6HL4XYwk8vrYMk8\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol\":{\"keccak256\":\"0xd1556954440b31c97a142c6ba07d5cade45f96fafd52091d33a14ebe365aecbf\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://26fef835622b46a5ba08b3ef6b46a22e94b5f285d0f0fb66b703bd30217d2c34\",\"dweb:/ipfs/QmZ548qdwfL1qF7aXz3xh1GCdTiST81kGGuKRqVUfYmPZR\"]},\"lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol\":{\"keccak256\":\"0x75b829ff2f26c14355d1cba20e16fe7b29ca58eb5fef665ede48bc0f9c6c74b9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://a0a107160525724f9e1bbbab031defc2f298296dd9e331f16a6f7130cec32146\",\"dweb:/ipfs/QmemujxSd7gX8A9M8UwmNbz4Ms3U9FG9QfudUgxwvTmPWf\"]},\"lib/openzeppelin-contracts/contracts/utils/Address.sol\":{\"keccak256\":\"0xf96f969e24029d43d0df89e59d365f277021dac62b48e1c1e3ebe0acdd7f1ca1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://ec772b45a624be516f1c81970caa8a2e144301e9d0921cbc1a2789fef39a1269\",\"dweb:/ipfs/QmNyjwxCrGhQMyzLD93oUobJXVe9ceJvRvfXwbEtuxPiEj\"]},\"lib/openzeppelin-contracts/contracts/utils/Context.sol\":{\"keccak256\":\"0xe2e337e6dde9ef6b680e07338c493ebea1b5fd09b43424112868e9cc1706bca7\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://6df0ddf21ce9f58271bdfaa85cde98b200ef242a05a3f85c2bc10a8294800a92\",\"dweb:/ipfs/QmRK2Y5Yc6BK7tGKkgsgn3aJEQGi5aakeSPZvS65PV8Xp3\"]},\"lib/openzeppelin-contracts/contracts/utils/Strings.sol\":{\"keccak256\":\"0xa4d1d62251f8574deb032a35fc948386a9b4de74b812d4f545a1ac120486b48a\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://8c969013129ba9e651a20735ef659fef6d8a1139ea3607bd4b26ddea2d645634\",\"dweb:/ipfs/QmVhVa6LGuzAcB8qgDtVHRkucn4ihj5UZr8xBLcJkP6ucb\"]},\"lib/openzeppelin-contracts/contracts/utils/introspection/ERC165.sol\":{\"keccak256\":\"0xd10975de010d89fd1c78dc5e8a9a7e7f496198085c151648f20cba166b32582b\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://fb0048dee081f6fffa5f74afc3fb328483c2a30504e94a0ddd2a5114d731ec4d\",\"dweb:/ipfs/QmZptt1nmYoA5SgjwnSgWqgUSDgm4q52Yos3xhnMv3MV43\"]},\"lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol\":{\"keccak256\":\"0x447a5f3ddc18419d41ff92b3773fb86471b1db25773e07f877f548918a185bf1\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://be161e54f24e5c6fae81a12db1a8ae87bc5ae1b0ddc805d82a1440a68455088f\",\"dweb:/ipfs/QmP7C3CHdY9urF4dEMb9wmsp1wMxHF6nhA2yQE5SKiPAdy\"]},\"lib/openzeppelin-contracts/contracts/utils/math/Math.sol\":{\"keccak256\":\"0xa1e8e83cd0087785df04ac79fb395d9f3684caeaf973d9e2c71caef723a3a5d6\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://33bbf48cc069be677705037ba7520c22b1b622c23b33e1a71495f2d36549d40b\",\"dweb:/ipfs/Qmct36zWXv3j7LZB83uwbg7TXwnZSN1fqHNDZ93GG98bGz\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SafeCast.sol\":{\"keccak256\":\"0x52a8cfb0f5239d11b457dcdd1b326992ef672714ca8da71a157255bddd13f3ad\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://495145362c7ff1c9ca88c58bbbbcb412e3c2004406647412394486552ff6c278\",\"dweb:/ipfs/QmNNCeng6d5eRPDn6tkWSQhjE39XWfQEfjA63rRwHmr1iH\"]},\"lib/openzeppelin-contracts/contracts/utils/math/SignedMath.sol\":{\"keccak256\":\"0xf92515413956f529d95977adc9b0567d583c6203fc31ab1c23824c35187e3ddc\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c50fcc459e49a9858b6d8ad5f911295cb7c9ab57567845a250bf0153f84a95c7\",\"dweb:/ipfs/QmcEW85JRzvDkQggxiBBLVAasXWdkhEysqypj9EaB6H2g6\"]},\"lib/solmate/src/auth/Owned.sol\":{\"keccak256\":\"0xfedb27d14c508342c33eb067c9a02eabcdb0f9dcf93b04ded1001f580d12d0ea\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://1ff52bbee698b9cf9e4574615e6550be0887ccf355f6571e23d6f25b332e79b4\",\"dweb:/ipfs/QmVorA2apojVRStzS7h8aFccR3Uv32G6HVtBtFHZrE7YXx\"]},\"lib/solmate/src/tokens/ERC20.sol\":{\"keccak256\":\"0xcdfd8db76b2a3415620e4d18cc5545f3d50de792dbf2c3dd5adb40cbe6f94b10\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://57b3ab70cde374af1cf2c9888636e8de6cf660f087b1c9abd805e9271e19fa35\",\"dweb:/ipfs/QmNrLDBAHYFjpjSd12jerm1AdBkDqEYUUaXgnT854BUZ97\"]},\"lib/solmate/src/utils/FixedPointMathLib.sol\":{\"keccak256\":\"0x1b62af9baf5b8e991ed7531bc87f45550ba9d61e8dbff5caf237ccaf3a3fd843\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://b7b38b977c5305b18ceefbeed4c9ceaaaefa419b520de62de6604ea661f8c0a9\",\"dweb:/ipfs/QmecMRzgfMyDVa2pvBqMMDLYBappaj7Aa3qcMoQYEQrhWi\"]},\"lib/solmate/src/utils/LibString.sol\":{\"keccak256\":\"0x5129243d01d1ff65ee34aed11660bf13f01964f481664c96676877df70f32909\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://cf4ad509b77f5225faacd793953d6cab8a73667f9891fdfffb145168616bafeb\",\"dweb:/ipfs/QmfM7F1dXEDYruPaHXBXGC4cuWUizt1PBR628RNptEhbCd\"]},\"lib/solmate/src/utils/ReentrancyGuard.sol\":{\"keccak256\":\"0xb282dd78aa7375d6b200b9a5d8dd214b2e5df1004f8217a4b4c2b07f0c5bfd01\",\"license\":\"AGPL-3.0-only\",\"urls\":[\"bzz-raw://5fca62eb8d3dbd2b3b7e4bb051f6da16f4d0ff9cee61c39cebb80f031f6a8800\",\"dweb:/ipfs/QmbrsXPK91iBFwHKwJs2HLRud2KzMoBDRiWYMUtyV5H57j\"]},\"lib/solmate/src/utils/SignedWadMath.sol\":{\"keccak256\":\"0x43afbe799f745a6095e03fc2d5e3981c9c5bf65a900e916d5b286084a29bf036\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://51652beb270c0f990d3b880e922abb124c429e73afd09dc40d54cb273ba9383a\",\"dweb:/ipfs/QmUtX4R7jmdwjVoFCBAAXaW8KdTRCmwdKyjbUqDfHiQisT\"]},\"src/core/DNft.sol\":{\"keccak256\":\"0x1e546c62421ee250aef98048ef9f90c9ebf24167900f523caa6e14d874f4adb9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://c27de649600ec818aec40a02ab9eb79242c8969cdf520189b7a2d850f02e911d\",\"dweb:/ipfs/QmSHGLxXLRMpxRv2sqUXiFfKokn4fGMF7LiQi24gY7CVtg\"]},\"src/core/Dyad.sol\":{\"keccak256\":\"0x2ad7c3ccd0bbfb119754c0ba459bc42193664ce0fbecf40cd8225f8b7b380936\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://4b0ad62eeee09d9d9fa26f42ce95cd847beaa64d4a5b8b7d2eb31c3bf82d0dfe\",\"dweb:/ipfs/QmPNct7www3p5s1Rz1oFNZVLkShkoZz18ypuQyzW7QhK4d\"]},\"src/interfaces/AggregatorV3Interface.sol\":{\"keccak256\":\"0x81a73c1e2e76a9c6771a1d2e17088864898b30e0a994214f33f425d2702a5ff5\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://e2c614d0470a7477b890d812b83c986555b3f965574ad568c3a9af1e428186a8\",\"dweb:/ipfs/QmQwN1t47REy5JniJiFi55dpydCvK9vNRUgzauvkNbwiUL\"]},\"src/libraries/PermissionMath.sol\":{\"keccak256\":\"0x0be3338ba4e2c2633910dfb7c1edd52709b50aa0fcfdb4303de8b8971c5fd7f9\",\"license\":\"MIT\",\"urls\":[\"bzz-raw://979f253974606139ea39cb3a7ed998d72a1ab4a7ba8947dbe4146937e8c21ce4\",\"dweb:/ipfs/QmX1c7pf2nTMidhfouG8Jb3t1Ebxwbuef2ykh3FbTy7Nxv\"]}},\"version\":1}",
   "metadata": {
     "compiler": {
       "version": "0.8.17+commit.8df45f5f"
@@ -212,10 +212,10 @@
         "license": "MIT"
       },
       "src/core/DNft.sol": {
-        "keccak256": "0x7d442b45f13b2aaaf2117463fbc6e9b309b6873bb1dbd9df803451aaad4db2cb",
+        "keccak256": "0x1e546c62421ee250aef98048ef9f90c9ebf24167900f523caa6e14d874f4adb9",
         "urls": [
-          "bzz-raw://5e0436bcc4350633b6e82fa1b6c4a2933b4ccfc837202267b57cd1e3b6bdb450",
-          "dweb:/ipfs/QmQ46sUXYrSk7Qp1PqMZgkDBJtEoJm1FLMhN6FWUGemZhS"
+          "bzz-raw://c27de649600ec818aec40a02ab9eb79242c8969cdf520189b7a2d850f02e911d",
+          "dweb:/ipfs/QmSHGLxXLRMpxRv2sqUXiFfKokn4fGMF7LiQi24gY7CVtg"
         ],
         "license": "MIT"
       },
@@ -248,20 +248,20 @@
   },
   "ast": {
     "absolutePath": "src/libraries/PermissionMath.sol",
-    "id": 35076,
+    "id": 35096,
     "exportedSymbols": {
       "DNft": [
-        34443
+        34463
       ],
       "PermissionMath": [
-        35075
+        35095
       ]
     },
     "nodeType": "SourceUnit",
     "src": "32:1409:45",
     "nodes": [
       {
-        "id": 35002,
+        "id": 35022,
         "nodeType": "PragmaDirective",
         "src": "32:25:45",
         "nodes": [],
@@ -273,23 +273,23 @@
         ]
       },
       {
-        "id": 35004,
+        "id": 35024,
         "nodeType": "ImportDirective",
         "src": "59:38:45",
         "nodes": [],
         "absolutePath": "src/core/DNft.sol",
         "file": "../core/DNft.sol",
         "nameLocation": "-1:-1:-1",
-        "scope": 35076,
-        "sourceUnit": 34444,
+        "scope": 35096,
+        "sourceUnit": 34464,
         "symbolAliases": [
           {
             "foreign": {
-              "id": 35003,
+              "id": 35023,
               "name": "DNft",
               "nodeType": "Identifier",
               "overloadedDeclarations": [],
-              "referencedDeclaration": 34443,
+              "referencedDeclaration": 34463,
               "src": "67:4:45",
               "typeDescriptions": {}
             },
@@ -299,40 +299,40 @@
         "unitAlias": ""
       },
       {
-        "id": 35075,
+        "id": 35095,
         "nodeType": "ContractDefinition",
         "src": "366:1073:45",
         "nodes": [
           {
-            "id": 35044,
+            "id": 35064,
             "nodeType": "FunctionDefinition",
             "src": "608:267:45",
             "nodes": [],
             "body": {
-              "id": 35043,
+              "id": 35063,
               "nodeType": "Block",
               "src": "711:164:45",
               "nodes": [],
               "statements": [
                 {
                   "body": {
-                    "id": 35041,
+                    "id": 35061,
                     "nodeType": "Block",
                     "src": "764:107:45",
                     "statements": [
                       {
                         "expression": {
-                          "id": 35035,
+                          "id": 35055,
                           "isConstant": false,
                           "isLValue": false,
                           "isPure": false,
                           "lValueRequested": false,
                           "leftHandSide": {
-                            "id": 35023,
+                            "id": 35043,
                             "name": "_representation",
                             "nodeType": "Identifier",
                             "overloadedDeclarations": [],
-                            "referencedDeclaration": 35013,
+                            "referencedDeclaration": 35033,
                             "src": "772:15:45",
                             "typeDescriptions": {
                               "typeIdentifier": "t_uint8",
@@ -348,14 +348,14 @@
                                   "typeIdentifier": "t_uint256",
                                   "typeString": "uint256"
                                 },
-                                "id": 35033,
+                                "id": 35053,
                                 "isConstant": false,
                                 "isLValue": false,
                                 "isPure": false,
                                 "lValueRequested": false,
                                 "leftExpression": {
                                   "hexValue": "31",
-                                  "id": 35026,
+                                  "id": 35046,
                                   "isConstant": false,
                                   "isLValue": false,
                                   "isPure": true,
@@ -375,24 +375,24 @@
                                   "arguments": [
                                     {
                                       "baseExpression": {
-                                        "id": 35029,
+                                        "id": 35049,
                                         "name": "_permissions",
                                         "nodeType": "Identifier",
                                         "overloadedDeclarations": [],
-                                        "referencedDeclaration": 35010,
+                                        "referencedDeclaration": 35030,
                                         "src": "808:12:45",
                                         "typeDescriptions": {
                                           "typeIdentifier": "t_array$_t_enum$_Permission_$32564_$dyn_memory_ptr",
                                           "typeString": "enum DNft.Permission[] memory"
                                         }
                                       },
-                                      "id": 35031,
+                                      "id": 35051,
                                       "indexExpression": {
-                                        "id": 35030,
+                                        "id": 35050,
                                         "name": "i",
                                         "nodeType": "Identifier",
                                         "overloadedDeclarations": [],
-                                        "referencedDeclaration": 35016,
+                                        "referencedDeclaration": 35036,
                                         "src": "821:1:45",
                                         "typeDescriptions": {
                                           "typeIdentifier": "t_uint256",
@@ -418,7 +418,7 @@
                                         "typeString": "enum DNft.Permission"
                                       }
                                     ],
-                                    "id": 35028,
+                                    "id": 35048,
                                     "isConstant": false,
                                     "isLValue": false,
                                     "isPure": true,
@@ -430,14 +430,14 @@
                                       "typeString": "type(uint8)"
                                     },
                                     "typeName": {
-                                      "id": 35027,
+                                      "id": 35047,
                                       "name": "uint8",
                                       "nodeType": "ElementaryTypeName",
                                       "src": "802:5:45",
                                       "typeDescriptions": {}
                                     }
                                   },
-                                  "id": 35032,
+                                  "id": 35052,
                                   "isConstant": false,
                                   "isLValue": false,
                                   "isPure": false,
@@ -467,7 +467,7 @@
                                   "typeString": "uint256"
                                 }
                               ],
-                              "id": 35025,
+                              "id": 35045,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": true,
@@ -479,14 +479,14 @@
                                 "typeString": "type(uint8)"
                               },
                               "typeName": {
-                                "id": 35024,
+                                "id": 35044,
                                 "name": "uint8",
                                 "nodeType": "ElementaryTypeName",
                                 "src": "791:5:45",
                                 "typeDescriptions": {}
                               }
                             },
-                            "id": 35034,
+                            "id": 35054,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
@@ -508,18 +508,18 @@
                             "typeString": "uint8"
                           }
                         },
-                        "id": 35036,
+                        "id": 35056,
                         "nodeType": "ExpressionStatement",
                         "src": "772:53:45"
                       },
                       {
-                        "id": 35040,
+                        "id": 35060,
                         "nodeType": "UncheckedBlock",
                         "src": "833:32:45",
                         "statements": [
                           {
                             "expression": {
-                              "id": 35038,
+                              "id": 35058,
                               "isConstant": false,
                               "isLValue": false,
                               "isPure": false,
@@ -529,11 +529,11 @@
                               "prefix": false,
                               "src": "853:3:45",
                               "subExpression": {
-                                "id": 35037,
+                                "id": 35057,
                                 "name": "i",
                                 "nodeType": "Identifier",
                                 "overloadedDeclarations": [],
-                                "referencedDeclaration": 35016,
+                                "referencedDeclaration": 35036,
                                 "src": "853:1:45",
                                 "typeDescriptions": {
                                   "typeIdentifier": "t_uint256",
@@ -545,7 +545,7 @@
                                 "typeString": "uint256"
                               }
                             },
-                            "id": 35039,
+                            "id": 35059,
                             "nodeType": "ExpressionStatement",
                             "src": "853:3:45"
                           }
@@ -558,17 +558,17 @@
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35022,
+                    "id": 35042,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftExpression": {
-                      "id": 35019,
+                      "id": 35039,
                       "name": "i",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35016,
+                      "referencedDeclaration": 35036,
                       "src": "737:1:45",
                       "typeDescriptions": {
                         "typeIdentifier": "t_uint256",
@@ -579,18 +579,18 @@
                     "operator": "<",
                     "rightExpression": {
                       "expression": {
-                        "id": 35020,
+                        "id": 35040,
                         "name": "_permissions",
                         "nodeType": "Identifier",
                         "overloadedDeclarations": [],
-                        "referencedDeclaration": 35010,
+                        "referencedDeclaration": 35030,
                         "src": "741:12:45",
                         "typeDescriptions": {
                           "typeIdentifier": "t_array$_t_enum$_Permission_$32564_$dyn_memory_ptr",
                           "typeString": "enum DNft.Permission[] memory"
                         }
                       },
-                      "id": 35021,
+                      "id": 35041,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -610,20 +610,20 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 35042,
+                  "id": 35062,
                   "initializationExpression": {
                     "assignments": [
-                      35016
+                      35036
                     ],
                     "declarations": [
                       {
                         "constant": false,
-                        "id": 35016,
+                        "id": 35036,
                         "mutability": "mutable",
                         "name": "i",
                         "nameLocation": "730:1:45",
                         "nodeType": "VariableDeclaration",
-                        "scope": 35042,
+                        "scope": 35062,
                         "src": "722:9:45",
                         "stateVariable": false,
                         "storageLocation": "default",
@@ -632,7 +632,7 @@
                           "typeString": "uint256"
                         },
                         "typeName": {
-                          "id": 35015,
+                          "id": 35035,
                           "name": "uint256",
                           "nodeType": "ElementaryTypeName",
                           "src": "722:7:45",
@@ -644,10 +644,10 @@
                         "visibility": "internal"
                       }
                     ],
-                    "id": 35018,
+                    "id": 35038,
                     "initialValue": {
                       "hexValue": "30",
-                      "id": 35017,
+                      "id": 35037,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -670,7 +670,7 @@
               ]
             },
             "documentation": {
-              "id": 35006,
+              "id": 35026,
               "nodeType": "StructuredDocumentation",
               "src": "393:212:45",
               "text": "@notice Takes a list of permissions and returns the int representation of the set that contains them all\n @param _permissions The list of permissions\n @return _representation The uint representation"
@@ -681,17 +681,17 @@
             "name": "_toUInt8",
             "nameLocation": "617:8:45",
             "parameters": {
-              "id": 35011,
+              "id": 35031,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35010,
+                  "id": 35030,
                   "mutability": "mutable",
                   "name": "_permissions",
                   "nameLocation": "651:12:45",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35044,
+                  "scope": 35064,
                   "src": "626:37:45",
                   "stateVariable": false,
                   "storageLocation": "memory",
@@ -701,10 +701,10 @@
                   },
                   "typeName": {
                     "baseType": {
-                      "id": 35008,
+                      "id": 35028,
                       "nodeType": "UserDefinedTypeName",
                       "pathNode": {
-                        "id": 35007,
+                        "id": 35027,
                         "name": "DNft.Permission",
                         "nameLocations": [
                           "626:4:45",
@@ -721,7 +721,7 @@
                         "typeString": "enum DNft.Permission"
                       }
                     },
-                    "id": 35009,
+                    "id": 35029,
                     "nodeType": "ArrayTypeName",
                     "src": "626:17:45",
                     "typeDescriptions": {
@@ -735,17 +735,17 @@
               "src": "625:39:45"
             },
             "returnParameters": {
-              "id": 35014,
+              "id": 35034,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35013,
+                  "id": 35033,
                   "mutability": "mutable",
                   "name": "_representation",
                   "nameLocation": "694:15:45",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35044,
+                  "scope": 35064,
                   "src": "688:21:45",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -754,7 +754,7 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 35012,
+                    "id": 35032,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
                     "src": "688:5:45",
@@ -768,35 +768,35 @@
               ],
               "src": "687:23:45"
             },
-            "scope": 35075,
+            "scope": 35095,
             "stateMutability": "pure",
             "virtual": false,
             "visibility": "internal"
           },
           {
-            "id": 35074,
+            "id": 35094,
             "nodeType": "FunctionDefinition",
             "src": "1189:248:45",
             "nodes": [],
             "body": {
-              "id": 35073,
+              "id": 35093,
               "nodeType": "Block",
               "src": "1325:112:45",
               "nodes": [],
               "statements": [
                 {
                   "assignments": [
-                    35056
+                    35076
                   ],
                   "declarations": [
                     {
                       "constant": false,
-                      "id": 35056,
+                      "id": 35076,
                       "mutability": "mutable",
                       "name": "_bitMask",
                       "nameLocation": "1341:8:45",
                       "nodeType": "VariableDeclaration",
-                      "scope": 35073,
+                      "scope": 35093,
                       "src": "1333:16:45",
                       "stateVariable": false,
                       "storageLocation": "default",
@@ -805,7 +805,7 @@
                         "typeString": "uint256"
                       },
                       "typeName": {
-                        "id": 35055,
+                        "id": 35075,
                         "name": "uint256",
                         "nodeType": "ElementaryTypeName",
                         "src": "1333:7:45",
@@ -817,20 +817,20 @@
                       "visibility": "internal"
                     }
                   ],
-                  "id": 35063,
+                  "id": 35083,
                   "initialValue": {
                     "commonType": {
                       "typeIdentifier": "t_uint256",
                       "typeString": "uint256"
                     },
-                    "id": 35062,
+                    "id": 35082,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftExpression": {
                       "hexValue": "31",
-                      "id": 35057,
+                      "id": 35077,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": true,
@@ -849,11 +849,11 @@
                     "rightExpression": {
                       "arguments": [
                         {
-                          "id": 35060,
+                          "id": 35080,
                           "name": "_permission",
                           "nodeType": "Identifier",
                           "overloadedDeclarations": [],
-                          "referencedDeclaration": 35050,
+                          "referencedDeclaration": 35070,
                           "src": "1363:11:45",
                           "typeDescriptions": {
                             "typeIdentifier": "t_enum$_Permission_$32564",
@@ -868,7 +868,7 @@
                             "typeString": "enum DNft.Permission"
                           }
                         ],
-                        "id": 35059,
+                        "id": 35079,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -880,14 +880,14 @@
                           "typeString": "type(uint8)"
                         },
                         "typeName": {
-                          "id": 35058,
+                          "id": 35078,
                           "name": "uint8",
                           "nodeType": "ElementaryTypeName",
                           "src": "1357:5:45",
                           "typeDescriptions": {}
                         }
                       },
-                      "id": 35061,
+                      "id": 35081,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -914,17 +914,17 @@
                 },
                 {
                   "expression": {
-                    "id": 35071,
+                    "id": 35091,
                     "isConstant": false,
                     "isLValue": false,
                     "isPure": false,
                     "lValueRequested": false,
                     "leftHandSide": {
-                      "id": 35064,
+                      "id": 35084,
                       "name": "hasPermission",
                       "nodeType": "Identifier",
                       "overloadedDeclarations": [],
-                      "referencedDeclaration": 35053,
+                      "referencedDeclaration": 35073,
                       "src": "1383:13:45",
                       "typeDescriptions": {
                         "typeIdentifier": "t_bool",
@@ -938,7 +938,7 @@
                         "typeIdentifier": "t_uint256",
                         "typeString": "uint256"
                       },
-                      "id": 35070,
+                      "id": 35090,
                       "isConstant": false,
                       "isLValue": false,
                       "isPure": false,
@@ -950,17 +950,17 @@
                               "typeIdentifier": "t_uint256",
                               "typeString": "uint256"
                             },
-                            "id": 35067,
+                            "id": 35087,
                             "isConstant": false,
                             "isLValue": false,
                             "isPure": false,
                             "lValueRequested": false,
                             "leftExpression": {
-                              "id": 35065,
+                              "id": 35085,
                               "name": "_representation",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35047,
+                              "referencedDeclaration": 35067,
                               "src": "1400:15:45",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_uint8",
@@ -970,11 +970,11 @@
                             "nodeType": "BinaryOperation",
                             "operator": "&",
                             "rightExpression": {
-                              "id": 35066,
+                              "id": 35086,
                               "name": "_bitMask",
                               "nodeType": "Identifier",
                               "overloadedDeclarations": [],
-                              "referencedDeclaration": 35056,
+                              "referencedDeclaration": 35076,
                               "src": "1418:8:45",
                               "typeDescriptions": {
                                 "typeIdentifier": "t_uint256",
@@ -988,7 +988,7 @@
                             }
                           }
                         ],
-                        "id": 35068,
+                        "id": 35088,
                         "isConstant": false,
                         "isInlineArray": false,
                         "isLValue": false,
@@ -1005,7 +1005,7 @@
                       "operator": "!=",
                       "rightExpression": {
                         "hexValue": "30",
-                        "id": 35069,
+                        "id": 35089,
                         "isConstant": false,
                         "isLValue": false,
                         "isPure": true,
@@ -1031,14 +1031,14 @@
                       "typeString": "bool"
                     }
                   },
-                  "id": 35072,
+                  "id": 35092,
                   "nodeType": "ExpressionStatement",
                   "src": "1383:49:45"
                 }
               ]
             },
             "documentation": {
-              "id": 35045,
+              "id": 35065,
               "nodeType": "StructuredDocumentation",
               "src": "879:307:45",
               "text": "@notice Takes an int representation of a set of permissions, and returns whether it contains the given permission\n @param _representation The int representation\n @param _permission The permission to check for\n @return hasPermission Whether the representation contains the given permission"
@@ -1049,17 +1049,17 @@
             "name": "_hasPermission",
             "nameLocation": "1198:14:45",
             "parameters": {
-              "id": 35051,
+              "id": 35071,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35047,
+                  "id": 35067,
                   "mutability": "mutable",
                   "name": "_representation",
                   "nameLocation": "1226:15:45",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35074,
+                  "scope": 35094,
                   "src": "1220:21:45",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1068,7 +1068,7 @@
                     "typeString": "uint8"
                   },
                   "typeName": {
-                    "id": 35046,
+                    "id": 35066,
                     "name": "uint8",
                     "nodeType": "ElementaryTypeName",
                     "src": "1220:5:45",
@@ -1081,12 +1081,12 @@
                 },
                 {
                   "constant": false,
-                  "id": 35050,
+                  "id": 35070,
                   "mutability": "mutable",
                   "name": "_permission",
                   "nameLocation": "1266:11:45",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35074,
+                  "scope": 35094,
                   "src": "1250:27:45",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1095,10 +1095,10 @@
                     "typeString": "enum DNft.Permission"
                   },
                   "typeName": {
-                    "id": 35049,
+                    "id": 35069,
                     "nodeType": "UserDefinedTypeName",
                     "pathNode": {
-                      "id": 35048,
+                      "id": 35068,
                       "name": "DNft.Permission",
                       "nameLocations": [
                         "1250:4:45",
@@ -1121,17 +1121,17 @@
               "src": "1212:69:45"
             },
             "returnParameters": {
-              "id": 35054,
+              "id": 35074,
               "nodeType": "ParameterList",
               "parameters": [
                 {
                   "constant": false,
-                  "id": 35053,
+                  "id": 35073,
                   "mutability": "mutable",
                   "name": "hasPermission",
                   "nameLocation": "1310:13:45",
                   "nodeType": "VariableDeclaration",
-                  "scope": 35074,
+                  "scope": 35094,
                   "src": "1305:18:45",
                   "stateVariable": false,
                   "storageLocation": "default",
@@ -1140,7 +1140,7 @@
                     "typeString": "bool"
                   },
                   "typeName": {
-                    "id": 35052,
+                    "id": 35072,
                     "name": "bool",
                     "nodeType": "ElementaryTypeName",
                     "src": "1305:4:45",
@@ -1154,7 +1154,7 @@
               ],
               "src": "1304:20:45"
             },
-            "scope": 35075,
+            "scope": 35095,
             "stateMutability": "pure",
             "virtual": false,
             "visibility": "internal"
@@ -1166,18 +1166,18 @@
         "contractDependencies": [],
         "contractKind": "library",
         "documentation": {
-          "id": 35005,
+          "id": 35025,
           "nodeType": "StructuredDocumentation",
           "src": "99:267:45",
           "text": "@title Permission Math library\n @notice Provides functions to easily convert from permissions to an int representation and viceversa\n @notice Copy/Pasta from here: https://github.com/Mean-Finance/dca-v2-core/blob/main/contracts/libraries/PermissionMath.sol"
         },
         "fullyImplemented": true,
         "linearizedBaseContracts": [
-          35075
+          35095
         ],
         "name": "PermissionMath",
         "nameLocation": "374:14:45",
-        "scope": 35076,
+        "scope": 35096,
         "usedErrors": []
       }
     ],
