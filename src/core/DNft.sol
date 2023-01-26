@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity = 0.8.17;
 
+import "forge-std/console.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
@@ -433,7 +434,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share, 
       Nft memory nft
   ) private view returns (int) { // no xp accrual for minting
-      if (nft.deposit <= 0) revert DepositIsNegative();
+      if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXp      = nft.xp.divWadDown(totalXp);
       int  relativeDeposit = wadDiv(nft.deposit, totalDeposit);
       int multi = (relativeXp.toInt256() + relativeDeposit) / 2;
@@ -445,7 +446,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share, 
       Nft memory nft
   ) private view returns (int, uint) {
-      if (nft.deposit <= 0) revert DepositIsNegative();
+      if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXpToMax   = nft.xp.divWadDown(maxXp);
       uint relativeXpToTotal = nft.xp.divWadDown(totalXp);
       uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);

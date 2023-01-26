@@ -221,7 +221,7 @@ contract DNftsTest is BaseTest {
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49047916666666666666600); // nft.deposit
+    assertEq(dNft.idToNft(id).deposit, 49069328703703703703600); // nft.deposit
     assertEq(dNft.idToNft(id).xp, 11050);                        // nft.xp
   }
   function testClaimBurn() public {

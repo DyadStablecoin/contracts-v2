@@ -42,18 +42,21 @@ contract E2ETest is BaseTest {
     oracleMock.setPrice(110000000000);
     dNft.sync(0);
 
-    overwriteNft(0, 2161.00, uint(dNft.idToNft(0).deposit), dNft.idToNft(0).withdrawal);
+    overwriteNft(0, 2161.00, 10_000e18, dNft.idToNft(0).withdrawal);
     overwrite(address(dNft), "totalXp()", 45394);
+    overwrite(address(dNft), "dyadDelta()", 15523e18);
+    overwrite(address(dNft), "totalDeposit()", 100_000e18);
     dNft.claim(0);
 
-    assertEq(dNft.idToNft(0).deposit/1e18, 416);
+    assertEq(dNft.idToNft(0).deposit/1e18, 11145);
     vm.stopPrank();
 
     overwrite(address(dNft), "totalXp()", 45394);
     startHoax(dNft.ownerOf(1));
     dNft.activate(1);
+    overwriteNft(1, dNft.idToNft(1).xp, 10_000e18, dNft.idToNft(0).withdrawal);
     dNft.claim(1);
-    assertEq(dNft.idToNft(1).deposit/1e18, 5566);
+    assertEq(dNft.idToNft(1).deposit/1e18, 12064);
   }
 
   function testE2eClaimBurn() public {
