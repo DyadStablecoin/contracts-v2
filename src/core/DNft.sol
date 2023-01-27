@@ -22,11 +22,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using PermissionMath    for Permission[];
   using PermissionMath    for uint8;
 
-  uint public immutable MAX_SUPPLY;                    // Max supply of DNfts
-  uint public immutable MIN_PRICE_CHANGE_BETWEEN_SYNC; // 10    bps or 0.1%
+  uint public immutable MAX_SUPPLY;                          // Max supply of DNfts
+  uint public immutable MIN_PRICE_CHANGE_BETWEEN_SYNC;       // 10    bps or 0.1%
   uint public immutable MIN_TIME_BETWEEN_SYNC;         
-  int  public immutable MIN_MINT_DYAD_DEPOSIT;         // 1 DYAD
-  uint public constant MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
+  int  public immutable MIN_MINT_DYAD_DEPOSIT;               // 1 DYAD
+  uint public constant  MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
 
   uint public constant XP_NORM_FACTOR          = 1e16;
   uint public constant XP_MINT_REWARD          = 1_000;
