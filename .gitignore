@@ -1,6 +1,6 @@
 # Compiler files
 cache/
-out/*.t.sol
+out/
 
 # Ignores development broadcast logs
 !/broadcast
