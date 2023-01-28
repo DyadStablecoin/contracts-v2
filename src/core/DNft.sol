@@ -453,7 +453,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int  multi             = oneMinusRank.divWadDown((totalSupply()*1e18)-relativeXpNorm).toInt256();
       multi                  = (relativeMinted.toInt256() + multi) / 2;
       int  relativeShare     = wadMul(multi, share);
-      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax);
+      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax+0.005e18);
       return (relativeShare, xpAccrual/1e18); 
   }
 
