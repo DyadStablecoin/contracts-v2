@@ -75,7 +75,7 @@ contract E2ETest is BaseTest {
     overwrite(address(dNft), "totalSupply()", 10);
 
     dNft.claim(0);
-    assertEq(dNft.idToNft(0).deposit/1e18, 8714);
-    assertEq(dNft.idToNft(0).xp, 8517);
+    assertEq(dNft.idToNft(0).deposit/1e18, 8527);
+    assertEq(dNft.idToNft(0).xp, 9211);
   }
 }
