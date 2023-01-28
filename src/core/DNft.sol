@@ -445,7 +445,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) private view returns (int, uint) {
       if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXpToMax   = nft.xp.divWadDown(maxXp);
-      uint relativeXpToTotal = nft.xp.divWadDown(totalXp);
+      uint relativeXpToTotal = nft.xp.divWadDown(totalXp) + 0.5e18;
       uint relativeXpNorm    = relativeXpToMax.divWadDown(relativeXpToTotal);
       uint totalMinted       = dyad.totalSupply()+totalDeposit.toUint256();
       uint relativeMinted    = (nft.withdrawal+nft.deposit.toUint256()).divWadDown(totalMinted);
@@ -453,7 +453,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int  multi             = oneMinusRank.divWadDown((totalSupply()*1e18)-relativeXpNorm).toInt256();
       multi                  = (relativeMinted.toInt256() + multi) / 2;
       int  relativeShare     = wadMul(multi, share);
-      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax+0.005e18);
+      uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax);
       return (relativeShare, xpAccrual/1e18); 
   }
 
