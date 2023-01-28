@@ -179,6 +179,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
+      totalDeposit        += newDeposit;
       emit Exchanged(id, newDeposit);
       return newDeposit;
   }
