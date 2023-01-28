@@ -207,6 +207,7 @@ interface IDNft {
    *      - If dNFT is inactive
    *      - If `claim` was already called for that dNFT in this sync window
    *      - If dNFT deposit is negative
+   *      - If DYAD will be burned and `totalDeposit` is negative
    * @dev Emits:
    *      - Claimed
    * @param id Id of the dNFT that gets claimed for
@@ -221,6 +222,7 @@ interface IDNft {
    *      - If `to` dNFT is inactive
    *      - If `snipe` was already called for that dNFT in this sync window
    *      - If dNFT deposit is negative
+   *      - If DYAD will be burned and `totalDeposit` is negative
    * @dev Emits:
    *      - Sniped
    * @param from Id of the dNFT that gets sniped
