@@ -255,10 +255,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(from) 
       withPermission(from, Permission.REDEEM)
     returns (uint) { 
+      dyad.burn(msg.sender, amount);
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
-      dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
