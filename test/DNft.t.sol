@@ -18,7 +18,7 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.ownerOf(1), GOERLI_INSIDERS[1]);
     assertEq(dNft.ownerOf(2), GOERLI_INSIDERS[2]);
 
-    assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
+    assertTrue(dNft.ethPrice() > 0); // ethPrice is set by oracle
   }
   function testInsidersDeposit() public {
     // all insiders have the no deposit
@@ -36,7 +36,7 @@ contract DNftsTest is BaseTest {
     dNft.mint{value: 5 ether}(address(this));
     assertEq(dNft.totalSupply(), GOERLI_INSIDERS.length + 1);
     assertEq(dNft.idToNft(id).xp, dNft.XP_MINT_REWARD());
-    assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.lastEthPrice());
+    assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.ethPrice());
     assertEq(dNft.idToNft(id).withdrawal, 0);
   }
   function testFailMintToZeroAddress() public {
@@ -198,11 +198,11 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.syncedBlock(), 0);           // syncedBlock
     assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD()); // nft.xp
 
-    uint lastEthPrice = dNft.lastEthPrice();
+    uint ethPrice = dNft.ethPrice();
     _sync(id, 1100*1e8);                       // 10% price increas
-    uint newEthPrice  = dNft.lastEthPrice();
+    uint newEthPrice  = dNft.ethPrice();
 
-    assertTrue(newEthPrice > lastEthPrice);    // lastEthPrice
+    assertTrue(newEthPrice > ethPrice);        // ethPrice
     assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
     assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta

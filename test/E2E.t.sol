@@ -19,7 +19,7 @@ contract E2ETest is BaseTest {
     overwriteNft(8, 3435, 1753*1e18, 4427 );
     overwriteNft(9, 1079, 2002*1e18, 244  );
 
-    overwrite(address(dNft), "lastEthPrice()", 100000000000000000000000);
+    overwrite(address(dNft), "ethPrice()", 100000000000000000000000);
 
     uint withdrawalSum;
     for (uint i = 0; i < dNft.totalSupply(); i++) {
@@ -38,7 +38,7 @@ contract E2ETest is BaseTest {
     startHoax(dNft.ownerOf(0));
     setNfts();
     dNft.activate(0);
-    overwrite(address(dNft), "lastEthPrice()", 100000000000);
+    overwrite(address(dNft), "ethPrice()", 100000000000);
     oracleMock.setPrice(110000000000);
     dNft.sync(0);
 
@@ -64,7 +64,7 @@ contract E2ETest is BaseTest {
     setNfts();
     overwrite(address(dyad), "totalSupply()", 155233e18);
     dNft.activate(0);
-    overwrite(address(dNft), "lastEthPrice()", 100000000000);
+    overwrite(address(dNft), "ethPrice()", 100000000000);
     oracleMock.setPrice(90000000000);
     dNft.sync(0);
 

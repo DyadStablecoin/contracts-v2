@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity = 0.8.17;
+pragma solidity =0.8.17;
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
@@ -22,29 +22,29 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using PermissionMath    for Permission[];
   using PermissionMath    for uint8;
 
-  uint public immutable MAX_SUPPLY;                          // Max supply of DNfts
-  uint public immutable MIN_TIME_BETWEEN_SYNC;         
-  int  public immutable MIN_MINT_DYAD_DEPOSIT;               // 1 DYAD
+  uint public immutable MAX_SUPPLY;            // Max supply of DNfts
+  uint public immutable MIN_TIME_BETWEEN_SYNC; // Min elapsed time between syncs
+  int  public immutable MIN_MINT_DYAD_DEPOSIT; // Min DYAD deposit to mint a DNft
   uint public constant  MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
 
-  uint public constant XP_NORM_FACTOR          = 1e16;
   uint public constant XP_MINT_REWARD          = 1_000;
-  uint public constant XP_SYNC_REWARD          = 0.0004e18; // 4 bps    or 0.04%
-  uint public constant XP_CLAIM_REWARD         = 0.0001e18; // 1 bps    or 0.01%
-  uint public constant XP_SNIPE_BURN_REWARD    = 0.0003e18; // 3 bps    or 0.03%
-  uint public constant XP_SNIPE_MINT_REWARD    = 0.0002e18; // 2 bps    or 0.02%
-  uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps    or 0.04%
   int  public constant SNIPE_MINT_SHARE_REWARD = 0.60e18;   // 6000 bps or 60%
+  // basis point rewards are always relative to `dyad.totalSupply()`
+  uint public constant XP_SYNC_REWARD          = 0.0004e18; // 4 bps or 0.04%
+  uint public constant XP_CLAIM_REWARD         = 0.0001e18; // 1 bps or 0.01%
+  uint public constant XP_SNIPE_BURN_REWARD    = 0.0003e18; // 3 bps or 0.03%
+  uint public constant XP_SNIPE_MINT_REWARD    = 0.0002e18; // 2 bps or 0.02%
+  uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps or 0.04%
 
-  int  public lastEthPrice;           // ETH price from the last sync call
-  int  public dyadDelta;              // Amount of dyad to mint/burn in this sync cycle
-  int  public prevDyadDelta;          // Amount of dyad to mint/burn in the previous sync cycle
-  uint public syncedBlock;            // Start of the current sync cycle
-  uint public prevSyncedBlock;        // Start of the previous sync cycle
-  int  public totalDeposit;           // Sum of all dNFT Deposits
-  uint public totalXp;                // Sum of all dNFT XPs
-  uint public maxXp;                  // Max XP over all dNFTs
-  uint public timeOfLastSync;
+  int  public ethPrice;        // ETH price for the current sync cycle
+  int  public dyadDelta;       // Amount of dyad to mint/burn in the current sync cycle
+  int  public prevDyadDelta;   // Amount of dyad to mint/burn in the previous sync cycle
+  uint public timeOfSync;      // Time, when the current sync cycle started
+  uint public syncedBlock;     // Block number, when the current sync cycle started
+  uint public prevSyncedBlock; // Block number, when the previous sync cycle started
+  int  public totalDeposit;    // Sum of all dNFT Deposits
+  uint public totalXp;         // Sum of all dNFT XPs
+  uint public maxXp;           // Max XP over all dNFTs
 
   struct Nft {
     uint xp;         // always inflationary
@@ -135,12 +135,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int     _minMintDyadDeposit, 
       address[] memory _insiders
   ) ERC721("Dyad NFT", "dNFT") {
-      dyad                          = Dyad(_dyad);
-      oracle                        = IAggregatorV3(_oracle);
-      MAX_SUPPLY                    = _maxSupply;
-      MIN_TIME_BETWEEN_SYNC         = _minTimeBetweenSync;
-      MIN_MINT_DYAD_DEPOSIT         = _minMintDyadDeposit;
-      lastEthPrice                  = _getLatestEthPrice();
+      dyad                  = Dyad(_dyad);
+      oracle                = IAggregatorV3(_oracle);
+      MAX_SUPPLY            = _maxSupply;
+      MIN_TIME_BETWEEN_SYNC = _minTimeBetweenSync;
+      MIN_MINT_DYAD_DEPOSIT = _minMintDyadDeposit;
+      ethPrice              = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
@@ -260,13 +260,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function sync(uint id) external isActive(id) returns (int) {
       uint dyadTotalSupply = dyad.totalSupply(); // amount to burn/mint is based only on withdrawn dyad
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
-      if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
+      if (block.timestamp < timeOfSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
       int  newEthPrice    = _getLatestEthPrice();
-      if (newEthPrice == lastEthPrice) { revert EthPriceUnchanged(); }
-      int  priceChange    = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
+      if (newEthPrice == ethPrice) { revert EthPriceUnchanged(); }
+      int  priceChange    = wadDiv(newEthPrice - ethPrice, ethPrice); 
       uint priceChangeAbs = priceChange.abs();
-      timeOfLastSync   = block.timestamp;
-      lastEthPrice     = newEthPrice; 
+      timeOfSync       = block.timestamp;
+      ethPrice         = newEthPrice; 
       prevSyncedBlock  = syncedBlock;  // open new snipe window
       syncedBlock      = block.number; // open new claim window
       prevDyadDelta    = dyadDelta;
@@ -457,7 +457,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   function _calcXpReward(uint percent) private view returns (uint) {
-    return dyad.totalSupply().mulWadDown(percent) / XP_NORM_FACTOR;
+    return dyad.totalSupply().mulWadDown(percent) / 1e16;
   }
 
   // Retrun the value of `eth` in DYAD
