@@ -104,7 +104,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
-  error ExceedsDepositBalance          (int deposit);
+  error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawalBalance       (uint amount);
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
@@ -211,7 +211,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   ) external withPermission(_from, Permission.MOVE) {
       require(_amount > 0);              // needed because _amount is int
       Nft storage from = idToNft[_from];
-      if (_amount > from.deposit) { revert ExceedsDepositBalance(from.deposit); }
+      if (_amount > from.deposit) { revert ExceedsDeposit(from.deposit); }
       unchecked {
       from.deposit         -= _amount; } // amount <= from.deposit
       idToNft[_to].deposit += _amount;
@@ -224,12 +224,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address to, 
       uint amount 
   ) external 
-      withPermission(from, Permission.WITHDRAW)
       isActive(from) 
+      withPermission(from, Permission.WITHDRAW)
     returns (uint) {
       if (idToLastDeposit[from] == block.number) { revert DepositAndWithdrawInSameBlock(); } 
       Nft storage nft = idToNft[from];
-      if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
+      if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(nft.deposit); }
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
       if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(newCollatRatio); }
@@ -253,8 +253,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint amount
   ) external 
       nonReentrant 
-      withPermission(from, Permission.REDEEM)
       isActive(from) 
+      withPermission(from, Permission.REDEEM)
     returns (uint) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
@@ -291,8 +291,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Claim DYAD from the current sync window
   function claim(uint id)
     external 
-      withPermission(id, Permission.CLAIM)
       isActive(id)
+      withPermission(id, Permission.CLAIM)
     returns (int) {
       if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       idToClaimed[id][syncedBlock] = true;

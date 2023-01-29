@@ -106,7 +106,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     vm.expectRevert(abi.encodeWithSelector(
-      IDNft.ExceedsDepositBalance.selector,
+      IDNft.ExceedsDeposit.selector,
       dNft.idToNft(id).deposit
     ));
     dNft.move(id, 0, 50000000 ether);
@@ -127,7 +127,7 @@ contract DNftsTest is BaseTest {
   }
   function testWithdrawCannotWithdrawMoreThanDeposit() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDepositBalance.selector, dNft.idToNft(id).deposit));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDeposit.selector, dNft.idToNft(id).deposit));
     dNft.withdraw(id, address(this), 50000000 ether);
   }
   function testWithdrawCannotWithdrawCrTooLow() public {
@@ -180,7 +180,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.REDEEM));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, 0)); // is inactive
     dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 

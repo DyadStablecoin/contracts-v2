@@ -38,7 +38,7 @@ interface IDNft {
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
-  error ExceedsDepositBalance          (int deposit);
+  error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawalBalance       (uint amount);
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
