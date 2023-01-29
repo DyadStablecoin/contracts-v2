@@ -19,9 +19,8 @@ contract Parameters {
   ];
   address GOERLI_ORACLE = 0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e;
   uint GOERLI_MAX_SUPPLY                    = 2000;
-  uint GOERLI_MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.0000001e18; // 0.00001%
   uint GOERLI_MIN_TIME_BETWEEN_SYNC         = 5 minutes;
-  int GOERLI_MIN_MINT_DYAD_DEPOSIT          = 1e18;
+  int  GOERLI_MIN_MINT_DYAD_DEPOSIT         = 1e18;
 
   // ---------------- Mainnet ----------------
   address[] MAINNET_INSIDERS = [ //TODO: still to be determined
@@ -33,7 +32,6 @@ contract Parameters {
   ];
   address MAINNET_ORACLE = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
   uint MAINNET_MAX_SUPPLY                    = 10_000;
-  uint MAINNET_MIN_PRICE_CHANGE_BETWEEN_SYNC = 0.001e18; // 10 bps
   uint MAINNET_MIN_TIME_BETWEEN_SYNC         = 10 minutes;
   int  MAINNET_MIN_MINT_DYAD_DEPOSIT         = 5000e18; // 5k
 

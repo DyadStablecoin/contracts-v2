@@ -212,8 +212,12 @@ contract DNftsTest is BaseTest {
     );
     assertTrue(dNft.maxXp() == dNft.idToNft(id).xp); // maxXp
   }
-  function testFailSyncPriceChangeTooSmall() public {
-    _sync(0, 10001*1e7);
+  function testCannotSyncPriceDidNotChange() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 50 ether}(address(this));
+    dNft.withdraw(id, address(this), 1000*1e18);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.EthPriceUnchanged.selector));
+    dNft.sync(id);
   }
 
   // -------------------- claim --------------------

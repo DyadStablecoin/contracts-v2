@@ -13,7 +13,6 @@ contract DeployBase is Script, Parameters {
   function deploy(
     address _oracle, 
     uint    _maxSupply,
-    uint    _minPriceChangeBetweenSync,
     uint    _minTimeBetweenSync,
     int     _minMintDyadDeposit, 
     address[] memory _insiders
@@ -29,7 +28,6 @@ contract DeployBase is Script, Parameters {
       address(dyad),
       _oracle,
       _maxSupply,
-      _minPriceChangeBetweenSync,
       _minTimeBetweenSync,
       _minMintDyadDeposit, 
       _insiders

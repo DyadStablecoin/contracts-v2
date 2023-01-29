@@ -10,7 +10,6 @@ contract DeployGoerli is Script, Parameters {
       new DeployBase().deploy(
         GOERLI_ORACLE,
         GOERLI_MAX_SUPPLY,
-        GOERLI_MIN_PRICE_CHANGE_BETWEEN_SYNC,
         GOERLI_MIN_TIME_BETWEEN_SYNC,
         GOERLI_MIN_MINT_DYAD_DEPOSIT,
         GOERLI_INSIDERS

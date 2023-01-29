@@ -26,7 +26,6 @@ contract BaseTest is Test, Parameters {
     (address _dNfts, address _dyad, address _claimer) = deployBase.deploy(
       address(oracleMock),
       MAINNET_MAX_SUPPLY,
-      MAINNET_MIN_PRICE_CHANGE_BETWEEN_SYNC,
       MAINNET_MIN_TIME_BETWEEN_SYNC,
       MAINNET_MIN_MINT_DYAD_DEPOSIT,
       GOERLI_INSIDERS
