@@ -93,6 +93,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error DyadTotalSupplyZero            ();
   error DepositIsNegative              ();
   error EthPriceUnchanged              ();
+  error DepositAndWithdrawInSameBlock  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -109,7 +110,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
-  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   modifier exists(uint id) {
     if (!_exists(id)) revert DNftDoesNotExist(id); _; 
@@ -172,7 +172,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Exchange ETH for DYAD deposit
-  function exchange(uint id) external withPermission(id, Permission.EXCHANGE) isActive(id) payable returns (int) {
+  function exchange(uint id) 
+    external 
+      withPermission(id, Permission.EXCHANGE)
+      isActive(id)
+    payable
+    returns (int) {
       idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       idToNft[id].deposit += newDeposit;
@@ -218,9 +223,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to, 
       uint amount 
-  ) external withPermission(from, Permission.WITHDRAW) isActive(from) {
-      if (idToLastDeposit[from] == block.number) { 
-        revert CannotDepositAndWithdrawInSameBlock(block.number); } // stops flash loan attacks
+  ) external 
+      withPermission(from, Permission.WITHDRAW)
+      isActive(from) 
+    returns (uint) {
+      if (idToLastDeposit[from] == block.number) { revert DepositAndWithdrawInSameBlock(); } 
       Nft storage nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDepositBalance(nft.deposit); }
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
@@ -236,6 +243,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.withdrawal  = newWithdrawal; 
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
+      return newCollatRatio;
   }
 
   // Redeem DYAD for ETH
@@ -243,11 +251,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint from,
       address to,
       uint amount
-  ) external nonReentrant withPermission(from, Permission.REDEEM) isActive(from) returns (uint) { 
+  ) external 
+      nonReentrant 
+      withPermission(from, Permission.REDEEM)
+      isActive(from) 
+    returns (uint) { 
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
-      unchecked {
-      nft.withdrawal -= amount; } // amount <= nft.withdrawal
+      unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       (bool success,) = payable(to).call{value: eth}(""); // re-entrancy vector
@@ -278,7 +289,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Claim DYAD from the current sync window
-  function claim(uint id) external withPermission(id, Permission.CLAIM) isActive(id) returns (int) {
+  function claim(uint id)
+    external 
+      withPermission(id, Permission.CLAIM)
+      isActive(id)
+    returns (int) {
       if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       idToClaimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
@@ -303,7 +318,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function snipe(
       uint _from,
       uint _to
-  ) external isActive(_from) isActive(_to) returns (int) {
+  ) external 
+      isActive(_from) 
+      isActive(_to) 
+    returns (int) {
       if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
       idToClaimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];

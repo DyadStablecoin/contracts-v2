@@ -122,7 +122,7 @@ contract DNftsTest is BaseTest {
   function testWithdrawCannotDepositAndWithdrawInSameBlock() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
     dNft.exchange{value: 1 ether}(id);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.CannotDepositAndWithdrawInSameBlock.selector, block.number));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DepositAndWithdrawInSameBlock.selector));
     dNft.withdraw(id, address(this), 2000*1e18);
   }
   function testWithdrawCannotWithdrawMoreThanDeposit() public {

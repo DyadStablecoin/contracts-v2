@@ -27,6 +27,7 @@ interface IDNft {
   error DyadTotalSupplyZero            ();
   error DepositIsNegative              ();
   error EthPriceUnchanged              ();
+  error DepositAndWithdrawInSameBlock  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -43,7 +44,6 @@ interface IDNft {
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
-  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);
@@ -150,8 +150,9 @@ interface IDNft {
    * @param from Id of the dNFT to withdraw from
    * @param to Address to send the DYAD to
    * @param amount Amount of DYAD to withdraw
+   * @return collatRatio New Collateralization Ratio after the withdrawal
    */
-  function withdraw(uint from, address to, uint amount) external;
+  function withdraw(uint from, address to, uint amount) external returns (uint);
 
   /**
    * @notice Redeem `amount` of DYAD for ETH
