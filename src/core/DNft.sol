@@ -5,20 +5,20 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ReentrancyGuard} from "@solmate/src/utils/ReentrancyGuard.sol";
-import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
+import {SafeTransferLib} from "@solmate/src/utils/SafeTransferLib.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 import {PermissionMath} from "../libraries/PermissionMath.sol";
 
 contract DNft is ERC721Enumerable, ReentrancyGuard {
+  using SafeTransferLib   for address;
   using SafeCast          for uint256;
   using SafeCast          for int256;
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
-  using LibString         for uint256;
   using PermissionMath    for Permission[];
   using PermissionMath    for uint8;
 
@@ -106,7 +106,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error CrTooLow                       (uint cr);
   error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawal              (uint amount);
-  error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
@@ -256,13 +255,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(from) 
       withPermission(from, Permission.REDEEM)
     returns (uint) { 
+      dyad.burn(msg.sender, amount);
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
-      dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success,) = payable(to).call{value: eth}(""); // re-entrancy vector
-      if (!success) { revert FailedEthTransfer(msg.sender, eth); }
+      to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
       return eth;
   }
