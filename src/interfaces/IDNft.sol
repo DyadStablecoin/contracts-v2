@@ -186,7 +186,7 @@ interface IDNft {
    *      - If dNFT with `id` is not active
    *      - If the total supply of dyad is 0
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
-   *      - If price did not change from last sync call
+   *      - If the new ETH price is the same as the one from the previous sync
    * @dev Emits:
    *      - Synced
    * @dev For Auditors:
