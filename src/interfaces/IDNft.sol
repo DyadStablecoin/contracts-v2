@@ -27,6 +27,7 @@ interface IDNft {
   error DyadTotalSupplyZero            ();
   error DepositIsNegative              ();
   error EthPriceUnchanged              ();
+  error DepositAndWithdrawInSameBlock  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -37,13 +38,12 @@ interface IDNft {
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
-  error ExceedsDepositBalance          (int deposit);
-  error ExceedsWithdrawalBalance       (uint amount);
+  error ExceedsDeposit                 (int deposit);
+  error ExceedsWithdrawal              (uint amount);
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
-  error CannotDepositAndWithdrawInSameBlock(uint blockNumber);
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);
@@ -56,7 +56,7 @@ interface IDNft {
   function totalXp()        external view returns (uint);
   function syncedBlock()    external view returns (uint);
   function prevSyncedBlock()external view returns (uint);
-  function lastEthPrice()   external view returns (uint);
+  function ethPrice()       external view returns (uint);
   function hasPermission(uint id, address operator, Permission) external view returns (bool);
   function hasPermissions(uint id, address operator, Permission[] calldata) external view returns (bool[] calldata);
   function idToNftPermission(uint id, address operator) external view returns (NftPermission memory);
@@ -150,8 +150,9 @@ interface IDNft {
    * @param from Id of the dNFT to withdraw from
    * @param to Address to send the DYAD to
    * @param amount Amount of DYAD to withdraw
+   * @return collatRatio New Collateralization Ratio after the withdrawal
    */
-  function withdraw(uint from, address to, uint amount) external;
+  function withdraw(uint from, address to, uint amount) external returns (uint);
 
   /**
    * @notice Redeem `amount` of DYAD for ETH
@@ -184,7 +185,7 @@ interface IDNft {
    * @notice Determine amount of claimable DYAD 
    * @dev Will revert:
    *      - If dNFT with `id` is not active
-   *      - If the total supply of dyad is 0
+   *      - If the total supply of DYAD is 0
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
    *      - If the new ETH price is the same as the one from the previous sync
    * @dev Emits:
@@ -192,6 +193,7 @@ interface IDNft {
    * @dev For Auditors:
    *      - No need to check if the dNFT exists because a dNFT that does not exist
    *        is inactive
+   *      - Amount to mint/burn is based only on withdrawn DYAD
    *      - The chainlink update threshold is currently set to 50 bps
    * @param id Id of the dNFT that gets a boost
    * @return dyadDelta Amount of claimable DYAD

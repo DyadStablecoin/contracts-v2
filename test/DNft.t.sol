@@ -18,7 +18,7 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.ownerOf(1), GOERLI_INSIDERS[1]);
     assertEq(dNft.ownerOf(2), GOERLI_INSIDERS[2]);
 
-    assertTrue(dNft.lastEthPrice() > 0); // lastEthPrice is set by oracle
+    assertTrue(dNft.ethPrice() > 0); // ethPrice is set by oracle
   }
   function testInsidersDeposit() public {
     // all insiders have the no deposit
@@ -36,7 +36,7 @@ contract DNftsTest is BaseTest {
     dNft.mint{value: 5 ether}(address(this));
     assertEq(dNft.totalSupply(), GOERLI_INSIDERS.length + 1);
     assertEq(dNft.idToNft(id).xp, dNft.XP_MINT_REWARD());
-    assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.lastEthPrice());
+    assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.ethPrice());
     assertEq(dNft.idToNft(id).withdrawal, 0);
   }
   function testFailMintToZeroAddress() public {
@@ -106,7 +106,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     vm.expectRevert(abi.encodeWithSelector(
-      IDNft.ExceedsDepositBalance.selector,
+      IDNft.ExceedsDeposit.selector,
       dNft.idToNft(id).deposit
     ));
     dNft.move(id, 0, 50000000 ether);
@@ -122,12 +122,12 @@ contract DNftsTest is BaseTest {
   function testWithdrawCannotDepositAndWithdrawInSameBlock() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
     dNft.exchange{value: 1 ether}(id);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.CannotDepositAndWithdrawInSameBlock.selector, block.number));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DepositAndWithdrawInSameBlock.selector));
     dNft.withdraw(id, address(this), 2000*1e18);
   }
   function testWithdrawCannotWithdrawMoreThanDeposit() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDepositBalance.selector, dNft.idToNft(id).deposit));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDeposit.selector, dNft.idToNft(id).deposit));
     dNft.withdraw(id, address(this), 50000000 ether);
   }
   function testWithdrawCannotWithdrawCrTooLow() public {
@@ -180,7 +180,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.REDEEM));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, 0)); // is inactive
     dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 
@@ -198,11 +198,11 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.syncedBlock(), 0);           // syncedBlock
     assertEq(dNft.idToNft(0).xp, dNft.XP_MINT_REWARD()); // nft.xp
 
-    uint lastEthPrice = dNft.lastEthPrice();
+    uint ethPrice = dNft.ethPrice();
     _sync(id, 1100*1e8);                       // 10% price increas
-    uint newEthPrice  = dNft.lastEthPrice();
+    uint newEthPrice  = dNft.ethPrice();
 
-    assertTrue(newEthPrice > lastEthPrice);    // lastEthPrice
+    assertTrue(newEthPrice > ethPrice);        // ethPrice
     assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
     assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
