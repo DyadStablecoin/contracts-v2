@@ -105,7 +105,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
   error ExceedsDeposit                 (int deposit);
-  error ExceedsWithdrawalBalance       (uint amount);
+  error ExceedsWithdrawal              (uint amount);
   error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
@@ -192,7 +192,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint amount
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
       Nft storage nft = idToNft[id];
-      if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       idToLastDeposit[id] = block.number;
       dyad.burn(msg.sender, amount);
       unchecked {
@@ -257,7 +257,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(from, Permission.REDEEM)
     returns (uint) { 
       Nft storage nft = idToNft[from];
-      if (amount > nft.withdrawal) { revert ExceedsWithdrawalBalance(amount); }
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
