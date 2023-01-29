@@ -23,7 +23,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using PermissionMath    for uint8;
 
   uint public immutable MAX_SUPPLY;                          // Max supply of DNfts
-  uint public immutable MIN_PRICE_CHANGE_BETWEEN_SYNC;       // 10    bps or 0.1%
   uint public immutable MIN_TIME_BETWEEN_SYNC;         
   int  public immutable MIN_MINT_DYAD_DEPOSIT;               // 1 DYAD
   uint public constant  MIN_COLLATERIZATION_RATIO = 1.50e18; // 15000 bps or 150%
@@ -93,6 +92,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
   error DepositIsNegative              ();
+  error EthPriceUnchanged              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -100,7 +100,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error IsActive                       (uint id);
   error IsInactive                     (uint id);
   error ExceedsAverageTVL              (uint averageTVL);
-  error PriceChangeTooSmall            (int priceChange);
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
@@ -132,7 +131,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address _dyad,
       address _oracle, 
       uint    _maxSupply,
-      uint    _minPriceChangeBetweenSync,
       uint    _minTimeBetweenSync,
       int     _minMintDyadDeposit, 
       address[] memory _insiders
@@ -140,7 +138,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad                          = Dyad(_dyad);
       oracle                        = IAggregatorV3(_oracle);
       MAX_SUPPLY                    = _maxSupply;
-      MIN_PRICE_CHANGE_BETWEEN_SYNC = _minPriceChangeBetweenSync;
       MIN_TIME_BETWEEN_SYNC         = _minTimeBetweenSync;
       MIN_MINT_DYAD_DEPOSIT         = _minMintDyadDeposit;
       lastEthPrice                  = _getLatestEthPrice();
@@ -265,9 +262,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfLastSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
       int  newEthPrice    = _getLatestEthPrice();
+      if (newEthPrice == lastEthPrice) { revert EthPriceUnchanged(); }
       int  priceChange    = wadDiv(newEthPrice - lastEthPrice, lastEthPrice); 
       uint priceChangeAbs = priceChange.abs();
-      if (priceChangeAbs < MIN_PRICE_CHANGE_BETWEEN_SYNC) { revert PriceChangeTooSmall(priceChange); }
       timeOfLastSync   = block.timestamp;
       lastEthPrice     = newEthPrice; 
       prevSyncedBlock  = syncedBlock;  // open new snipe window

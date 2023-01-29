@@ -25,15 +25,15 @@ interface IDNft {
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
   error DyadTotalSupplyZero            ();
-  error ExceedsAverageTVL              (uint averageTVL);
+  error DepositIsNegative              ();
+  error EthPriceUnchanged              ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
   error WithdrawalsNotZero             (uint id);
-  error DepositIsNegative              (uint id);
   error IsActive                       (uint id);
   error IsInactive                     (uint id);
-  error PriceChangeTooSmall            (int priceChange);
+  error ExceedsAverageTVL              (uint averageTVL);
   error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
@@ -186,8 +186,7 @@ interface IDNft {
    *      - If dNFT with `id` is not active
    *      - If the total supply of dyad is 0
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
-   *      - The price between the last sync and now is too small as determined by 
-   *        `MIN_PRICE_CHANGE_BETWEEN_SYNC`
+   *      - If price did not change from last sync call
    * @dev Emits:
    *      - Synced
    * @dev For Auditors:
