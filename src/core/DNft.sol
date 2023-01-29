@@ -37,8 +37,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public constant XP_LIQUIDATION_REWARD   = 0.0004e18; // 4 bps or 0.04%
 
   int  public ethPrice;        // ETH price for the current sync cycle
-  int  public dyadDelta;       // Amount of dyad to mint/burn in the current sync cycle
-  int  public prevDyadDelta;   // Amount of dyad to mint/burn in the previous sync cycle
+  int  public dyadDelta;       // Amount of DYAD to mint/burn in the current sync cycle
+  int  public prevDyadDelta;   // Amount of DYAD to mint/burn in the previous sync cycle
   uint public timeOfSync;      // Time, when the current sync cycle started
   uint public syncedBlock;     // Block number, when the current sync cycle started
   uint public prevSyncedBlock; // Block number, when the previous sync cycle started
@@ -267,7 +267,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return eth;
   }
 
-  // Determine amount of dyad to mint/burn in the next claim window
+  // Determine amount of DYAD to mint/burn in the next claim window
   function sync(uint id) external isActive(id) returns (int) {
       uint dyadTotalSupply = dyad.totalSupply(); 
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
