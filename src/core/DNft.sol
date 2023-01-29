@@ -365,17 +365,25 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Activate inactive dNFT
-  function activate(uint id) external withPermission(id, Permission.ACTIVATE) isInactive(id) {
-    idToNft[id].isActive = true;
-    emit Activated(id);
+  function activate(uint id) 
+    external 
+      isInactive(id) 
+      withPermission(id, Permission.ACTIVATE)
+    {
+      idToNft[id].isActive = true;
+      emit Activated(id);
   }
 
   // Deactivate active dNFT
-  function deactivate(uint id) external withPermission(id, Permission.DEACTIVATE) isActive(id) {
-    if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero(id);
-    if (idToNft[id].deposit    <= 0) revert DepositIsNegative();
-    idToNft[id].isActive = false;
-    emit Deactivated(id);
+  function deactivate(uint id) 
+    external 
+      isActive(id) 
+      withPermission(id, Permission.DEACTIVATE)
+    {
+      if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero(id);
+      if (idToNft[id].deposit    <= 0) revert DepositIsNegative();
+      idToNft[id].isActive = false;
+      emit Deactivated(id);
   }
 
   // Grant and revoke permissions
@@ -399,6 +407,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit Modified(_id, _permissionSets);
   }
 
+  // Check if operator has permission for dNFT with id
   function hasPermission(
       uint256 id,
       address operator,
@@ -412,6 +421,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         idToNft[id].lastOwnershipChange < _nftPermission.lastUpdated;
   }
 
+  // Check if operator has permissions for dNFT with id
   function hasPermissions(
       uint256 id,
       address operator,
