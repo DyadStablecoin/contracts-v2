@@ -5,7 +5,6 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ReentrancyGuard} from "@solmate/src/utils/ReentrancyGuard.sol";
-import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 import {SafeTransferLib} from "@solmate/src/utils/SafeTransferLib.sol";
@@ -20,7 +19,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   using SafeCast          for int256;
   using SignedMath        for int256;
   using FixedPointMathLib for uint256;
-  using LibString         for uint256;
   using PermissionMath    for Permission[];
   using PermissionMath    for uint8;
 
