@@ -8,12 +8,14 @@ import {ReentrancyGuard} from "@solmate/src/utils/ReentrancyGuard.sol";
 import {LibString} from "solmate/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
+import {SafeTransferLib} from "@solmate/src/utils/SafeTransferLib.sol";
 
 import {IAggregatorV3} from "../interfaces/AggregatorV3Interface.sol";
 import {Dyad} from "./Dyad.sol";
 import {PermissionMath} from "../libraries/PermissionMath.sol";
 
 contract DNft is ERC721Enumerable, ReentrancyGuard {
+  using SafeTransferLib   for address;
   using SafeCast          for uint256;
   using SafeCast          for int256;
   using SignedMath        for int256;
@@ -261,8 +263,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
       dyad.burn(msg.sender, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
-      (bool success,) = payable(to).call{value: eth}(""); // re-entrancy vector
-      if (!success) { revert FailedEthTransfer(msg.sender, eth); }
+      to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
       return eth;
   }
