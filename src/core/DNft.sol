@@ -47,9 +47,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   uint public maxXp;           // Max XP over all dNFTs
 
   struct Nft {
-    uint xp;         // always inflationary
-    int  deposit;    // deposited dyad
-    uint withdrawal; // withdrawn dyad
+    uint xp;                  // always inflationary
+    int  deposit;             // deposited DYAD
+    uint withdrawal;          // withdrawn DYAD
     uint lastOwnershipChange; // block number of the last ownership change
     bool isActive;
   }
@@ -57,13 +57,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   enum Permission { ACTIVATE, DEACTIVATE, EXCHANGE, DEPOSIT, MOVE, WITHDRAW, REDEEM, CLAIM }
 
   struct PermissionSet {
-    address      operator;    
+    address      operator;    // address that can perform the action
     Permission[] permissions; // permissions given to the operator
   }
 
   struct NftPermission {
     uint8   permissions; // bitmap of permissions
-    uint248 lastUpdated; // block number of last updated
+    uint248 lastUpdated; // block number of last update
   }
 
   mapping(uint => Nft)                               public idToNft;
@@ -258,22 +258,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Determine amount of dyad to mint/burn in the next claim window
   function sync(uint id) external isActive(id) returns (int) {
-      uint dyadTotalSupply = dyad.totalSupply(); // amount to burn/mint is based only on withdrawn dyad
+      uint dyadTotalSupply = dyad.totalSupply(); 
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
-      int  newEthPrice    = _getLatestEthPrice();
+      int newEthPrice = _getLatestEthPrice();
       if (newEthPrice == ethPrice) { revert EthPriceUnchanged(); }
-      int  priceChange    = wadDiv(newEthPrice - ethPrice, ethPrice); 
-      uint priceChangeAbs = priceChange.abs();
-      timeOfSync       = block.timestamp;
-      ethPrice         = newEthPrice; 
-      prevSyncedBlock  = syncedBlock;  // open new snipe window
-      syncedBlock      = block.number; // open new claim window
-      prevDyadDelta    = dyadDelta;
-      dyadDelta        = wadMul(dyadTotalSupply.toInt256(), priceChange);
-      Nft memory nft   = idToNft[id];
-      _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChangeAbs));
-      idToNft[id]      = nft;
+      int priceChange = wadDiv(newEthPrice - ethPrice, ethPrice); 
+      timeOfSync      = block.timestamp;
+      ethPrice        = newEthPrice; 
+      prevSyncedBlock = syncedBlock;  // open new snipe window
+      syncedBlock     = block.number; // open new claim window
+      prevDyadDelta   = dyadDelta;
+      dyadDelta       = wadMul(dyadTotalSupply.toInt256(), priceChange);
+      Nft memory nft  = idToNft[id];
+      _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChange.abs()));
+      idToNft[id] = nft;
       emit Synced(id);
       return dyadDelta;
   }

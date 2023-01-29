@@ -192,6 +192,7 @@ interface IDNft {
    * @dev For Auditors:
    *      - No need to check if the dNFT exists because a dNFT that does not exist
    *        is inactive
+   *      - Amount to mint/burn is based only on withdrawn DYAD
    *      - The chainlink update threshold is currently set to 50 bps
    * @param id Id of the dNFT that gets a boost
    * @return dyadDelta Amount of claimable DYAD
