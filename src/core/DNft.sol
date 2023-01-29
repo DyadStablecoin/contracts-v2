@@ -483,6 +483,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return (relativeShare, xpAccrual/1e18); 
   }
 
+  // Return scaled down percentage of dyad supply as XP reward
   function _calcXpReward(uint percent) private view returns (uint) {
     return dyad.totalSupply().mulWadDown(percent) / 1e16;
   }
