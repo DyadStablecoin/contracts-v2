@@ -94,6 +94,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error DepositIsNegative              ();
   error EthPriceUnchanged              ();
   error DepositAndWithdrawInSameBlock  ();
+  error CannotSnipeSelf                ();
+  error AlreadySniped                  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -107,7 +109,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawal              (uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
-  error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
 
   modifier exists(uint id) {
@@ -320,7 +321,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(_from) 
       isActive(_to) 
     returns (int) {
-      if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(_from, prevSyncedBlock); }
+      if (_from == _to) { revert CannotSnipeSelf(); }
+      if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(); }
       idToClaimed[_from][prevSyncedBlock] = true;
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
