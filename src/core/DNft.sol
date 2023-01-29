@@ -264,12 +264,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newEthPrice = _getLatestEthPrice();
       if (newEthPrice == ethPrice) { revert EthPriceUnchanged(); }
       int priceChange = wadDiv(newEthPrice - ethPrice, ethPrice); 
+      dyadDelta       = wadMul(dyadTotalSupply.toInt256(), priceChange);
+      prevDyadDelta   = dyadDelta;
       timeOfSync      = block.timestamp;
       ethPrice        = newEthPrice; 
       prevSyncedBlock = syncedBlock;  // open new snipe window
       syncedBlock     = block.number; // open new claim window
-      prevDyadDelta   = dyadDelta;
-      dyadDelta       = wadMul(dyadTotalSupply.toInt256(), priceChange);
       Nft memory nft  = idToNft[id];
       _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChange.abs()));
       idToNft[id] = nft;
