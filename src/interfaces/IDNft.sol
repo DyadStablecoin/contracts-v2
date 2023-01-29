@@ -188,7 +188,7 @@ interface IDNft {
    *      - Is called to soon after last sync as determined by `MIN_TIME_BETWEEN_SYNC`
    *      - If the new ETH price is the same as the one from the previous sync
    * @dev Emits:
-   *      - Synced
+   *      - Synced(uint id)
    * @dev For Auditors:
    *      - No need to check if the dNFT exists because a dNFT that does not exist
    *        is inactive
@@ -209,6 +209,9 @@ interface IDNft {
    *      - If DYAD will be burned and `totalDeposit` is negative
    * @dev Emits:
    *      - Claimed
+   * @dev For Auditors:
+   *      - `timeOfLastSync` is not set deliberately in the constructor. `sync`
+   *        should be callable as fast as possible after deployment.
    * @param id Id of the dNFT that gets claimed for
    * @return share Amount of DYAD claimed
    */
