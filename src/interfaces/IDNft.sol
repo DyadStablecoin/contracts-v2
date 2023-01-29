@@ -28,6 +28,7 @@ interface IDNft {
   error DepositIsNegative              ();
   error EthPriceUnchanged              ();
   error DepositAndWithdrawInSameBlock  ();
+  error CannotSnipeSelf                ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -119,7 +120,8 @@ interface IDNft {
    *      - `amount` is int not uint because it saves us a lot of gas in doing
    *        the int to uint conversion. But thats means we have to put in the 
    *        `require(_amount > 0)` check.
-   *      - To save gas it does not check if `from` == `to`
+   *      - To save gas it does not check if `from` == `to`, which is not a 
+   *        problem because `move` is symmetrical.
    * @param from Id of the dNFT to move the deposit from
    * @param to Id of the dNFT to move the deposit to
    * @param amount Amount of DYAD to move
@@ -221,6 +223,7 @@ interface IDNft {
    * @dev Will revert:
    *      - If `from` dNFT is inactive
    *      - If `to` dNFT is inactive
+   *      - If `from` equals `to`
    *      - If `snipe` was already called for that dNFT in this sync window
    *      - If dNFT deposit is negative
    *      - If DYAD will be burned and `totalDeposit` is negative
