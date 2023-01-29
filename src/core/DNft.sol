@@ -108,7 +108,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error CrTooLow                       (uint cr);
   error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawal              (uint amount);
-  error FailedEthTransfer              (address to, uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
   error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
