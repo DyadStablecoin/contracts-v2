@@ -487,7 +487,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     return dyad.totalSupply().mulWadDown(percent) / 1e16;
   }
 
-  // Retrun the value of `eth` in DYAD
+  // Return the value of `eth` in DYAD
   function _eth2dyad(uint eth) private view returns (int) {
       return (eth/1e8).toInt256() * _getLatestEthPrice(); 
   }
@@ -497,6 +497,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       ( , price, , , ) = oracle.latestRoundData();
   }
 
+  // We have to set `lastOwnershipChange` in order to reset permissions
   function _beforeTokenTransfer(
       address _from,
       address _to,
