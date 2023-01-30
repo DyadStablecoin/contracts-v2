@@ -88,6 +88,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Liquidated (address indexed to, uint indexed id);
   event Modified   (uint256 tokenId, PermissionSet[] permissions);
   event AddedXp    (uint indexed id, uint amount);
+  event UpdatedDeposit(uint indexed id, int amount);
 
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
@@ -154,8 +155,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newDyad  = _eth2dyad(msg.value);
       if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert NotEnoughToCoverDepositMinimum(newDyad); }
       (uint id, Nft memory nft) = _mintNft(to); 
-      nft.deposit   = newDyad;
-      totalDeposit += newDyad;
+      _updateDeposit(id, nft, newDyad);
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;
@@ -181,8 +181,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     returns (int) {
       idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
-      idToNft[id].deposit += newDeposit;
-      totalDeposit        += newDeposit;
+      Nft memory nft = idToNft[id];
+      _updateDeposit(id, nft, newDeposit);
+      idToNft[id] = nft;
       emit Exchanged(id, newDeposit);
       return newDeposit;
   }
@@ -192,15 +193,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id,
       uint amount
   ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
-      Nft storage nft = idToNft[id];
+      Nft memory nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       idToLastDeposit[id] = block.number;
       dyad.burn(msg.sender, amount);
       unchecked {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
-      int _amount     = amount.toInt256();
-      nft.deposit    += _amount;
-      totalDeposit   += _amount;
+      _updateDeposit(id, nft, amount.toInt256());
+      idToNft[id] = nft;
       emit Deposited(id, amount);
   }
 
@@ -229,7 +229,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(from, Permission.WITHDRAW)
     returns (uint) {
       if (idToLastDeposit[from] == block.number) { revert DepositAndWithdrawInSameBlock(); } 
-      Nft storage nft = idToNft[from];
+      Nft memory nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(nft.deposit); }
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
@@ -237,11 +237,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint averageTVL    = collatVault / totalSupply();
       uint newWithdrawal = nft.withdrawal + amount;
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
-      int _amount = amount.toInt256();
-      unchecked {
-      nft.deposit    -= _amount; } // amount <= nft.deposit
-      totalDeposit   -= _amount;
-      nft.withdrawal  = newWithdrawal; 
+      _updateDeposit(from, nft, amount.toInt256());
+      nft.withdrawal = newWithdrawal; 
+      idToNft[from]  = nft;
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
       return newCollatRatio;
@@ -306,8 +304,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         (share, xp) = _calcNftBurn(dyadDelta, nft);
         newXp += xp;
       }
-      nft.deposit  += share;
-      totalDeposit += share;
+      _updateDeposit(id, nft, share);
       _addXp(id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
@@ -330,17 +327,16 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share;
       if (prevDyadDelta > 0) {         
         share         = _calcNftMint(prevDyadDelta, from);
-        from.deposit += wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD); 
-        to.deposit   += wadMul(share, SNIPE_MINT_SHARE_REWARD); 
+        _updateDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
+        _updateDeposit(_to, to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
         _addXp(_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
-        (share, xp)   = _calcNftBurn(prevDyadDelta, from);
-        from.deposit += share;      
+        (share, xp) = _calcNftBurn(prevDyadDelta, from);
+        _updateDeposit(_from, from, share);
         _addXp(_from, from, xp);
         _addXp(_to, to, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
-      totalDeposit  += share;
       idToNft[_from] = from;
       idToNft[_to]   = to;
       emit Sniped(_from, _to, share);
@@ -357,9 +353,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (_deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
+      _updateDeposit(id, nft, newDyad);
       _addXp(id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
-      nft.deposit  += newDyad; 
-      totalDeposit += newDyad;
       idToNft[id]   = nft;     
       _transfer(ownerOf(id), to, id);
       emit Liquidated(to,  id); 
@@ -451,6 +446,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (nft.xp > maxXp) { maxXp = nft.xp; }
       totalXp += xp;
       emit AddedXp(id, xp);
+  }
+
+  function _updateDeposit(uint id, Nft memory nft, int deposit) private {
+    nft.deposit  += deposit;
+    totalDeposit += deposit;
+    emit UpdatedDeposit(id, deposit);
   }
 
   // Calculate share weighted by relative xp
