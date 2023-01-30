@@ -469,7 +469,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXp      = nft.xp.divWadDown(totalXp);
       int  relativeDeposit = wadDiv(nft.deposit, totalDeposit);
-      int multi = (relativeXp.toInt256() + relativeDeposit) / 2;
+      int  multi = (relativeXp.toInt256() + relativeDeposit) / 2;
       return wadMul(share, multi);
   }
 
@@ -497,7 +497,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     private 
     view 
     returns (uint) {
-      return dyad.totalSupply().mulWadDown(percent) / 1e16;
+      return dyad.totalSupply().mulWadDown(percent) / 1e15;
   }
 
   // Return the value of `eth` in DYAD
