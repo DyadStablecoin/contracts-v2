@@ -237,7 +237,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint averageTVL    = collatVault / totalSupply();
       uint newWithdrawal = nft.withdrawal + amount;
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
-      _updateDeposit(from, nft, amount.toInt256());
+      _updateDeposit(from, nft, -amount.toInt256());
       nft.withdrawal = newWithdrawal; 
       idToNft[from]  = nft;
       dyad.mint(to, amount);
@@ -448,10 +448,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit AddedXp(id, xp);
   }
 
-  function _updateDeposit(uint id, Nft memory nft, int deposit) private {
-    nft.deposit  += deposit;
-    totalDeposit += deposit;
-    emit UpdatedDeposit(id, deposit);
+  // Update `nft.deposit` in memory. update `totalDeposit` accordingly
+  function _updateDeposit(uint id, Nft memory nft, int _deposit) private {
+    nft.deposit  += _deposit;
+    totalDeposit += _deposit;
+    emit UpdatedDeposit(id, _deposit);
   }
 
   // Calculate share weighted by relative xp
