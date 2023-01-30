@@ -246,6 +246,18 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.idToNft(id).deposit, 49094289600862480752900); // nft.deposit
     assertEq(dNft.idToNft(id).xp, 543700);                       // nft.xp
   }
+  function testClaimMintRewards() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 300*1e18);
+    uint xp = dNft.idToNft(id).xp;
+    _sync(id, 1001*1e8);
+    uint xpAfterSync = dNft.idToNft(id).xp;
+    assertTrue(xpAfterSync - xp > 1000);
+    dNft.claim(id);
+    uint xpAfterClaim = dNft.idToNft(id).xp;
+    assertTrue(xpAfterClaim - xpAfterSync > 50);
+  }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
     dNft.mint{value: 50 ether}(address(this));
