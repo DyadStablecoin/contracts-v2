@@ -31,9 +31,9 @@ interface IDNft {
   error CannotSnipeSelf     ();
   error AlreadySniped       ();
   error DepositTooLow       ();
+  error NotLiquidatable     ();
   error DNftDoesNotExist    (uint id);
   error NotNFTOwner         (uint id);
-  error NotLiquidatable     (uint id);
   error WithdrawalsNotZero  (uint id);
   error IsActive            (uint id);
   error IsInactive          (uint id);
@@ -235,7 +235,8 @@ interface IDNft {
   function snipe(uint from, uint to) external returns (int);
 
   /**
-   * @notice Liquidate dNFT by covering its deposit and transfering it to a new owner
+   * @notice Liquidate dNFT by covering its negative deposit and transfering it 
+   *         to a new owner
    * @dev Will revert:
    *      - If dNFT deposit is not negative
    *      - If ETH sent is not enough to cover the negative dNFT deposit

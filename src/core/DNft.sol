@@ -102,9 +102,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error CannotSnipeSelf     ();
   error AlreadySniped       ();
   error DepositTooLow       ();
+  error NotLiquidatable     ();
   error DNftDoesNotExist    (uint id);
   error NotNFTOwner         (uint id);
-  error NotLiquidatable     (uint id);
   error WithdrawalsNotZero  (uint id);
   error IsActive            (uint id);
   error IsInactive          (uint id);
@@ -353,7 +353,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     payable {
       Nft memory nft = idToNft[id];
       int currentDeposit = nft.deposit; // save gas
-      if (currentDeposit >= 0) { revert NotLiquidatable(id); }
+      if (currentDeposit >= 0) { revert NotLiquidatable(); }
       int newDeposit = _eth2dyad(msg.value);
       if (newDeposit < -currentDeposit) { revert DepositTooLow(); }
       _addDeposit(id, nft, newDeposit);
@@ -366,8 +366,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Activate inactive dNFT
   function activate(uint id) 
     external 
-      isInactive(id) 
       withPermission(id, Permission.ACTIVATE)
+      isInactive(id) 
     {
       idToNft[id].isActive = true;
       emit Activated(id);
