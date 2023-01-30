@@ -72,9 +72,6 @@ contract DNftsTest is BaseTest {
     vm.expectRevert("ERC721: invalid token ID");
     dNft.exchange{value: 5 ether}(id);
   }
-  function testExchangeWithPermission() public {
-
-  }
 
   // -------------------- move --------------------
   function testMoveDeposit() public {
