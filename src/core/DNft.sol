@@ -353,10 +353,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address to 
   ) external payable {
       Nft memory nft = idToNft[id];
-      int oldDeposit   = nft.deposit; // save gas
-      if (oldDeposit >= 0) { revert NotLiquidatable(id); }
+      int currentDeposit = nft.deposit; // save gas
+      if (currentDeposit >= 0) { revert NotLiquidatable(id); }
       int newDeposit = _eth2dyad(msg.value);
-      if (newDeposit < oldDeposit*-1) { revert DepositTooLow(); }
+      if (newDeposit < -currentDeposit) { revert DepositTooLow(); }
       _addDeposit(id, nft, newDeposit);
       _addXp     (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       idToNft[id] = nft;     
