@@ -74,21 +74,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   Dyad public dyad;
   IAggregatorV3 internal oracle;
 
-  event Minted     (address indexed to, uint indexed id);
-  event Deposited  (uint indexed id, uint amount);
-  event Redeemed   (address indexed to, uint indexed id, uint amount);
-  event Withdrawn  (uint indexed from, address indexed to, uint amount);
-  event Exchanged  (uint indexed id, int amount);
-  event Moved      (uint indexed from, uint indexed to, int amount);
-  event Synced     (uint id);
-  event Claimed    (uint indexed id, int share);
-  event Sniped     (uint indexed from, uint indexed to, int share);
-  event Activated  (uint id);
-  event Deactivated(uint id);
-  event Liquidated (address indexed to, uint indexed id);
-  event Modified   (uint256 tokenId, PermissionSet[] permissions);
-  event AddedXp    (uint indexed id, uint amount);
+  event Synced        (uint id);
+  event Activated     (uint id);
+  event Deactivated   (uint id);
+  event AddedXp       (uint indexed id, uint amount);
   event UpdatedDeposit(uint indexed id, int amount);
+  event Claimed       (uint indexed id, int share);
+  event Deposited     (uint indexed id, uint amount);
+  event Exchanged     (uint indexed id, int amount);
+  event Modified      (uint indexed id, PermissionSet[] permissions);
+  event Withdrawn     (uint indexed from, address indexed to, uint amount);
+  event Moved         (uint indexed from, uint indexed to, int amount);
+  event Sniped        (uint indexed from, uint indexed to, int share);
+  event Minted        (address indexed to, uint indexed id);
+  event Liquidated    (address indexed to, uint indexed id);
+  event Redeemed      (address indexed to, uint indexed id, uint amount);
 
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
