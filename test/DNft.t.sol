@@ -117,7 +117,15 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
+
+    uint withdrawalBefore = dNft.idToNft(id).withdrawal;
+    int  depositBefore    = dNft.idToNft(id).deposit;
     dNft.withdraw(id, address(this), 1000*1e18);
+    uint withdrawalAfter = dNft.idToNft(id).withdrawal;
+    int  depositAfter    = dNft.idToNft(id).deposit;
+
+    assertTrue(withdrawalAfter > withdrawalBefore);
+    assertTrue(depositAfter    < depositBefore);
   }
   function testWithdrawCannotDepositAndWithdrawInSameBlock() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
