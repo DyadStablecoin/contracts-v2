@@ -72,6 +72,9 @@ contract DNftsTest is BaseTest {
     vm.expectRevert("ERC721: invalid token ID");
     dNft.exchange{value: 5 ether}(id);
   }
+  function testExchangeWithPermission() public {
+
+  }
 
   // -------------------- move --------------------
   function testMoveDeposit() public {
@@ -348,9 +351,10 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
 
-    Permission[] memory pp = new Permission[](2);
+    Permission[] memory pp = new Permission[](3);
     pp[0] = Permission.ACTIVATE;
     pp[1] = Permission.DEACTIVATE;
+    pp[2] = Permission.MOVE;
 
     PermissionSet[] memory ps = new PermissionSet[](1);
     ps[0] = PermissionSet({ operator: address(1), permissions: pp });
@@ -358,20 +362,34 @@ contract DNftsTest is BaseTest {
     assertFalse(dNft.hasPermission(id, address(1), Permission.ACTIVATE));
     assertFalse(dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
 
+    vm.prank(address(1));
+    // address(1) does not have the MOVE permission
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.MissingPermission.selector, id, Permission.MOVE)
+   );
+    dNft.move(id, 5, 10);
+
     dNft.grant(id, ps);
 
     assertTrue (dNft.hasPermission(id, address(1), Permission.ACTIVATE));
     assertTrue (dNft.hasPermission(id, address(1), Permission.DEACTIVATE));
-    assertFalse(dNft.hasPermission(id, address(1), Permission.MOVE));
+    assertTrue (dNft.hasPermission(id, address(1), Permission.MOVE));
+    assertFalse(dNft.hasPermission(id, address(1), Permission.REDEEM));
 
-    Permission[] memory p = new Permission[](3);
+    Permission[] memory p = new Permission[](4);
     p[0] = Permission.ACTIVATE;
     p[1] = Permission.DEACTIVATE;
     p[2] = Permission.MOVE;
+    p[3] = Permission.REDEEM;
 
     bool[] memory hp = dNft.hasPermissions(id, address(1), p);
     assertTrue (hp[0]);
     assertTrue (hp[1]);
-    assertFalse(hp[2]);
+    assertTrue (hp[2]);
+    assertFalse(hp[3]);
+
+    // address(1) now has the permission to call move
+    vm.prank(address(1));
+    dNft.move(id, 5, 10);
   }
 }
