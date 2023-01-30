@@ -158,10 +158,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     external 
     payable 
     returns (uint) {
-      int _deposit = _eth2dyad(msg.value);
-      if (_deposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
+      int newDeposit = _eth2dyad(msg.value);
+      if (newDeposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
       (uint id, Nft memory nft) = _mintNft(to); 
-      _addDeposit(id, nft, _deposit);
+      _addDeposit(id, nft, newDeposit);
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;
