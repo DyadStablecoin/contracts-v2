@@ -78,11 +78,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   IAggregatorV3 internal oracle;
 
   event Synced           (uint id);
-  event Activated        (uint id);
-  event Deactivated      (uint id);
   event XpUpdated        (uint indexed id, uint xp);
   event DepositUpdated   (uint indexed id, int  deposit);
   event WithdrawalUpdated(uint indexed id, uint withdrawal);
+  event IsActiveUpdated  (uint indexed id, bool isActive);
   event Claimed          (uint indexed id, int  share);
   event Deposited        (uint indexed id, uint amount);
   event Exchanged        (uint indexed id, int  amount);
@@ -374,7 +373,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isInactive(id) 
     {
       idToNft[id].isActive = true;
-      emit Activated(id);
+      emit IsActiveUpdated(id, true);
   }
 
   // Deactivate active dNFT
@@ -386,7 +385,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero(id);
       if (idToNft[id].deposit    <= 0) revert DepositIsNegative();
       idToNft[id].isActive = false;
-      emit Deactivated(id);
+      emit IsActiveUpdated(id, false);
   }
 
   // Grant and revoke permissions
