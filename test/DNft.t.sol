@@ -183,7 +183,12 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, 0)); // is inactive
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.MissingPermission.selector,
+      0,
+      Permission.REDEEM
+    ));
+
     dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 

@@ -153,7 +153,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Mint new DNft to `to` 
-  function mint(address to) external payable returns (uint) {
+  function mint(address to)
+    external 
+    payable 
+    returns (uint) {
       int _deposit = _eth2dyad(msg.value);
       if (_deposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
       (uint id, Nft memory nft) = _mintNft(to); 
@@ -164,7 +167,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Mint new DNft to `to`
-  function _mintNft(address to) private returns (uint, Nft memory) {
+  function _mintNft(address to)
+    private 
+    returns (uint, Nft memory) {
       uint id = totalSupply();
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
       _mint(to, id); // will revert on address(0)
@@ -191,10 +196,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Deposit DYAD 
-  function deposit(
-      uint id,
-      uint amount
-  ) external withPermission(id, Permission.DEPOSIT) isActive(id) { 
+  function deposit(uint id, uint amount)
+    external 
+      withPermission(id, Permission.DEPOSIT) 
+      isActive(id) 
+    { 
       Nft memory nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       idToLastDeposit[id] = block.number;
@@ -207,11 +213,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
-  function move(
-      uint _from,
-      uint _to,
-      int  amount
-  ) external withPermission(_from, Permission.MOVE) {
+  function move(uint _from, uint _to, int amount) 
+    external 
+      withPermission(_from, Permission.MOVE) 
+    {
       require(amount > 0); // needed because amount is int
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
@@ -224,13 +229,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Withdraw DYAD from dNFT deposit
-  function withdraw(
-      uint from,
-      address to, 
-      uint amount 
-  ) external 
-      isActive(from) 
+  function withdraw(uint from, address to, uint amount)
+    external 
       withPermission(from, Permission.WITHDRAW)
+      isActive(from) 
     returns (uint) {
       if (idToLastDeposit[from] == block.number) { revert DepositAndWithdrawInSameBlock(); } 
       Nft memory nft = idToNft[from];
@@ -250,14 +252,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Redeem DYAD for ETH
-  function redeem(
-      uint from,
-      address to,
-      uint amount
-  ) external 
+  function redeem(uint from, address to, uint amount)
+    external 
       nonReentrant 
-      isActive(from) 
       withPermission(from, Permission.REDEEM)
+      isActive(from) 
     returns (uint) { 
       dyad.burn(msg.sender, amount);
       Nft storage nft = idToNft[from];
@@ -270,9 +269,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Determine amount of DYAD to mint/burn in the next claim window
-  function sync(
-      uint id
-  ) external 
+  function sync(uint id)
+    external 
       isActive(id) 
     returns (int) {
       uint dyadTotalSupply = dyad.totalSupply(); 
@@ -297,8 +295,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Claim DYAD from the current sync window
   function claim(uint id)
     external 
-      isActive(id)
       withPermission(id, Permission.CLAIM)
+      isActive(id)
     returns (int) {
       if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
       idToClaimed[id][syncedBlock] = true;
@@ -320,10 +318,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
-  function snipe(
-      uint _from,
-      uint _to
-  ) external 
+  function snipe(uint _from, uint _to)
+    external 
       isActive(_from) 
       isActive(_to) 
     returns (int) {
@@ -352,10 +348,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Liquidate DNft by covering its deposit
-  function liquidate(
-      uint id, 
-      address to 
-  ) external payable {
+  function liquidate(uint id, address to) 
+    external 
+    payable {
       Nft memory nft = idToNft[id];
       int currentDeposit = nft.deposit; // save gas
       if (currentDeposit >= 0) { revert NotLiquidatable(id); }
@@ -381,8 +376,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   // Deactivate active dNFT
   function deactivate(uint id) 
     external 
-      isActive(id) 
       withPermission(id, Permission.DEACTIVATE)
+      isActive(id) 
     {
       if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero(id);
       if (idToNft[id].deposit    <= 0) revert DepositIsNegative();
@@ -391,10 +386,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Grant and revoke permissions
-  function grant(
-      uint256 _id,
-      PermissionSet[] calldata _permissionSets
-  ) external onlyOwner(_id) {
+  function grant(uint256 _id, PermissionSet[] calldata _permissionSets) 
+    external 
+      onlyOwner(_id) 
+    {
       uint248 _blockNumber = uint248(block.number);
       for (uint256 i = 0; i < _permissionSets.length; ) {
         PermissionSet memory _permissionSet = _permissionSets[i];
@@ -412,11 +407,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Check if operator has permission for dNFT with id
-  function hasPermission(
-      uint256 id,
-      address operator,
-      Permission permission
-  ) public view returns (bool) {
+  function hasPermission(uint256 id, address operator, Permission permission) 
+    public 
+    view 
+    returns (bool) {
       if (ownerOf(id) == operator) { return true; }
       NftPermission memory _nftPermission = idToNftPermission[id][operator];
       return _nftPermission.permissions._hasPermission(permission) &&
@@ -426,11 +420,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Check if operator has permissions for dNFT with id
-  function hasPermissions(
-      uint256 id,
-      address operator,
-      Permission[] calldata permissions
-  ) external view returns (bool[] memory _hasPermissions) {
+  function hasPermissions(uint256 id, address operator, Permission[] calldata permissions)
+    external 
+    view 
+    returns (bool[] memory _hasPermissions) {
       _hasPermissions = new bool[](permissions.length);
       if (ownerOf(id) == operator) { // if operator is owner they have all permissions
         for (uint256 i = 0; i < permissions.length; i++) {
@@ -449,7 +442,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
-  function _addXp(uint id, Nft memory nft, uint xp) private {
+  function _addXp(uint id, Nft memory nft, uint xp) 
+    private {
       nft.xp  += xp;
       if (nft.xp > maxXp) { maxXp = nft.xp; }
       totalXp += xp;
@@ -457,17 +451,18 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Update `nft.deposit` in memory. update `totalDeposit` accordingly
-  function _addDeposit(uint id, Nft memory nft, int _deposit) private {
+  function _addDeposit(uint id, Nft memory nft, int _deposit) 
+    private {
       nft.deposit  += _deposit;
       totalDeposit += _deposit;
       emit AddedDeposit(id, _deposit);
   }
 
   // Calculate share weighted by relative xp
-  function _calcNftMint(
-      int share, 
-      Nft memory nft
-  ) private view returns (int) { // no xp accrual for minting
+  function _calcNftMint(int share, Nft memory nft) 
+    private 
+    view 
+    returns (int) { // no xp accrual for minting
       if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXp      = nft.xp.divWadDown(totalXp);
       int  relativeDeposit = wadDiv(nft.deposit, totalDeposit);
@@ -476,10 +471,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Calculate xp accrual and share by relative xp
-  function _calcNftBurn(
-      int share, 
-      Nft memory nft
-  ) private view returns (int, uint) {
+  function _calcNftBurn(int share, Nft memory nft) 
+    private 
+    view returns (int, uint) {
       if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXpToMax   = nft.xp.divWadDown(maxXp);
       uint relativeXpToTotal = nft.xp.divWadDown(totalXp);
@@ -496,17 +490,26 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Return scaled down percentage of dyad supply as XP reward
-  function _calcXpReward(uint percent) private view returns (uint) {
+  function _calcXpReward(uint percent) 
+    private 
+    view 
+    returns (uint) {
       return dyad.totalSupply().mulWadDown(percent) / 1e16;
   }
 
   // Return the value of `eth` in DYAD
-  function _eth2dyad(uint eth) private view returns (int) {
+  function _eth2dyad(uint eth) 
+    private 
+    view 
+    returns (int) {
       return (eth/1e8).toInt256() * _getLatestEthPrice(); 
   }
 
   // ETH price in USD
-  function _getLatestEthPrice() private view returns (int price) {
+  function _getLatestEthPrice() 
+    private 
+    view 
+    returns (int price) {
       ( , price, , , ) = oracle.latestRoundData();
   }
 
@@ -516,7 +519,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address _to,
       uint256 _id, 
       uint256 _batchSize 
-  ) internal override {
+  ) internal 
+    override {
       super._beforeTokenTransfer(_from, _to, _id, _batchSize);
       idToNft[_id].lastOwnershipChange = block.number;
   }
