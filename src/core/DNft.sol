@@ -270,7 +270,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Determine amount of DYAD to mint/burn in the next claim window
-  function sync(uint id) external isActive(id) returns (int) {
+  function sync(
+      uint id
+  ) external 
+      isActive(id) 
+    returns (int) {
       uint dyadTotalSupply = dyad.totalSupply(); 
       if (dyadTotalSupply == 0) { revert DyadTotalSupplyZero(); } 
       if (block.timestamp < timeOfSync + MIN_TIME_BETWEEN_SYNC) { revert SyncTooSoon(); }
@@ -493,7 +497,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Return scaled down percentage of dyad supply as XP reward
   function _calcXpReward(uint percent) private view returns (uint) {
-    return dyad.totalSupply().mulWadDown(percent) / 1e16;
+      return dyad.totalSupply().mulWadDown(percent) / 1e16;
   }
 
   // Return the value of `eth` in DYAD
