@@ -156,6 +156,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       (uint id, Nft memory nft) = _mintNft(to); 
       nft.deposit   = newDyad;
       totalDeposit += newDyad;
+      emit Deposited(id, newDyad.toUint256());
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;
