@@ -497,7 +497,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     private 
     view 
     returns (uint) {
-      return dyad.totalSupply().mulWadDown(percent) / 1e15;
+      return totalDeposit.toUint256().mulWadDown(percent) / 1e16;
   }
 
   // Return the value of `eth` in DYAD
