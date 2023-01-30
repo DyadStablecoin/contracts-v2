@@ -186,8 +186,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(id)
     payable
     returns (int) {
-      idToLastDeposit[id]  = block.number;
-      int newDeposit       = _eth2dyad(msg.value);
+      idToLastDeposit[id] = block.number;
+      int newDeposit      = _eth2dyad(msg.value);
       Nft memory nft = idToNft[id];
       _addDeposit(id, nft, newDeposit);
       idToNft[id] = nft;
@@ -205,8 +205,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
       idToLastDeposit[id] = block.number;
       dyad.burn(msg.sender, amount);
-      unchecked {
-      nft.withdrawal -= amount; } // amount <= nft.withdrawal
+      nft.withdrawal -= amount; 
       _addDeposit(id, nft, amount.toInt256());
       idToNft[id] = nft;
       emit Deposited(id, amount);
@@ -261,7 +260,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad.burn(msg.sender, amount);
       Nft storage nft = idToNft[from];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
-      unchecked { nft.withdrawal -= amount; } // amount <= nft.withdrawal
+      nft.withdrawal -= amount;
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
