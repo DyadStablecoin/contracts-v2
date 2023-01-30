@@ -98,6 +98,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error DepositAndWithdrawInSameBlock  ();
   error CannotSnipeSelf                ();
   error AlreadySniped                  ();
+  error DepositTooLow                  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -105,7 +106,6 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error IsActive                       (uint id);
   error IsInactive                     (uint id);
   error ExceedsAverageTVL              (uint averageTVL);
-  error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
   error ExceedsDeposit                 (int deposit);
@@ -152,10 +152,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Mint new DNft to `to` 
   function mint(address to) external payable returns (uint) {
-      int newDyad  = _eth2dyad(msg.value);
-      if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert NotEnoughToCoverDepositMinimum(newDyad); }
+      int _deposit = _eth2dyad(msg.value);
+      if (_deposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
       (uint id, Nft memory nft) = _mintNft(to); 
-      _addDeposit(id, nft, newDyad);
+      _addDeposit(id, nft, _deposit);
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;

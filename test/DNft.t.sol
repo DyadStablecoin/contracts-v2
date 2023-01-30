@@ -43,12 +43,7 @@ contract DNftsTest is BaseTest {
     dNft.mint{value: 5 ether}(address(0));
   }
   function testCannotMintNotReachedMinAmount() public {
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        IDNft.NotEnoughToCoverDepositMinimum.selector,
-        1 ether/1e8 * oracleMock.price()
-      )
-    );
+    vm.expectRevert( abi.encodeWithSelector(IDNft.DepositTooLow.selector));
     dNft.mint{value: 1 ether}(address(this));
   }
   function testCannotMintExceedsMaxSupply() public {

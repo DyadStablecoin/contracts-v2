@@ -29,6 +29,8 @@ interface IDNft {
   error EthPriceUnchanged              ();
   error DepositAndWithdrawInSameBlock  ();
   error CannotSnipeSelf                ();
+  error AlreadySniped                  ();
+  error DepositTooLow                  ();
   error DNftDoesNotExist               (uint id);
   error NotNFTOwner                    (uint id);
   error NotLiquidatable                (uint id);
@@ -36,13 +38,11 @@ interface IDNft {
   error IsActive                       (uint id);
   error IsInactive                     (uint id);
   error ExceedsAverageTVL              (uint averageTVL);
-  error NotEnoughToCoverDepositMinimum (int amount);
   error NotEnoughToCoverNegativeDeposit(int amount);
   error CrTooLow                       (uint cr);
   error ExceedsDeposit                 (int deposit);
   error ExceedsWithdrawal              (uint amount);
   error AlreadyClaimed                 (uint id, uint syncedBlock);
-  error AlreadySniped                  (uint id, uint syncedBlock);
   error MissingPermission              (uint id, Permission permission);
 
   // view functions
