@@ -246,7 +246,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
       _addDeposit(from, nft, -(amount.toInt256()));
       nft.withdrawal = newWithdrawal; 
-      emit WithdrawalUpdated(from, nft.withdrawal);
+      emit WithdrawalUpdated(from, newWithdrawal);
       idToNft[from]  = nft;
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
