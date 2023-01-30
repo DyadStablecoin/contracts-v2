@@ -93,27 +93,27 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Liquidated  (address indexed to, uint indexed id);
   event Redeemed    (address indexed to, uint indexed id, uint amount);
 
-  error MaxSupply                    ();
-  error SyncTooSoon                  ();
-  error DyadTotalSupplyZero          ();
-  error DepositIsNegative            ();
-  error EthPriceUnchanged            ();
-  error DepositAndWithdrawInSameBlock();
-  error CannotSnipeSelf              ();
-  error AlreadySniped                ();
-  error DepositTooLow                ();
-  error DNftDoesNotExist             (uint id);
-  error NotNFTOwner                  (uint id);
-  error NotLiquidatable              (uint id);
-  error WithdrawalsNotZero           (uint id);
-  error IsActive                     (uint id);
-  error IsInactive                   (uint id);
-  error ExceedsAverageTVL            (uint averageTVL);
-  error CrTooLow                     (uint cr);
-  error ExceedsDeposit               (int deposit);
-  error ExceedsWithdrawal            (uint amount);
-  error AlreadyClaimed               (uint id, uint syncedBlock);
-  error MissingPermission            (uint id, Permission permission);
+  error MaxSupply           ();
+  error SyncTooSoon         ();
+  error DyadTotalSupplyZero ();
+  error DepositIsNegative   ();
+  error EthPriceUnchanged   ();
+  error DepositedInSameBlock();
+  error CannotSnipeSelf     ();
+  error AlreadySniped       ();
+  error DepositTooLow       ();
+  error DNftDoesNotExist    (uint id);
+  error NotNFTOwner         (uint id);
+  error NotLiquidatable     (uint id);
+  error WithdrawalsNotZero  (uint id);
+  error IsActive            (uint id);
+  error IsInactive          (uint id);
+  error ExceedsAverageTVL   (uint averageTVL);
+  error CrTooLow            (uint cr);
+  error ExceedsDeposit      (int deposit);
+  error ExceedsWithdrawal   (uint amount);
+  error AlreadyClaimed      (uint id, uint syncedBlock);
+  error MissingPermission   (uint id, Permission permission);
 
   modifier exists(uint id) {
     if (!_exists(id)) revert DNftDoesNotExist(id); _; 
@@ -203,9 +203,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(id) 
     { 
       idToLastDeposit[id] = block.number;
+      dyad.burn(msg.sender, amount);
       Nft memory nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
-      dyad.burn(msg.sender, amount);
       nft.withdrawal -= amount; 
       _addDeposit(id, nft, amount.toInt256());
       idToNft[id] = nft;
@@ -234,7 +234,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(from, Permission.WITHDRAW)
       isActive(from) 
     returns (uint) {
-      if (idToLastDeposit[from] == block.number) { revert DepositAndWithdrawInSameBlock(); } 
+      if (idToLastDeposit[from] == block.number) { revert DepositedInSameBlock(); } 
       Nft memory nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(nft.deposit); }
       uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
