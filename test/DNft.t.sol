@@ -39,11 +39,12 @@ contract DNftsTest is BaseTest {
     assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.ethPrice());
     assertEq(dNft.idToNft(id).withdrawal, 0);
   }
-  function testFailMintToZeroAddress() public {
+  function testCannotMintToZeroAddress() public {
+    vm.expectRevert("ERC721: mint to the zero address");
     dNft.mint{value: 5 ether}(address(0));
   }
   function testCannotMintNotReachedMinAmount() public {
-    vm.expectRevert( abi.encodeWithSelector(IDNft.DepositTooLow.selector));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DepositTooLow.selector));
     dNft.mint{value: 1 ether}(address(this));
   }
   function testCannotMintExceedsMaxSupply() public {
@@ -52,7 +53,7 @@ contract DNftsTest is BaseTest {
       dNft.mint{value: 5 ether}(address(this));
     }
     assertEq(dNft.totalSupply(), dNft.MAX_SUPPLY());
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ReachedMaxSupply.selector));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MaxSupply.selector));
     dNft.mint{value: 5 ether}(address(this));
   }
 

@@ -93,7 +93,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Liquidated  (address indexed to, uint indexed id);
   event Redeemed    (address indexed to, uint indexed id, uint amount);
 
-  error ReachedMaxSupply             ();
+  error MaxSupply                    ();
   error SyncTooSoon                  ();
   error DyadTotalSupplyZero          ();
   error DepositIsNegative            ();
@@ -147,7 +147,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       ethPrice              = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
-        (uint id, Nft memory nft) = _mintNft(_insiders[i]); // insider DNfts do not require a deposit
+        // insiders do not require a DYAD deposit
+        (uint id, Nft memory nft) = _mintNft(_insiders[i]); 
         idToNft[id] = nft; 
       }
   }
@@ -171,8 +172,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     private 
     returns (uint, Nft memory) {
       uint id = totalSupply();
-      if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
-      _mint(to, id); // will revert on address(0)
+      if (id >= MAX_SUPPLY) { revert MaxSupply(); }
+      _mint(to, id); // will revert if `to` == address(0)
       Nft memory nft; 
       _addXp(id, nft, XP_MINT_REWARD);
       emit Minted(to, id);

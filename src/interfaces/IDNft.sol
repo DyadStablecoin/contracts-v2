@@ -22,7 +22,7 @@ interface IDNft {
     bool isActive;
   }
 
-  error ReachedMaxSupply             ();
+  error MaxSupply                    ();
   error SyncTooSoon                  ();
   error DyadTotalSupplyZero          ();
   error DepositIsNegative            ();
