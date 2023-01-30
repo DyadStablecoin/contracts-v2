@@ -215,9 +215,9 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
     assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
-    assertTrue(dNft.idToNft(id).xp == 11040);  // nft.xp
+    assertTrue(dNft.idToNft(id).xp == 101400); // nft.xp
     assertTrue(                                // totalXp
-      dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 10040
+      dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 100400
     );
     assertTrue(dNft.maxXp() == dNft.idToNft(id).xp); // maxXp
   }
@@ -237,14 +237,14 @@ contract DNftsTest is BaseTest {
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
-    assertTrue(dNft.idToNft(id).xp == 11040);           // nft.xp
+    assertTrue(dNft.idToNft(id).xp == 101400);           // nft.xp
     assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49069328703703703703600); // nft.deposit
-    assertEq(dNft.idToNft(id).xp, 11050);                        // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49090079365079365079300); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 101500);                       // nft.xp
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
