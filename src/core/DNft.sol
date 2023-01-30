@@ -305,7 +305,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         newXp += xp;
       }
       _updateDeposit(id, nft, share);
-      _addXp(id, nft, newXp);
+      _addXp        (id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -329,13 +329,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         share         = _calcNftMint(prevDyadDelta, from);
         _updateDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
         _updateDeposit(_to, to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
-        _addXp(_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
+        _addXp        (_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, from);
         _updateDeposit(_from, from, share);
-        _addXp(_from, from, xp);
-        _addXp(_to, to, _calcXpReward(XP_SNIPE_BURN_REWARD));
+        _addXp        (_from, from, xp);
+        _addXp        (  _to,   to, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
@@ -354,7 +354,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
       _updateDeposit(id, nft, newDyad);
-      _addXp(id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
+      _addXp        (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       idToNft[id]   = nft;     
       _transfer(ownerOf(id), to, id);
       emit Liquidated(to,  id); 
