@@ -93,28 +93,27 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Liquidated  (address indexed to, uint indexed id);
   event Redeemed    (address indexed to, uint indexed id, uint amount);
 
-  error ReachedMaxSupply               ();
-  error SyncTooSoon                    ();
-  error DyadTotalSupplyZero            ();
-  error DepositIsNegative              ();
-  error EthPriceUnchanged              ();
-  error DepositAndWithdrawInSameBlock  ();
-  error CannotSnipeSelf                ();
-  error AlreadySniped                  ();
-  error DepositTooLow                  ();
-  error DNftDoesNotExist               (uint id);
-  error NotNFTOwner                    (uint id);
-  error NotLiquidatable                (uint id);
-  error WithdrawalsNotZero             (uint id);
-  error IsActive                       (uint id);
-  error IsInactive                     (uint id);
-  error ExceedsAverageTVL              (uint averageTVL);
-  error NotEnoughToCoverNegativeDeposit(int amount);
-  error CrTooLow                       (uint cr);
-  error ExceedsDeposit                 (int deposit);
-  error ExceedsWithdrawal              (uint amount);
-  error AlreadyClaimed                 (uint id, uint syncedBlock);
-  error MissingPermission              (uint id, Permission permission);
+  error ReachedMaxSupply             ();
+  error SyncTooSoon                  ();
+  error DyadTotalSupplyZero          ();
+  error DepositIsNegative            ();
+  error EthPriceUnchanged            ();
+  error DepositAndWithdrawInSameBlock();
+  error CannotSnipeSelf              ();
+  error AlreadySniped                ();
+  error DepositTooLow                ();
+  error DNftDoesNotExist             (uint id);
+  error NotNFTOwner                  (uint id);
+  error NotLiquidatable              (uint id);
+  error WithdrawalsNotZero           (uint id);
+  error IsActive                     (uint id);
+  error IsInactive                   (uint id);
+  error ExceedsAverageTVL            (uint averageTVL);
+  error CrTooLow                     (uint cr);
+  error ExceedsDeposit               (int deposit);
+  error ExceedsWithdrawal            (uint amount);
+  error AlreadyClaimed               (uint id, uint syncedBlock);
+  error MissingPermission            (uint id, Permission permission);
 
   modifier exists(uint id) {
     if (!_exists(id)) revert DNftDoesNotExist(id); _; 
@@ -211,15 +210,17 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function move(
       uint _from,
       uint _to,
-      int  _amount
+      int  amount
   ) external withPermission(_from, Permission.MOVE) {
-      require(_amount > 0);              // needed because _amount is int
-      Nft storage from = idToNft[_from];
-      if (_amount > from.deposit) { revert ExceedsDeposit(from.deposit); }
-      unchecked {
-      from.deposit         -= _amount; } // amount <= from.deposit
-      idToNft[_to].deposit += _amount;
-      emit Moved(_from, _to, _amount);
+      require(amount > 0); // needed because amount is int
+      Nft memory from = idToNft[_from];
+      Nft memory to   = idToNft[_to];
+      if (amount > from.deposit) { revert ExceedsDeposit(from.deposit); }
+      _addDeposit(_from, from, -amount);
+      _addDeposit(  _to,   to,  amount);
+      idToNft[_from] = from;
+      idToNft[_to]   = to;
+      emit Moved(_from, _to, amount);
   }
 
   // Withdraw DYAD from dNFT deposit
@@ -352,11 +353,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       address to 
   ) external payable {
       Nft memory nft = idToNft[id];
-      int _deposit   = nft.deposit; // save gas
-      if (_deposit >= 0) { revert NotLiquidatable(id); }
-      int newDyad = _eth2dyad(msg.value);
-      if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
-      _addDeposit(id, nft, newDyad);
+      int oldDeposit   = nft.deposit; // save gas
+      if (oldDeposit >= 0) { revert NotLiquidatable(id); }
+      int newDeposit = _eth2dyad(msg.value);
+      if (newDeposit < oldDeposit*-1) { revert DepositTooLow(); }
+      _addDeposit(id, nft, newDeposit);
       _addXp     (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       idToNft[id] = nft;     
       _transfer(ownerOf(id), to, id);

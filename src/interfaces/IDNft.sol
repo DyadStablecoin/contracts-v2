@@ -22,28 +22,27 @@ interface IDNft {
     bool isActive;
   }
 
-  error ReachedMaxSupply               ();
-  error SyncTooSoon                    ();
-  error DyadTotalSupplyZero            ();
-  error DepositIsNegative              ();
-  error EthPriceUnchanged              ();
-  error DepositAndWithdrawInSameBlock  ();
-  error CannotSnipeSelf                ();
-  error AlreadySniped                  ();
-  error DepositTooLow                  ();
-  error DNftDoesNotExist               (uint id);
-  error NotNFTOwner                    (uint id);
-  error NotLiquidatable                (uint id);
-  error WithdrawalsNotZero             (uint id);
-  error IsActive                       (uint id);
-  error IsInactive                     (uint id);
-  error ExceedsAverageTVL              (uint averageTVL);
-  error NotEnoughToCoverNegativeDeposit(int amount);
-  error CrTooLow                       (uint cr);
-  error ExceedsDeposit                 (int deposit);
-  error ExceedsWithdrawal              (uint amount);
-  error AlreadyClaimed                 (uint id, uint syncedBlock);
-  error MissingPermission              (uint id, Permission permission);
+  error ReachedMaxSupply             ();
+  error SyncTooSoon                  ();
+  error DyadTotalSupplyZero          ();
+  error DepositIsNegative            ();
+  error EthPriceUnchanged            ();
+  error DepositAndWithdrawInSameBlock();
+  error CannotSnipeSelf              ();
+  error AlreadySniped                ();
+  error DepositTooLow                ();
+  error DNftDoesNotExist             (uint id);
+  error NotNFTOwner                  (uint id);
+  error NotLiquidatable              (uint id);
+  error WithdrawalsNotZero           (uint id);
+  error IsActive                     (uint id);
+  error IsInactive                   (uint id);
+  error ExceedsAverageTVL            (uint averageTVL);
+  error CrTooLow                     (uint cr);
+  error ExceedsDeposit               (int deposit);
+  error ExceedsWithdrawal            (uint amount);
+  error AlreadyClaimed               (uint id, uint syncedBlock);
+  error MissingPermission            (uint id, Permission permission);
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);

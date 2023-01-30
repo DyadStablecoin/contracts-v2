@@ -333,7 +333,7 @@ contract DNftsTest is BaseTest {
   }
   function testCannotLiquidateNotEnoughToCoverNegativeDeposit() public {
     uint id = makeDepositNegative();
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotEnoughToCoverNegativeDeposit.selector, 0x6f05b59d3b20000));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DepositTooLow.selector));
     dNft.liquidate{value: 0.0001 ether}(id, address(1));
   }
 
