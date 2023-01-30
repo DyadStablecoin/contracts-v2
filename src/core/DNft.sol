@@ -67,9 +67,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   mapping(uint => Nft)                               public idToNft;
-  mapping(uint => mapping(address => NftPermission)) public idToNftPermission; // id => (operator => NftPermission)
-  mapping(uint => mapping(uint => bool))             public idToClaimed;       // id => (blockNumber => claimed)
-  mapping(uint => uint)                              public idToLastDeposit; // id => (blockNumber)
+  // id => (operator => NftPermission)
+  mapping(uint => mapping(address => NftPermission)) public idToNftPermission; 
+  // id => (blockNumber => claimed)
+  mapping(uint => mapping(uint => bool))             public idToClaimed;       
+  // id => (blockNumber)
+  mapping(uint => uint)                              public idToLastDeposit; 
 
   Dyad public dyad;
   IAggregatorV3 internal oracle;
