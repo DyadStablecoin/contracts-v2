@@ -215,11 +215,11 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.prevSyncedBlock(), 0);       // prevSyncedBlock
     assertEq(dNft.syncedBlock(), block.number);// syncedBlock
     assertTrue(dNft.dyadDelta()    == 100e18); // dyadDelta
-    assertTrue(dNft.idToNft(id).xp == 101400); // nft.xp
-    assertTrue(                                // totalXp
-      dNft.totalXp() == (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 100400
+    assertEq(dNft.idToNft(id).xp, 543160);     // nft.xp
+    assertEq(                                  // totalXp
+      dNft.totalXp(), (dNft.XP_MINT_REWARD() * dNft.totalSupply()) + 542160
     );
-    assertTrue(dNft.maxXp() == dNft.idToNft(id).xp); // maxXp
+    assertEq(dNft.maxXp(), dNft.idToNft(id).xp); // maxXp
   }
   function testCannotSyncPriceDidNotChange() public {
     uint id = dNft.totalSupply();
@@ -237,14 +237,26 @@ contract DNftsTest is BaseTest {
     _sync(id, 1100*1e8);              // 10% price increas
 
     /* before claim */
-    assertTrue(dNft.idToNft(id).xp == 101400);           // nft.xp
+    assertTrue(dNft.idToNft(id).xp == 543160);           // nft.xp
     assertTrue(dNft.idToNft(id).deposit == 49000*1e18); // nft.deposit
 
     dNft.claim(id);
 
     /* after claim */
-    assertEq(dNft.idToNft(id).deposit, 49090079365079365079300); // nft.deposit
-    assertEq(dNft.idToNft(id).xp, 101500);                       // nft.xp
+    assertEq(dNft.idToNft(id).deposit, 49094289600862480752900); // nft.deposit
+    assertEq(dNft.idToNft(id).xp, 543700);                       // nft.xp
+  }
+  function testClaimMintRewards() public {
+    uint id = dNft.totalSupply();
+    dNft.mint{value: 5 ether}(address(this));
+    dNft.withdraw(id, address(this), 300*1e18);
+    uint xp = dNft.idToNft(id).xp;
+    _sync(id, 1001*1e8);
+    uint xpAfterSync = dNft.idToNft(id).xp;
+    assertTrue(xpAfterSync - xp > 1000);
+    dNft.claim(id);
+    uint xpAfterClaim = dNft.idToNft(id).xp;
+    assertTrue(xpAfterClaim - xpAfterSync > 50);
   }
   function testClaimBurn() public {
     uint id = dNft.totalSupply();
