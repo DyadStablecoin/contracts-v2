@@ -74,21 +74,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   Dyad public dyad;
   IAggregatorV3 internal oracle;
 
-  event Synced        (uint id);
-  event Activated     (uint id);
-  event Deactivated   (uint id);
-  event AddedXp       (uint indexed id, uint amount);
-  event UpdatedDeposit(uint indexed id, int amount);
-  event Claimed       (uint indexed id, int share);
-  event Deposited     (uint indexed id, uint amount);
-  event Exchanged     (uint indexed id, int amount);
-  event Modified      (uint indexed id, PermissionSet[] permissions);
-  event Withdrawn     (uint indexed from, address indexed to, uint amount);
-  event Moved         (uint indexed from, uint indexed to, int amount);
-  event Sniped        (uint indexed from, uint indexed to, int share);
-  event Minted        (address indexed to, uint indexed id);
-  event Liquidated    (address indexed to, uint indexed id);
-  event Redeemed      (address indexed to, uint indexed id, uint amount);
+  event Synced      (uint id);
+  event Activated   (uint id);
+  event Deactivated (uint id);
+  event AddedXp     (uint indexed id, uint amount);
+  event AddedDeposit(uint indexed id, int amount);
+  event Claimed     (uint indexed id, int share);
+  event Deposited   (uint indexed id, uint amount);
+  event Exchanged   (uint indexed id, int amount);
+  event Modified    (uint indexed id, PermissionSet[] permissions);
+  event Withdrawn   (uint indexed from, address indexed to, uint amount);
+  event Moved       (uint indexed from, uint indexed to, int amount);
+  event Sniped      (uint indexed from, uint indexed to, int share);
+  event Minted      (address indexed to, uint indexed id);
+  event Liquidated  (address indexed to, uint indexed id);
+  event Redeemed    (address indexed to, uint indexed id, uint amount);
 
   error ReachedMaxSupply               ();
   error SyncTooSoon                    ();
@@ -155,7 +155,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newDyad  = _eth2dyad(msg.value);
       if (newDyad < MIN_MINT_DYAD_DEPOSIT) { revert NotEnoughToCoverDepositMinimum(newDyad); }
       (uint id, Nft memory nft) = _mintNft(to); 
-      _updateDeposit(id, nft, newDyad);
+      _addDeposit(id, nft, newDyad);
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;
@@ -182,7 +182,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToLastDeposit[id]  = block.number;
       int newDeposit       = _eth2dyad(msg.value);
       Nft memory nft = idToNft[id];
-      _updateDeposit(id, nft, newDeposit);
+      _addDeposit(id, nft, newDeposit);
       idToNft[id] = nft;
       emit Exchanged(id, newDeposit);
       return newDeposit;
@@ -199,7 +199,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad.burn(msg.sender, amount);
       unchecked {
       nft.withdrawal -= amount; } // amount <= nft.withdrawal
-      _updateDeposit(id, nft, amount.toInt256());
+      _addDeposit(id, nft, amount.toInt256());
       idToNft[id] = nft;
       emit Deposited(id, amount);
   }
@@ -237,7 +237,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint averageTVL    = collatVault / totalSupply();
       uint newWithdrawal = nft.withdrawal + amount;
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
-      _updateDeposit(from, nft, -amount.toInt256());
+      _addDeposit(from, nft, -(amount.toInt256()));
       nft.withdrawal = newWithdrawal; 
       idToNft[from]  = nft;
       dyad.mint(to, amount);
@@ -304,8 +304,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         (share, xp) = _calcNftBurn(dyadDelta, nft);
         newXp += xp;
       }
-      _updateDeposit(id, nft, share);
-      _addXp        (id, nft, newXp);
+      _addDeposit(id, nft, share);
+      _addXp     (id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -327,15 +327,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int share;
       if (prevDyadDelta > 0) {         
         share         = _calcNftMint(prevDyadDelta, from);
-        _updateDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
-        _updateDeposit(_to, to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
-        _addXp        (_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
+        _addDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
+        _addDeposit(_to, to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
+        _addXp     (_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, from);
-        _updateDeposit(_from, from, share);
-        _addXp        (_from, from, xp);
-        _addXp        (  _to,   to, _calcXpReward(XP_SNIPE_BURN_REWARD));
+        _addDeposit(_from, from, share);
+        _addXp     (_from, from, xp);
+        _addXp     (  _to,   to, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
       idToNft[_from] = from;
       idToNft[_to]   = to;
@@ -353,11 +353,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (_deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
-      _updateDeposit(id, nft, newDyad);
-      _addXp        (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
-      idToNft[id]   = nft;     
+      _addDeposit(id, nft, newDyad);
+      _addXp     (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
+      idToNft[id] = nft;     
       _transfer(ownerOf(id), to, id);
-      emit Liquidated(to,  id); 
+      emit Liquidated(to, id); 
   }
 
   // Activate inactive dNFT
@@ -449,10 +449,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Update `nft.deposit` in memory. update `totalDeposit` accordingly
-  function _updateDeposit(uint id, Nft memory nft, int _deposit) private {
+  function _addDeposit(uint id, Nft memory nft, int _deposit) private {
     nft.deposit  += _deposit;
     totalDeposit += _deposit;
-    emit UpdatedDeposit(id, _deposit);
+    emit AddedDeposit(id, _deposit);
   }
 
   // Calculate share weighted by relative xp
