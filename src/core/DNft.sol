@@ -169,7 +169,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       _mint(to, id); // will revert on address(0)
       Nft memory nft; 
       _addXp(nft, XP_MINT_REWARD);
-      emit XpIncreased(id, nft.xp);
+      emit XpIncreased(id, XP_MINT_REWARD);
       emit Minted(to, id);
       return (id, nft);
   }
@@ -284,8 +284,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       prevSyncedBlock = syncedBlock;  // open new snipe window
       syncedBlock     = block.number; // open new claim window
       Nft memory nft  = idToNft[id];
-      _addXp(nft, _calcXpReward(XP_SYNC_REWARD + priceChange.abs()));
-      emit XpIncreased(id, nft.xp);
+      uint xpReward = _calcXpReward(XP_SYNC_REWARD + priceChange.abs());
+      _addXp(nft, xpReward);
+      emit XpIncreased(id, xpReward);
       idToNft[id] = nft;
       emit Synced(id);
       return dyadDelta;
@@ -312,7 +313,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       nft.deposit  += share;
       totalDeposit += share;
       _addXp(nft, newXp);
-      emit XpIncreased(id, nft.xp);
+      emit XpIncreased(id, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -336,16 +337,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         share         = _calcNftMint(prevDyadDelta, from);
         from.deposit += wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD); 
         to.deposit   += wadMul(share, SNIPE_MINT_SHARE_REWARD); 
-        _addXp(to, _calcXpReward(XP_SNIPE_MINT_REWARD));
-        emit XpIncreased(_to, to.xp);
+        uint xpReward = _calcXpReward(XP_SNIPE_MINT_REWARD);
+        _addXp(to, xpReward);
+        emit XpIncreased(_to, xpReward);
       } else {                        
         uint xp;  
         (share, xp)   = _calcNftBurn(prevDyadDelta, from);
         from.deposit += share;      
         _addXp(from, xp);
-        emit XpIncreased(_from, from.xp);
-        _addXp(to, _calcXpReward(XP_SNIPE_BURN_REWARD));
-        emit XpIncreased(_to, to.xp);
+        emit XpIncreased(_from, xp);
+
+        uint xpReward = _calcXpReward(XP_SNIPE_BURN_REWARD);
+        _addXp(to, xpReward);
+        emit XpIncreased(_to, xpReward);
       }
       totalDeposit  += share;
       idToNft[_from] = from;
@@ -364,8 +368,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (_deposit >= 0) { revert NotLiquidatable(id); }
       int newDyad = _eth2dyad(msg.value);
       if (newDyad < _deposit*-1) { revert NotEnoughToCoverNegativeDeposit(newDyad); }
-      _addXp(nft, _calcXpReward(XP_LIQUIDATION_REWARD));
-      emit XpIncreased(id, nft.xp);
+      uint xpReward = _calcXpReward(XP_LIQUIDATION_REWARD);
+      _addXp(nft, xpReward);
+      emit XpIncreased(id, xpReward);
       nft.deposit  += newDyad; 
       totalDeposit += newDyad;
       idToNft[id]   = nft;     
