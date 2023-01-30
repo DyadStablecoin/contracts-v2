@@ -330,10 +330,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       Nft memory to   = idToNft[_to];
       int share;
       if (prevDyadDelta > 0) {         
-        share         = _calcNftMint(prevDyadDelta, from);
+        share = _calcNftMint(prevDyadDelta, from);
         _addDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
-        _addDeposit(_to, to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
-        _addXp     (_to, to, _calcXpReward(XP_SNIPE_MINT_REWARD));
+        _addDeposit(  _to,   to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
+        _addXp     (  _to,   to, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, from);
