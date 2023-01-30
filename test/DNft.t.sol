@@ -43,12 +43,7 @@ contract DNftsTest is BaseTest {
     dNft.mint{value: 5 ether}(address(0));
   }
   function testCannotMintNotReachedMinAmount() public {
-    vm.expectRevert(
-      abi.encodeWithSelector(
-        IDNft.NotEnoughToCoverDepositMinimum.selector,
-        1 ether/1e8 * oracleMock.price()
-      )
-    );
+    vm.expectRevert( abi.encodeWithSelector(IDNft.DepositTooLow.selector));
     dNft.mint{value: 1 ether}(address(this));
   }
   function testCannotMintExceedsMaxSupply() public {
@@ -117,7 +112,15 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 50 ether}(address(this));
     dNft.withdraw(id, address(this), 2000*1e18);
+
+    uint withdrawalBefore = dNft.idToNft(id).withdrawal;
+    int  depositBefore    = dNft.idToNft(id).deposit;
     dNft.withdraw(id, address(this), 1000*1e18);
+    uint withdrawalAfter = dNft.idToNft(id).withdrawal;
+    int  depositAfter    = dNft.idToNft(id).deposit;
+
+    assertTrue(withdrawalAfter > withdrawalBefore);
+    assertTrue(depositAfter    < depositBefore);
   }
   function testWithdrawCannotDepositAndWithdrawInSameBlock() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
@@ -180,7 +183,12 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, 0)); // is inactive
+    vm.expectRevert(abi.encodeWithSelector(
+      IDNft.MissingPermission.selector,
+      0,
+      Permission.REDEEM
+    ));
+
     dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
 
@@ -330,7 +338,7 @@ contract DNftsTest is BaseTest {
   }
   function testCannotLiquidateNotEnoughToCoverNegativeDeposit() public {
     uint id = makeDepositNegative();
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotEnoughToCoverNegativeDeposit.selector, 0x6f05b59d3b20000));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.DepositTooLow.selector));
     dNft.liquidate{value: 0.0001 ether}(id, address(1));
   }
 
