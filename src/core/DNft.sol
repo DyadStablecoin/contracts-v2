@@ -174,9 +174,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint id = totalSupply();
       if (id >= MAX_SUPPLY) { revert MaxSupply(); }
       _mint(to, id); // will revert if `to` == address(0)
+      emit Minted(to, id);
       Nft memory nft; 
       _addXp(id, nft, XP_MINT_REWARD);
-      emit Minted(to, id);
       return (id, nft);
   }
 
