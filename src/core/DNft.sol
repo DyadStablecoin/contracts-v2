@@ -5,7 +5,7 @@ import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
 import {ERC721, ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ReentrancyGuard} from "@solmate/src/utils/ReentrancyGuard.sol";
-import {LibString} from "solmate/utils/LibString.sol";
+import {LibString} from "@solmate/src/utils/LibString.sol";
 import {wadDiv, wadMul} from "@solmate/src/utils/SignedWadMath.sol";
 import {FixedPointMathLib} from "@solmate/src/utils/FixedPointMathLib.sol";
 
@@ -159,6 +159,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       (uint id, Nft memory nft) = _mintNft(to); 
       nft.deposit   = newDyad;
       totalDeposit += newDyad;
+      emit Deposited(id, newDyad.toUint256());
       nft.isActive  = true;
       idToNft[id]   = nft;
       return id;
@@ -168,10 +169,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   function _mintNft(address to) private returns (uint, Nft memory) {
       uint id = totalSupply();
       if (id >= MAX_SUPPLY) { revert ReachedMaxSupply(); }
+
       _mint(to, id); // will revert on address(0)
+      emit Minted(to, id);
+
       Nft memory nft; 
       _addXp(nft, id, XP_MINT_REWARD);
-      emit Minted(to, id);
       return (id, nft);
   }
 
