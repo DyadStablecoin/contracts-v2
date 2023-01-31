@@ -19,7 +19,7 @@ contract Claimer is IClaimer, Owned {
   Config public config;
 
   modifier onlyNftOwner(uint id) {
-    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner(id);
+    if (dNft.ownerOf(id) != msg.sender) revert NotNFTOwner();
     _;
   }
 
@@ -29,7 +29,7 @@ contract Claimer is IClaimer, Owned {
   }
 
   function setConfig(Config memory _config) external onlyOwner {
-    if (_config.fee <= MAX_FEE) revert InvalidFee(_config.fee);
+    if (_config.fee <= MAX_FEE) revert InvalidFee();
     config = _config;
     emit ConfigSet(_config);
   }
@@ -38,7 +38,7 @@ contract Claimer is IClaimer, Owned {
   function add(uint id) external onlyNftOwner(id) { 
     if (claimers.length() >= config.maxClaimers) revert TooManyClaimers();
     if (!_hasPermissions(id))                    revert MissingPermissions();
-    if (!claimers.add(id))                       revert IdAlreadyInSet(id);
+    if (!claimers.add(id))                       revert IdAlreadyInSet();
     emit Added(id);
   }
 
@@ -48,7 +48,7 @@ contract Claimer is IClaimer, Owned {
   }
 
   function _remove(uint id) internal {
-    if (!claimers.remove(id)) revert IdNotInSet(id);
+    if (!claimers.remove(id)) revert IdNotInSet();
     emit Removed(id);
   }
 

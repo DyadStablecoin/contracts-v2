@@ -14,12 +14,12 @@ interface IClaimer {
   event Removed   (uint indexed id);
   event ClaimedAll();
 
-  error InvalidFee        (int fee);
+  error InvalidFee        ();
   error TooManyClaimers   ();
   error MissingPermissions();
-  error NotNFTOwner       (uint id);
-  error IdAlreadyInSet    (uint id);
-  error IdNotInSet        (uint id);
+  error NotNFTOwner       ();
+  error IdAlreadyInSet    ();
+  error IdNotInSet        ();
 
   /**
    * @notice Set the config

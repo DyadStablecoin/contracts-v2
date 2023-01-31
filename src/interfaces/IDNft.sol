@@ -32,21 +32,20 @@ interface IDNft {
   error AlreadySniped       ();
   error DepositTooLow       ();
   error NotLiquidatable     ();
-  error DNftDoesNotExist    (uint id);
-  error NotNFTOwner         (uint id);
-  error WithdrawalsNotZero  (uint id);
-  error IsActive            (uint id);
-  error IsInactive          (uint id);
-  error ExceedsAverageTVL   (uint averageTVL);
-  error CrTooLow            (uint cr);
-  error ExceedsDeposit      (int deposit);
-  error ExceedsWithdrawal   (uint amount);
-  error AlreadyClaimed      (uint id, uint syncedBlock);
-  error MissingPermission   (uint id, Permission permission);
+  error DNftDoesNotExist    ();
+  error NotNFTOwner         ();
+  error WithdrawalsNotZero  ();
+  error IsActive            ();
+  error IsInactive          ();
+  error ExceedsAverageTVL   ();
+  error CrTooLow            ();
+  error ExceedsDeposit      ();
+  error ExceedsWithdrawal   ();
+  error AlreadyClaimed      ();
+  error MissingPermission   ();
 
   // view functions
   function MAX_SUPPLY()     external view returns (uint);
-  function MINT_MINIMUM()   external view returns (uint);
   function XP_MINT_REWARD() external view returns (uint);
   function XP_SYNC_REWARD() external view returns (uint);
   function maxXp()          external view returns (uint);

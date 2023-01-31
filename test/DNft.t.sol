@@ -92,9 +92,7 @@ contract DNftsTest is BaseTest {
   }
   function testCannotMoveDepositNotDNftOwner() public {
     vm.expectRevert(abi.encodeWithSelector(
-      IDNft.MissingPermission.selector,
-      0,
-      Permission.MOVE
+      IDNft.MissingPermission.selector
     ));
     dNft.move(0, 2, 10000); 
   }
@@ -102,8 +100,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     vm.expectRevert(abi.encodeWithSelector(
-      IDNft.ExceedsDeposit.selector,
-      dNft.idToNft(id).deposit
+      IDNft.ExceedsDeposit.selector
     ));
     dNft.move(id, 0, 50000000 ether);
   }
@@ -131,19 +128,19 @@ contract DNftsTest is BaseTest {
   }
   function testWithdrawCannotWithdrawMoreThanDeposit() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDeposit.selector, dNft.idToNft(id).deposit));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsDeposit.selector));
     dNft.withdraw(id, address(this), 50000000 ether);
   }
   function testWithdrawCannotWithdrawCrTooLow() public {
     uint id = dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), 400*1e18);
     oracleMock.setPrice(0.00000001 ether);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.CrTooLow.selector, 625000000000000000));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.CrTooLow.selector));
     dNft.withdraw(id, address(this), 400*1e18);
   }
   function testWithdrawCannotWithdrawExceedsAverageTVL() public {
     uint id = dNft.mint{value: 5 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector, 0x1696695dbd1cc2aaaa));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.ExceedsAverageTVL.selector));
     dNft.withdraw(id, address(this), 2000*1e18);
   }
 
@@ -155,13 +152,13 @@ contract DNftsTest is BaseTest {
     dNft.deposit(id, 2000*1e18);
   }
   function testCannotDepositMissingPermission() public {
-    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector, 0, Permission.DEPOSIT));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector));
     dNft.deposit(0, 2000*1e18);
   }
   function testCannotDepositNftIsInactive() public {
     uint id = dNft.mint{value: 50 ether}(address(this));
     dNft.deactivate(id);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector, id));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.IsInactive.selector));
     dNft.deposit(id, 2000*1e18);
   }
 
@@ -184,11 +181,7 @@ contract DNftsTest is BaseTest {
     uint id = dNft.totalSupply();
     dNft.mint{value: 5 ether}(address(this));
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
-    vm.expectRevert(abi.encodeWithSelector(
-      IDNft.MissingPermission.selector,
-      0,
-      Permission.REDEEM
-    ));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector));
 
     dNft.redeem(0, address(this), AMOUNT_TO_REDEEM);
   }
@@ -295,7 +288,7 @@ contract DNftsTest is BaseTest {
     dNft.withdraw(id, address(this), 1000*1e18);
     _sync(id, oracleMock.price()*2);
     dNft.claim(id);
-    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector, id, dNft.syncedBlock()));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadyClaimed.selector));
     dNft.claim(id);
   }
   function testClaimTwice() public {
@@ -373,9 +366,7 @@ contract DNftsTest is BaseTest {
 
     vm.prank(address(1));
     // address(1) does not have the MOVE permission
-    vm.expectRevert(abi.encodeWithSelector(
-      IDNft.MissingPermission.selector, id, Permission.MOVE)
-   );
+    vm.expectRevert(abi.encodeWithSelector(IDNft.MissingPermission.selector));
     dNft.move(id, 5, 10);
 
     dNft.grant(id, ps);

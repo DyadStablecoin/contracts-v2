@@ -103,32 +103,32 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   error AlreadySniped       ();
   error DepositTooLow       ();
   error NotLiquidatable     ();
-  error DNftDoesNotExist    (uint id);
-  error NotNFTOwner         (uint id);
-  error WithdrawalsNotZero  (uint id);
-  error IsActive            (uint id);
-  error IsInactive          (uint id);
-  error ExceedsAverageTVL   (uint averageTVL);
-  error CrTooLow            (uint cr);
-  error ExceedsDeposit      (int deposit);
-  error ExceedsWithdrawal   (uint amount);
-  error AlreadyClaimed      (uint id, uint syncedBlock);
-  error MissingPermission   (uint id, Permission permission);
+  error DNftDoesNotExist    ();
+  error NotNFTOwner         ();
+  error WithdrawalsNotZero  ();
+  error IsActive            ();
+  error IsInactive          ();
+  error ExceedsAverageTVL   ();
+  error CrTooLow            ();
+  error ExceedsDeposit      ();
+  error ExceedsWithdrawal   ();
+  error AlreadyClaimed      ();
+  error MissingPermission   ();
 
   modifier exists(uint id) {
-    if (!_exists(id)) revert DNftDoesNotExist(id); _; 
+    if (!_exists(id)) revert DNftDoesNotExist(); _; 
   }
   modifier onlyOwner(uint id) {
-    if (ownerOf(id) != msg.sender) revert NotNFTOwner(id); _;
+    if (ownerOf(id) != msg.sender) revert NotNFTOwner(); _;
   }
   modifier withPermission(uint id, Permission permission) {
-    if (!hasPermission(id, msg.sender, permission)) revert MissingPermission(id, permission); _;
+    if (!hasPermission(id, msg.sender, permission)) revert MissingPermission(); _;
   }
   modifier isActive(uint id) {
-    if (idToNft[id].isActive == false) revert IsInactive(id); _;
+    if (idToNft[id].isActive == false) revert IsInactive(); _;
   }
   modifier isInactive(uint id) {
-    if (idToNft[id].isActive == true) revert IsActive(id); _;
+    if (idToNft[id].isActive == true) revert IsActive(); _;
   }
 
   constructor(
@@ -205,7 +205,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToLastDeposit[id] = block.number;
       dyad.burn(msg.sender, amount);
       Nft memory nft = idToNft[id];
-      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(); }
       nft.withdrawal -= amount; 
       emit WithdrawalUpdated(id, nft.withdrawal);
       _addDeposit(id, nft, amount.toInt256());
@@ -221,7 +221,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       require(amount > 0); // needed because amount is int
       Nft memory from = idToNft[_from];
       Nft memory to   = idToNft[_to];
-      if (amount > from.deposit) { revert ExceedsDeposit(from.deposit); }
+      if (amount > from.deposit) { revert ExceedsDeposit(); }
       _addDeposit(_from, from, -amount);
       _addDeposit(  _to,   to,  amount);
       idToNft[_from] = from;
@@ -237,13 +237,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     returns (uint) {
       if (idToLastDeposit[from] == block.number) { revert DepositedInSameBlock(); } 
       Nft memory nft = idToNft[from];
-      if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(nft.deposit); }
+      if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(); }
       uint collatVault    = address(this).balance * _getLatestEthPrice().toUint256() / 1e8;
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
-      if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(newCollatRatio); }
+      if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(); }
       uint averageTVL    = collatVault / totalSupply();
       uint newWithdrawal = nft.withdrawal + amount;
-      if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(averageTVL); }
+      if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(); }
       _addDeposit(from, nft, -(amount.toInt256()));
       nft.withdrawal = newWithdrawal; 
       emit WithdrawalUpdated(from, newWithdrawal);
@@ -262,7 +262,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     returns (uint) { 
       dyad.burn(msg.sender, amount);
       Nft storage nft = idToNft[from];
-      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(amount); }
+      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(); }
       nft.withdrawal -= amount;
       emit WithdrawalUpdated(from, nft.withdrawal);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
@@ -301,7 +301,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(id, Permission.CLAIM)
       isActive(id)
     returns (int) {
-      if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(id, syncedBlock); }
+      if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(); }
       idToClaimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
       int  share;
@@ -382,7 +382,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(id, Permission.DEACTIVATE)
       isActive(id) 
     {
-      if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero(id);
+      if (idToNft[id].withdrawal  > 0) revert WithdrawalsNotZero();
       if (idToNft[id].deposit    <= 0) revert DepositIsNegative();
       idToNft[id].isActive = false;
       emit IsActiveUpdated(id, false);
