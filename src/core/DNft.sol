@@ -310,7 +310,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       } else {
         uint xp;
         (allocation, xp) = _calcBurnAllocation(dyadDelta, nft);
-        _subDeposit(id, nft, allocation);
+        _subDeposit(id, nft, -allocation);
         newXp += xp;
       }
       _addXp(id, nft, newXp);
@@ -339,7 +339,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       } else {                        
         uint xp;  
         (allocation, xp) = _calcBurnAllocation(prevDyadDelta, fromNft);
-        _subDeposit(from, fromNft, allocation);
+        _subDeposit(from, fromNft, -allocation);
         _addXp     (from, fromNft, xp);
         _addXp     (  to,   toNft, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
@@ -512,7 +512,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int  relativeShare     = wadMul(multi, burnableDyad);
       uint epsilon           = 0.05e18; // xp accrual limit for very low xps 
       uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax+epsilon); 
-      return (relativeShare*-1, xpAccrual/1e18); 
+      return (relativeShare, xpAccrual/1e18); 
   }
 
   // Return scaled down percentage of dyad supply as XP reward
