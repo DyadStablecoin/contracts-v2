@@ -312,7 +312,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         newXp += xp;
       }
       _addDeposit(id, nft, share);
-      _addXp        (id, nft, newXp);
+      _addXp(id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -358,7 +358,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newDeposit = _eth2dyad(msg.value);
       if (newDeposit < -currentDeposit) { revert DepositTooLow(); }
       _addDeposit(id, nft, newDeposit);
-      _addXp        (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
+      _addXp     (id, nft, _calcXpReward(XP_LIQUIDATION_REWARD));
       idToNft[id] = nft;     
       _transfer(ownerOf(id), to, id);
       emit Liquidated(to, id); 
