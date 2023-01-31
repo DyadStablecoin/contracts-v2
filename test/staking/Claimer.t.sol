@@ -10,8 +10,8 @@ contract ClaimerTest is BaseTest {
 
   function _givePermission(uint id) internal {
     Permission[] memory pp = new Permission[](2);
-    pp[0] = Permission.CLAIM;
-    pp[1] = Permission.MOVE;
+    pp[0] =Permission.CLAIM;
+    pp[1] =Permission.MOVE;
 
     PermissionSet[] memory ps = new PermissionSet[](1);
     ps[0] = PermissionSet(address(claimer), pp);
@@ -28,7 +28,7 @@ contract ClaimerTest is BaseTest {
     assertTrue(claimer.contains(id));
   }
   function testCannotAddIsNotdNFTOwner() public {
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, 0));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector));
     claimer.add(0);
   }
   function testCannotAddMaxNumberOfClaimersReached() public {
@@ -51,7 +51,7 @@ contract ClaimerTest is BaseTest {
     uint id = dNft.mint{value: 5 ether}(address(this));
     _givePermission(id);
     claimer.add(id);
-    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdAlreadyInSet.selector, id));
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdAlreadyInSet.selector));
     claimer.add(id);
   }
 
@@ -74,12 +74,12 @@ contract ClaimerTest is BaseTest {
     vm.prank(address(1));
     claimer.add(id);
 
-    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector, id));
+    vm.expectRevert(abi.encodeWithSelector(IDNft.NotNFTOwner.selector));
     claimer.remove(id);
   }
   function testCannotRemovedNFTNotInSetOfClaimers() public {
     uint id = dNft.mint{value: 5 ether}(address(this));
-    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdNotInSet.selector, id));
+    vm.expectRevert(abi.encodeWithSelector(IClaimer.IdNotInSet.selector));
     claimer.remove(id);
   }
 
