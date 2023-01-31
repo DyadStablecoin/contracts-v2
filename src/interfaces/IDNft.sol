@@ -131,7 +131,7 @@ interface IDNft {
   function move(uint from, uint to, int amount) external;
 
   /**
-   * @notice Withdraw `amount` of DYAD from dNFT
+   * @notice Withdraw `amount` of deposited DYAD as an ERC-20 token from a dNFT
    * @dev Will revert:
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `WITHDRAW` permission
@@ -147,9 +147,8 @@ interface IDNft {
    *      - Withdrawn(uint indexed from, address indexed to, uint amount)
    * @dev For Auditors:
    *      - To save gas it does not check if `amount` is 0 
-   *      - To save gas it does not check if `from` == `to`
-   *      - To prevent flash-loan attacks, (`exchange` or `deposit`) and `withdraw` can not be
-   *        called for the same dNFT in the same block
+   *      - To prevent flash-loan attacks, (`exchange` or `deposit`) and 
+   *        `withdraw` can not be called for the same dNFT in the same block
    * @param from Id of the dNFT to withdraw from
    * @param to Address to send the DYAD to
    * @param amount Amount of DYAD to withdraw

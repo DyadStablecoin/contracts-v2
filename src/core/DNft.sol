@@ -229,25 +229,26 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit Moved(from, to, amount);
   }
 
-  // Withdraw DYAD from dNFT deposit
+  // Withdraw `amount` of deposited DYAD as an ERC-20 token from a dNFT
   function withdraw(uint from, address to, uint amount)
     external 
       withPermission(from, Permission.WITHDRAW)
       isActive(from) 
     returns (uint) {
       if (idToLastDeposit[from] == block.number) { revert DepositedInSameBlock(); } 
-      Nft memory nft = idToNft[from];
-      if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(); }
+      Nft memory fromNft = idToNft[from];
+      int _amount = amount.toInt256();  // amount is always >= 0
+      if (_amount > fromNft.deposit) { revert ExceedsDeposit(); }
       uint collatVault    = address(this).balance * _getLatestEthPrice().toUint256() / 1e8;
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
       if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(); }
       uint averageTVL    = collatVault / totalSupply();
-      uint newWithdrawal = nft.withdrawal + amount;
+      uint newWithdrawal = fromNft.withdrawal + amount;
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(); }
-      nft.withdrawal = newWithdrawal; 
-      _updateDeposit(from, nft, -(amount.toInt256())); // amount is always >= 0
+      fromNft.withdrawal = newWithdrawal; 
       emit WithdrawalUpdated(from, newWithdrawal);
-      idToNft[from]  = nft;
+      _updateDeposit(from, fromNft, -_amount);
+      idToNft[from] = fromNft;
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
       return newCollatRatio;
@@ -261,10 +262,10 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(from) 
     returns (uint) { 
       dyad.burn(msg.sender, amount);
-      Nft storage nft = idToNft[from];
-      if (amount > nft.withdrawal) { revert ExceedsWithdrawal(); }
-      nft.withdrawal -= amount;
-      emit WithdrawalUpdated(from, nft.withdrawal);
+      Nft storage fromNft = idToNft[from];
+      if (amount > fromNft.withdrawal) { revert ExceedsWithdrawal(); }
+      fromNft.withdrawal -= amount;
+      emit WithdrawalUpdated(from, fromNft.withdrawal);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
