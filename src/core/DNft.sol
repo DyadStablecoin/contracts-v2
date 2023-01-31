@@ -206,9 +206,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad.burn(msg.sender, amount);
       Nft memory nft = idToNft[id];
       if (amount > nft.withdrawal) { revert ExceedsWithdrawal(); }
-      nft.withdrawal -= amount; 
-      emit WithdrawalUpdated(id, nft.withdrawal);
-      _addDeposit(id, nft, amount.toInt256());
+      _subWithdrawal(id, nft, amount);
+      _addDeposit   (id, nft, amount.toInt256());
       idToNft[id] = nft;
       emit Deposited(id, amount);
   }
@@ -245,9 +244,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint averageTVL    = collatVault / totalSupply();
       uint newWithdrawal = fromNft.withdrawal + amount;
       if (newWithdrawal > averageTVL) { revert ExceedsAverageTVL(); }
-      fromNft.withdrawal = newWithdrawal; 
-      emit WithdrawalUpdated(from, newWithdrawal);
-      _subDeposit(from, fromNft, _amount);
+      _addWithdrawal(from, fromNft, amount);
+      _subDeposit   (from, fromNft, _amount);
       idToNft[from] = fromNft;
       dyad.mint(to, amount);
       emit Withdrawn(from, to, amount);
@@ -264,8 +262,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       dyad.burn(msg.sender, amount);
       Nft storage fromNft = idToNft[from];
       if (amount > fromNft.withdrawal) { revert ExceedsWithdrawal(); }
-      fromNft.withdrawal -= amount;
-      emit WithdrawalUpdated(from, fromNft.withdrawal);
+      _subWithdrawal(from, fromNft, amount);
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
       emit Redeemed(msg.sender, from, amount);
@@ -461,12 +458,27 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       totalDeposit += amount;
       emit DepositUpdated(id, nft.deposit);
   }
+
   // Subtract `amount` from `nft.deposit` in memory. update `totalDeposit` accordingly.
   function _subDeposit(uint id, Nft memory nft, int amount) 
     private {
       nft.deposit  -= amount;
       totalDeposit -= amount;
       emit DepositUpdated(id, nft.deposit);
+  }
+
+  // Add `amount` to `nft.withdrawal` in memory
+  function _addWithdrawal(uint id, Nft memory nft, uint amount) 
+    private {
+      nft.withdrawal += amount;
+      emit WithdrawalUpdated(id, nft.withdrawal);
+  }
+
+  // Subtract `amount` from `nft.withdrawal` in memory
+  function _subWithdrawal(uint id, Nft memory nft, uint amount) 
+    private {
+      nft.withdrawal -= amount;
+      emit WithdrawalUpdated(id, nft.withdrawal);
   }
 
   // Calculate share weighted by relative xp
