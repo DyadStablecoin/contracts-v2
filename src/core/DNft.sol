@@ -313,7 +313,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
         _subDeposit(id, nft, share);
         newXp += xp;
       }
-      _addXp     (id, nft, newXp);
+      _addXp(id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
