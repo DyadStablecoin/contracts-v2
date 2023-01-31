@@ -310,7 +310,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       } else {
         uint xp;
         (allocation, xp) = _calcBurnAllocation(dyadDelta, nft);
-        _subDeposit(id, nft, -allocation);
+        _subDeposit(id, nft, -allocation); // allocation is negative
         newXp += xp;
       }
       _addXp(id, nft, newXp);
@@ -339,7 +339,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       } else {                        
         uint xp;  
         (allocation, xp) = _calcBurnAllocation(prevDyadDelta, fromNft);
-        _subDeposit(from, fromNft, -allocation);
+        _subDeposit(from, fromNft, -allocation); // allocation is negative
         _addXp     (from, fromNft, xp);
         _addXp     (  to,   toNft, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
