@@ -306,13 +306,14 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
         share = _calcNftMint(dyadDelta, nft);
+        _addDeposit(id, nft, share);
       } else {
         uint xp;
         (share, xp) = _calcNftBurn(dyadDelta, nft);
+        _subDeposit(id, nft, share);
         newXp += xp;
       }
-      _addDeposit(id, nft, share);
-      _addXp(id, nft, newXp);
+      _addXp     (id, nft, newXp);
       idToNft[id] = nft;
       emit Claimed(id, share);
       return share;
@@ -338,7 +339,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       } else {                        
         uint xp;  
         (share, xp) = _calcNftBurn(prevDyadDelta, fromNft);
-        _addDeposit(from, fromNft, share);
+        _subDeposit(from, fromNft, share);
         _addXp     (from, fromNft, xp);
         _addXp     (  to,   toNft, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
@@ -493,7 +494,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return wadMul(share, multi);
   }
 
-  // Calculate xp accrual and share by relative xp
+  // Calculate the xp accrual and the share to burn
   function _calcNftBurn(int share, Nft memory nft) 
     private 
     view returns (int, uint) {
@@ -509,7 +510,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int  relativeShare     = wadMul(multi, share);
       uint epsilon           = 0.05e18; // xp accrual limit for very low xps 
       uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax+epsilon); 
-      return (relativeShare, xpAccrual/1e18); 
+      return (relativeShare*-1, xpAccrual/1e18); 
   }
 
   // Return scaled down percentage of dyad supply as XP reward
