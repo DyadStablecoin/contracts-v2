@@ -214,19 +214,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Move `amount` `from` one dNFT deposit `to` another dNFT deposit
-  function move(uint _from, uint _to, int amount) 
+  function move(uint from, uint to, int amount) 
     external 
-      withPermission(_from, Permission.MOVE) 
+      withPermission(from, Permission.MOVE) 
     {
       require(amount > 0); // needed because amount is int
-      Nft memory from = idToNft[_from];
-      Nft memory to   = idToNft[_to];
-      if (amount > from.deposit) { revert ExceedsDeposit(); }
-      _updateDeposit(_from, from, -amount);
-      _updateDeposit(  _to,   to,  amount);
-      idToNft[_from] = from;
-      idToNft[_to]   = to;
-      emit Moved(_from, _to, amount);
+      Nft memory fromNft = idToNft[from];
+      Nft memory   toNft = idToNft[to];
+      if (amount > fromNft.deposit) { revert ExceedsDeposit(); }
+      _updateDeposit(from, fromNft, -amount);
+      _updateDeposit(  to,   toNft,  amount);
+      idToNft[from] = fromNft;
+      idToNft[to]   =   toNft;
+      emit Moved(from, to, amount);
   }
 
   // Withdraw DYAD from dNFT deposit
@@ -321,32 +321,32 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
-  function snipe(uint _from, uint _to)
+  function snipe(uint from, uint to)
     external 
-      isActive(_from) 
-      isActive(_to) 
+      isActive(from) 
+      isActive(to) 
     returns (int) {
-      if (_from == _to) { revert CannotSnipeSelf(); }
-      if (idToClaimed[_from][prevSyncedBlock]) { revert AlreadySniped(); }
-      idToClaimed[_from][prevSyncedBlock] = true;
-      Nft memory from = idToNft[_from];
-      Nft memory to   = idToNft[_to];
+      if (from == to) { revert CannotSnipeSelf(); }
+      if (idToClaimed[from][prevSyncedBlock]) { revert AlreadySniped(); }
+      idToClaimed[from][prevSyncedBlock] = true;
+      Nft memory fromNft = idToNft[from];
+      Nft memory   toNft = idToNft[to];
       int share;
       if (prevDyadDelta > 0) {         
-        share = _calcNftMint(prevDyadDelta, from);
-        _updateDeposit(_from, from, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
-        _updateDeposit(  _to,   to, wadMul(share, SNIPE_MINT_SHARE_REWARD));
-        _addXp        (  _to,   to, _calcXpReward(XP_SNIPE_MINT_REWARD));
+        share = _calcNftMint(prevDyadDelta, fromNft);
+        _updateDeposit(from, fromNft, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
+        _updateDeposit(  to,   toNft, wadMul(share, SNIPE_MINT_SHARE_REWARD));
+        _addXp        (  to,   toNft, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
-        (share, xp) = _calcNftBurn(prevDyadDelta, from);
-        _updateDeposit(_from, from, share);
-        _addXp        (_from, from, xp);
-        _addXp        (  _to,   to, _calcXpReward(XP_SNIPE_BURN_REWARD));
+        (share, xp) = _calcNftBurn(prevDyadDelta, fromNft);
+        _updateDeposit(from, fromNft, share);
+        _addXp        (from, fromNft, xp);
+        _addXp        (  to,   toNft, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
-      idToNft[_from] = from;
-      idToNft[_to]   = to;
-      emit Sniped(_from, _to, share);
+      idToNft[from] = fromNft;
+      idToNft[to]   =   toNft;
+      emit Sniped(from, to, share);
       return share;
   }
 
