@@ -444,20 +444,20 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       }
   }
 
-  // Update `nft.xp` in memory. check for new `maxXp`. increase `totalXp`. 
+  // Add `xp` to `nft.xp` in memory. check for new `maxXp` and increase `totalXp`. 
   function _addXp(uint id, Nft memory nft, uint xp) 
     private {
       nft.xp  += xp;
-      if (nft.xp > maxXp) { maxXp = nft.xp; }
       totalXp += xp;
+      if (nft.xp > maxXp) { maxXp = nft.xp; }
       emit XpUpdated(id, nft.xp);
   }
 
-  // Update `nft.deposit` in memory. update `totalDeposit` accordingly
-  function _updateDeposit(uint id, Nft memory nft, int _deposit) 
+  // Update `nft.deposit` by `amount` in memory. update `totalDeposit` accordingly
+  function _updateDeposit(uint id, Nft memory nft, int amount) 
     private {
-      nft.deposit  += _deposit;
-      totalDeposit += _deposit;
+      nft.deposit  += amount;
+      totalDeposit += amount;
       emit DepositUpdated(id, nft.deposit);
   }
 
