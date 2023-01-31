@@ -162,8 +162,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (newDeposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
       (uint id, Nft memory nft) = _mintNft(to); 
       _addDeposit(id, nft, newDeposit);
-      nft.isActive  = true;
-      idToNft[id]   = nft;
+      nft.isActive = true;
+      idToNft[id]  = nft;
       return id;
   }
 
@@ -238,7 +238,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (idToLastDeposit[from] == block.number) { revert DepositedInSameBlock(); } 
       Nft memory nft = idToNft[from];
       if (amount.toInt256() > nft.deposit) { revert ExceedsDeposit(nft.deposit); }
-      uint collatVault    = address(this).balance/1e8 * _getLatestEthPrice().toUint256();
+      uint collatVault    = address(this).balance * _getLatestEthPrice().toUint256() / 1e8;
       uint newCollatRatio = collatVault.divWadDown(dyad.totalSupply() + amount);
       if (newCollatRatio < MIN_COLLATERIZATION_RATIO) { revert CrTooLow(newCollatRatio); }
       uint averageTVL    = collatVault / totalSupply();
