@@ -389,12 +389,12 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Grant and revoke permissions
-  function grant(uint256 _id, PermissionSet[] calldata _permissionSets) 
+  function grant(uint _id, PermissionSet[] calldata _permissionSets) 
     external 
       onlyOwner(_id) 
     {
       uint248 _blockNumber = uint248(block.number);
-      for (uint256 i = 0; i < _permissionSets.length; ) {
+      for (uint i = 0; i < _permissionSets.length; ) {
         PermissionSet memory _permissionSet = _permissionSets[i];
         if (_permissionSet.permissions.length == 0) {
           delete idToNftPermission[_id][_permissionSet.operator];
@@ -410,7 +410,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Check if operator has permission for dNFT with id
-  function hasPermission(uint256 id, address operator, Permission permission) 
+  function hasPermission(uint id, address operator, Permission permission) 
     public 
     view 
     returns (bool) {
@@ -423,19 +423,19 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   }
 
   // Check if operator has permissions for dNFT with id
-  function hasPermissions(uint256 id, address operator, Permission[] calldata permissions)
+  function hasPermissions(uint id, address operator, Permission[] calldata permissions)
     external 
     view 
     returns (bool[] memory _hasPermissions) {
       _hasPermissions = new bool[](permissions.length);
       if (ownerOf(id) == operator) { // if operator is owner they have all permissions
-        for (uint256 i = 0; i < permissions.length; i++) {
+        for (uint i = 0; i < permissions.length; i++) {
           _hasPermissions[i] = true;
         }
       } else {                       // if not the owner then check one by one
         NftPermission memory _nftPermission = idToNftPermission[id][operator];
         if (idToNft[id].lastOwnershipChange < _nftPermission.lastUpdated) {
-          for (uint256 i = 0; i < permissions.length; i++) {
+          for (uint i = 0; i < permissions.length; i++) {
             if (_nftPermission.permissions._hasPermission(permissions[i])) {
               _hasPermissions[i] = true;
             }
