@@ -453,7 +453,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit XpUpdated(id, nft.xp);
   }
 
-  // Update `nft.deposit` by `amount` in memory. update `totalDeposit` accordingly
+  // Update `nft.deposit` by `amount` in memory. update `totalDeposit` accordingly.
   function _updateDeposit(uint id, Nft memory nft, int amount) 
     private {
       nft.deposit  += amount;
