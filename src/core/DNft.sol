@@ -82,13 +82,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event DepositUpdated   (uint indexed id, int  deposit);
   event WithdrawalUpdated(uint indexed id, uint withdrawal);
   event IsActiveUpdated  (uint indexed id, bool isActive);
-  event Claimed          (uint indexed id, int  share);
+  event Claimed          (uint indexed id, int  amount);
   event Deposited        (uint indexed id, uint amount);
   event Exchanged        (uint indexed id, int  amount);
   event Modified         (uint indexed id, PermissionSet[] permissions);
   event Withdrawn        (uint indexed from, address indexed to, uint amount);
   event Moved            (uint indexed from, uint indexed to, int amount);
-  event Sniped           (uint indexed from, uint indexed to, int share);
+  event Sniped           (uint indexed from, uint indexed to, int amount);
   event Minted           (address indexed to, uint indexed id);
   event Liquidated       (address indexed to, uint indexed id);
   event Redeemed         (address indexed to, uint indexed id, uint amount);
@@ -302,21 +302,21 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (idToClaimed[id][syncedBlock]) { revert AlreadyClaimed(); }
       idToClaimed[id][syncedBlock] = true;
       Nft memory nft = idToNft[id];
-      int  share;
+      int  allocation;
       uint newXp = _calcXpReward(XP_CLAIM_REWARD);
       if (dyadDelta > 0) {
-        share = _calcNftMint(dyadDelta, nft);
-        _addDeposit(id, nft, share);
+        allocation = _calcMintAllocation(dyadDelta, nft);
+        _addDeposit(id, nft, allocation);
       } else {
         uint xp;
-        (share, xp) = _calcNftBurn(dyadDelta, nft);
-        _subDeposit(id, nft, share);
+        (allocation, xp) = _calcBurnAllocation(dyadDelta, nft);
+        _subDeposit(id, nft, allocation);
         newXp += xp;
       }
       _addXp(id, nft, newXp);
       idToNft[id] = nft;
-      emit Claimed(id, share);
-      return share;
+      emit Claimed(id, allocation);
+      return allocation;
   }
 
   // Snipe DYAD from previouse sync window to get a bonus
@@ -330,23 +330,23 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToClaimed[from][prevSyncedBlock] = true;
       Nft memory fromNft = idToNft[from];
       Nft memory   toNft = idToNft[to];
-      int share;
+      int allocation;
       if (prevDyadDelta > 0) {         
-        share = _calcNftMint(prevDyadDelta, fromNft);
-        _addDeposit(from, fromNft, wadMul(share, 1e18 - SNIPE_MINT_SHARE_REWARD));
-        _addDeposit(  to,   toNft, wadMul(share, SNIPE_MINT_SHARE_REWARD));
+        allocation = _calcMintAllocation(prevDyadDelta, fromNft);
+        _addDeposit(from, fromNft, wadMul(allocation, 1e18 - SNIPE_MINT_SHARE_REWARD));
+        _addDeposit(  to,   toNft, wadMul(allocation, SNIPE_MINT_SHARE_REWARD));
         _addXp     (  to,   toNft, _calcXpReward(XP_SNIPE_MINT_REWARD));
       } else {                        
         uint xp;  
-        (share, xp) = _calcNftBurn(prevDyadDelta, fromNft);
-        _subDeposit(from, fromNft, share);
+        (allocation, xp) = _calcBurnAllocation(prevDyadDelta, fromNft);
+        _subDeposit(from, fromNft, allocation);
         _addXp     (from, fromNft, xp);
         _addXp     (  to,   toNft, _calcXpReward(XP_SNIPE_BURN_REWARD));
       }
       idToNft[from] = fromNft;
       idToNft[to]   =   toNft;
-      emit Sniped(from, to, share);
-      return share;
+      emit Sniped(from, to, allocation);
+      return allocation;
   }
 
   // Liquidate DNft by covering its deposit
@@ -482,8 +482,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       emit WithdrawalUpdated(id, nft.withdrawal);
   }
 
-  // Calculate share weighted by relative xp
-  function _calcNftMint(int share, Nft memory nft) 
+  // Calculate this dNFTs mint allocation from all the `mintableDyad`
+  function _calcMintAllocation(int mintableDyad, Nft memory nft) 
     private 
     view 
     returns (int) { // no xp accrual for minting
@@ -491,13 +491,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint relativeXp      = nft.xp.divWadDown(totalXp);
       int  relativeDeposit = wadDiv(nft.deposit, totalDeposit);
       int  multi = (relativeXp.toInt256() + relativeDeposit) / 2;
-      return wadMul(share, multi);
+      return wadMul(mintableDyad, multi);
   }
 
-  // Calculate the xp accrual and the share to burn
-  function _calcNftBurn(int share, Nft memory nft) 
+  // Calculate this dNFTs burn allocation from all the `burnableDyad` and the
+  // xp reward it gets for burning it
+  function _calcBurnAllocation(int burnableDyad, Nft memory nft) 
     private 
-    view returns (int, uint) {
+    view 
+    returns (int, uint) {
       if (nft.deposit < 0) revert DepositIsNegative();
       uint relativeXpToMax   = nft.xp.divWadDown(maxXp);
       uint relativeXpToTotal = nft.xp.divWadDown(totalXp);
@@ -507,7 +509,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       uint oneMinusRank      = (1e18 - relativeXpToMax);
       int  multi             = oneMinusRank.divWadDown((totalSupply()*1e18)-relativeXpNorm).toInt256();
       multi                  = (relativeMinted.toInt256() + multi) / 2;
-      int  relativeShare     = wadMul(multi, share);
+      int  relativeShare     = wadMul(multi, burnableDyad);
       uint epsilon           = 0.05e18; // xp accrual limit for very low xps 
       uint xpAccrual         = relativeShare.abs().divWadDown(relativeXpToMax+epsilon); 
       return (relativeShare*-1, xpAccrual/1e18); 
