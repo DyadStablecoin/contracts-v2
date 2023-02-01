@@ -315,16 +315,57 @@ contract DNftsTest is BaseTest {
 
     int id1DepositBefore = dNft.idToNft(id1).deposit;
     int id2DepositBefore = dNft.idToNft(id2).deposit;
+    uint id1XpBefore = dNft.idToNft(id1).xp;
     uint id2XpBefore = dNft.idToNft(id2).xp;
 
     dNft.snipe(id1, id2);
 
     int id1DepositAfter = dNft.idToNft(id1).deposit;
     int id2DepositAfter = dNft.idToNft(id2).deposit;
+    uint id1XpAfter = dNft.idToNft(id1).xp;
     uint id2XpAfter = dNft.idToNft(id2).xp;
 
     assertTrue(id1DepositAfter > id1DepositBefore);
     assertTrue(id2DepositAfter > id2DepositBefore);
+    assertEq(id1XpAfter, id1XpBefore);
+    assertTrue(id2XpAfter > id2XpBefore);
+  }
+  function testSnipeCannotSnipeTwice() public {
+    uint id1 = dNft.mint{value: 50 ether}(address(this));
+    uint id2 = dNft.mint{value: 50 ether}(address(this));
+    dNft.withdraw(id1, address(this), 1000*1e18);
+    _sync(id1, 1100*1e8);              // 10% price increas
+    vm.warp(block.timestamp + 1 days);
+    _sync(id1, 1000*1e8);
+    dNft.snipe(id1, id2);
+    vm.expectRevert(abi.encodeWithSelector(IDNft.AlreadySniped.selector));
+    dNft.snipe(id1, id2);
+  }
+  function testSnipeBurn() public {
+    uint id1 = dNft.mint{value: 50 ether}(address(this));
+    uint id2 = dNft.mint{value: 50 ether}(address(this));
+    dNft.withdraw(id1, address(this), 1000*1e18);
+    oracleMock.setPrice(900e8); 
+    dNft.sync(id1);
+    vm.warp(block.timestamp + 1 days);
+    oracleMock.setPrice(1000e8); 
+    dNft.sync(id1);
+
+    int id1DepositBefore = dNft.idToNft(id1).deposit;
+    int id2DepositBefore = dNft.idToNft(id2).deposit;
+    uint id1XpBefore = dNft.idToNft(id1).xp;
+    uint id2XpBefore = dNft.idToNft(id2).xp;
+
+    dNft.snipe(id1, id2);
+
+    int id1DepositAfter = dNft.idToNft(id1).deposit;
+    int id2DepositAfter = dNft.idToNft(id2).deposit;
+    uint id1XpAfter = dNft.idToNft(id1).xp;
+    uint id2XpAfter = dNft.idToNft(id2).xp;
+
+    assertTrue(id1DepositAfter < id1DepositBefore);
+    assertEq(id2DepositAfter, id2DepositBefore);
+    assertTrue(id1XpAfter > id1XpBefore);
     assertTrue(id2XpAfter > id2XpBefore);
   }
 
