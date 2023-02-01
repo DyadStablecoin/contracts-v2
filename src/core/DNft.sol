@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.17;
+import "forge-std/console.sol";
 
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {SignedMath} from "@openzeppelin/contracts/utils/math/SignedMath.sol";
@@ -279,8 +280,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       int newEthPrice = _getLatestEthPrice();
       if (newEthPrice == ethPrice) { revert EthPriceUnchanged(); }
       int priceChange = wadDiv(newEthPrice - ethPrice, ethPrice); 
-      dyadDelta       = wadMul(dyadTotalSupply.toInt256(), priceChange);
       prevDyadDelta   = dyadDelta;
+      dyadDelta       = wadMul(dyadTotalSupply.toInt256(), priceChange);
       timeOfSync      = block.timestamp;
       ethPrice        = newEthPrice; 
       prevSyncedBlock = syncedBlock;  // open new snipe window
@@ -318,7 +319,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return allocation;
   }
 
-  // Snipe DYAD from previouse sync window to get a bonus
+  // Snipe unclaimed DYAD from someone else 
   function snipe(uint from, uint to)
     external 
       isActive(from) 

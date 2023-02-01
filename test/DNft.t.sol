@@ -304,6 +304,30 @@ contract DNftsTest is BaseTest {
     dNft.claim(id);
   }
 
+  // -------------------- snipe --------------------
+  function testSnipeMint() public {
+    uint id1 = dNft.mint{value: 50 ether}(address(this));
+    uint id2 = dNft.mint{value: 50 ether}(address(this));
+    dNft.withdraw(id1, address(this), 1000*1e18);
+    _sync(id1, 1100*1e8);              // 10% price increas
+    vm.warp(block.timestamp + 1 days);
+    _sync(id1, 1000*1e8);
+
+    int id1DepositBefore = dNft.idToNft(id1).deposit;
+    int id2DepositBefore = dNft.idToNft(id2).deposit;
+    uint id2XpBefore = dNft.idToNft(id2).xp;
+
+    dNft.snipe(id1, id2);
+
+    int id1DepositAfter = dNft.idToNft(id1).deposit;
+    int id2DepositAfter = dNft.idToNft(id2).deposit;
+    uint id2XpAfter = dNft.idToNft(id2).xp;
+
+    assertTrue(id1DepositAfter > id1DepositBefore);
+    assertTrue(id2DepositAfter > id2DepositBefore);
+    assertTrue(id2XpAfter > id2XpBefore);
+  }
+
   // -------------------- liquidate --------------------
   function makeDepositNegative() public returns (uint) {
     // make the deposit of id2 negative so it becomes liquidatable

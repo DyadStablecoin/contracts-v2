@@ -51,6 +51,7 @@ interface IDNft {
   function maxXp()          external view returns (uint);
   function idToNft(uint id) external view returns (Nft memory);
   function dyadDelta()      external view returns (int);
+  function prevDyadDelta()  external view returns (int);
   function totalXp()        external view returns (uint);
   function syncedBlock()    external view returns (uint);
   function prevSyncedBlock()external view returns (uint);
@@ -223,7 +224,7 @@ interface IDNft {
   function claim(uint id) external returns (int);
 
   /**
-   * @notice Snipe DYAD from previouse sync window to get a bonus
+   * @notice Snipe unclaimed DYAD from someone else
    * @dev Will revert:
    *      - If `from` dNFT is inactive
    *      - If `to` dNFT is inactive
