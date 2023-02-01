@@ -91,7 +91,7 @@ interface IDNft {
   function exchange(uint id) external payable returns (int);
 
   /**
-   * @notice Deposit `amount` of DYAD back into dNFT
+   * @notice Deposit `amount` of DYAD ERC-20 tokens into the dNFT
    * @dev Will revert:
    *      - If `msg.sender` is not the owner of the dNFT AND does not have the
    *        `DEPOSIT` permission

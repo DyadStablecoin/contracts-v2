@@ -195,7 +195,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       return newDeposit;
   }
 
-  // Deposit DYAD 
+  // Deposit `amount` of DYAD ERC-20 tokens into the dNFT
   function deposit(uint id, uint amount)
     external 
       withPermission(id, Permission.DEPOSIT) 
