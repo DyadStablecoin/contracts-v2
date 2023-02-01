@@ -87,11 +87,11 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Exchanged        (uint indexed id, int  amount);
   event Modified         (uint indexed id, PermissionSet[] permissions);
   event Withdrawn        (uint indexed from, address indexed to, uint amount);
+  event Redeemed         (uint indexed from, address indexed to, uint amount);
   event Moved            (uint indexed from, uint indexed to, int amount);
   event Sniped           (uint indexed from, uint indexed to, int amount);
   event Minted           (address indexed to, uint indexed id);
   event Liquidated       (address indexed to, uint indexed id);
-  event Redeemed         (address indexed to, uint indexed id, uint amount);
 
   error MaxSupply           ();
   error SyncTooSoon         ();
@@ -259,12 +259,13 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       isActive(from) 
     returns (uint) { 
       dyad.burn(msg.sender, amount);
-      Nft storage fromNft = idToNft[from];
+      Nft memory fromNft = idToNft[from];
       if (amount > fromNft.withdrawal) { revert ExceedsWithdrawal(); }
       _subWithdrawal(from, fromNft, amount);
+      idToNft[from] = fromNft;
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
-      emit Redeemed(msg.sender, from, amount);
+      emit Redeemed(from, to, amount);
       return eth;
   }
 

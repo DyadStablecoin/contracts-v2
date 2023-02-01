@@ -171,11 +171,14 @@ contract DNftsTest is BaseTest {
     dNft.withdraw(id, address(this), AMOUNT_TO_REDEEM);
     uint oldTotalSupply = dyad.totalSupply();
     uint oldBalance = address(this).balance;
+    uint oldWithdrawal = dNft.idToNft(id).withdrawal;
     dNft.redeem  (id, address(this), AMOUNT_TO_REDEEM);
     uint newTotalSupply = dyad.totalSupply();
     uint newBalance = address(this).balance;
+    uint newWithdrawal = dNft.idToNft(id).withdrawal;
     assertTrue(newTotalSupply < oldTotalSupply);
     assertTrue(newBalance > oldBalance);
+    assertTrue(newWithdrawal < oldWithdrawal);
   }
   function testCannotRedeemNotDNftOwner() public {
     uint AMOUNT_TO_REDEEM = 10000;

@@ -166,7 +166,7 @@ interface IDNft {
    *      - If DYAD to redeem is larger than the dNFT withdrawal
    *      - If the ETH transfer fails
    * @dev Emits:
-   *      - Redeemed(address indexed to, uint indexed id, uint amount)
+   *      - Redeemed(uint indexed from, address indexed to, uint amount)
    * @dev For Auditors:
    *      - To save gas it does not check if `amount` is 0 
    *      - `dyad.burn` is called in the beginning so we can revert as fast as
