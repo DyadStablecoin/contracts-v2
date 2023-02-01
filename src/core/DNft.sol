@@ -87,9 +87,9 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
   event Exchanged        (uint indexed id, int  amount);
   event Modified         (uint indexed id, PermissionSet[] permissions);
   event Withdrawn        (uint indexed from, address indexed to, uint amount);
-  event Redeemed         (uint indexed from, address indexed to, uint amount);
   event Moved            (uint indexed from, uint indexed to, int amount);
   event Sniped           (uint indexed from, uint indexed to, int amount);
+  event Redeemed         (uint indexed from, uint dyad, address indexed to, uint eth);
   event Minted           (address indexed to, uint indexed id);
   event Liquidated       (address indexed to, uint indexed id);
 
@@ -265,7 +265,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       idToNft[from] = fromNft;
       uint eth = amount*1e8 / _getLatestEthPrice().toUint256();
       to.safeTransferETH(eth); // re-entrancy vector
-      emit Redeemed(from, to, amount);
+      emit Redeemed(from, amount, to, eth);
       return eth;
   }
 
