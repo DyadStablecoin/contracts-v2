@@ -71,4 +71,10 @@ interface IClaimer {
    * @return True if the dNFT is in the set of Claimers, false otherwise
    */
   function contains(uint id) external returns (bool);
+
+  /**
+   * @notice Get the number of dNFTs in the set of Claimers
+   * @return The number of dNFTs in the set of Claimers
+   */
+  function length() external returns (uint);
 }

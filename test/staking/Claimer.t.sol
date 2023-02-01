@@ -99,9 +99,28 @@ contract ClaimerTest is BaseTest {
     int feesBefore = dNft.idToNft(feeCollector).deposit;
     int masterDepositBefore0  = dNft.idToNft(0).deposit;
     int masterDepositBefore30 = dNft.idToNft(30).deposit;
+    uint claimersLengthBefore = claimer.length();
     claimer.claimAll();
     assertTrue(feesBefore < dNft.idToNft(feeCollector).deposit);
     assertTrue(dNft.idToNft(0).deposit  > masterDepositBefore0);
     assertTrue(dNft.idToNft(30).deposit > masterDepositBefore30);
+    assertEq(claimer.length(), claimersLengthBefore);
+  }
+
+  function testClaimAllOneFails() public {
+    // so we have something to claim
+    overwrite(address(dNft), "dyadDelta()", 100*1e18);
+
+    for (uint i = 0; i < MAX_NUMBER_OF_CLAIMERS; i++) {
+      uint id = dNft.mint{value: 5 ether}(address(this));
+      _givePermission(id);
+      claimer.add(id);
+    }
+
+    dNft.deactivate(13);
+
+    assertEq(claimer.length(), 20);
+    claimer.claimAll();
+    assertEq(claimer.length(), 19);
   }
 }
