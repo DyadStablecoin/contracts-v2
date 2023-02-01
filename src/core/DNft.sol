@@ -147,9 +147,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       ethPrice              = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
-        // insiders do not require a DYAD deposit
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); 
-        idToNft[id] = nft; 
+        idToNft[id] = nft; // insiders do not require a DYAD deposit
       }
   }
 
