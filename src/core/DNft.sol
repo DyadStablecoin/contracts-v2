@@ -536,7 +536,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
     private 
     view 
     returns (int) {
-      return (eth/1e8).toInt256() * _getLatestEthPrice(); 
+      return eth.toInt256() * _getLatestEthPrice() / 1e8; 
   }
 
   // ETH price in USD

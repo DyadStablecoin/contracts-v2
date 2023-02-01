@@ -171,7 +171,7 @@ interface IDNft {
    *      - To save gas it does not check if `amount` is 0 
    *      - `dyad.burn` is called in the beginning so we can revert as fast as
    *        possible if `msg.sender` does not have enough DYAD. The dyad contract
-   *        is truested so it introduces no re-entrancy risk.
+   *        is trusted so it introduces no re-entrancy risk.
    *      - There is a re-entrancy risk while transfering the ETH, that is why the 
    *        `nonReentrant` modifier is used and all state changes are done before
    *         the ETH transfer
