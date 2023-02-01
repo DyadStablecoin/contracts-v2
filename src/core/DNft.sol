@@ -378,7 +378,7 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
 
   // Set `nft.isActive` to `true` in memory
   function _activate(uint id, Nft memory nft) 
-    internal {
+    private {
       nft.isActive = true;
       emit IsActiveUpdated(id, true);
   }
