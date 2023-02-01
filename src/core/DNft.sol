@@ -147,9 +147,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       ethPrice              = _getLatestEthPrice();
 
       for (uint i = 0; i < _insiders.length; i++) {
-        // insiders do not require a DYAD deposit
         (uint id, Nft memory nft) = _mintNft(_insiders[i]); 
-        idToNft[id] = nft; 
+        idToNft[id] = nft; // insiders do not require a DYAD deposit
       }
   }
 
@@ -162,8 +161,8 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       if (newDeposit < MIN_MINT_DYAD_DEPOSIT) { revert DepositTooLow(); }
       (uint id, Nft memory nft) = _mintNft(to); 
       _addDeposit(id, nft, newDeposit);
-      nft.isActive = true;
-      idToNft[id]  = nft;
+      _activate  (id, nft);
+      idToNft[id] = nft;
       return id;
   }
 
@@ -371,7 +370,15 @@ contract DNft is ERC721Enumerable, ReentrancyGuard {
       withPermission(id, Permission.ACTIVATE)
       isInactive(id) 
     {
-      idToNft[id].isActive = true;
+      Nft memory nft = idToNft[id];
+      _activate(id, nft);
+      idToNft[id] = nft;
+  }
+
+  // Set `nft.isActive` to `true` in memory
+  function _activate(uint id, Nft memory nft) 
+    private {
+      nft.isActive = true;
       emit IsActiveUpdated(id, true);
   }
 

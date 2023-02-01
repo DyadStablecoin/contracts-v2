@@ -38,6 +38,7 @@ contract DNftsTest is BaseTest {
     assertEq(dNft.idToNft(id).xp, dNft.XP_MINT_REWARD());
     assertEq(uint(dNft.idToNft(id).deposit), 5 ether / 1e8 * dNft.ethPrice());
     assertEq(dNft.idToNft(id).withdrawal, 0);
+    assertEq(dNft.idToNft(id).isActive, true);
   }
   function testCannotMintToZeroAddress() public {
     vm.expectRevert("ERC721: mint to the zero address");
