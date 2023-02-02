@@ -6,7 +6,6 @@ import "forge-std/console.sol";
 import {DeployBase} from "../script/deploy/DeployBase.s.sol";
 import {IDNft} from "../src/interfaces/IDNft.sol";
 import {Dyad} from "../src/core/Dyad.sol";
-import {Claimer} from "../src/composing/Claimer.sol";
 import {OracleMock} from "./OracleMock.sol";
 import {Parameters} from "../src/Parameters.sol";
 
@@ -15,7 +14,6 @@ contract BaseTest is Test, Parameters {
 
   IDNft      dNft;
   Dyad       dyad;
-  Claimer    claimer;
   OracleMock oracleMock;
 
   receive() external payable {}
@@ -23,7 +21,7 @@ contract BaseTest is Test, Parameters {
   function setUp() public {
     oracleMock = new OracleMock();
     DeployBase deployBase = new DeployBase();
-    (address _dNfts, address _dyad, address _claimer) = deployBase.deploy(
+    (address _dNfts, address _dyad) = deployBase.deploy(
       address(oracleMock),
       MAINNET_MAX_SUPPLY,
       MAINNET_MIN_TIME_BETWEEN_SYNC,
@@ -32,7 +30,6 @@ contract BaseTest is Test, Parameters {
     );
     dNft    = IDNft(_dNfts);
     dyad    = Dyad(_dyad);
-    claimer = Claimer(_claimer);
     vm.warp(block.timestamp + 1 days);
   }
 
